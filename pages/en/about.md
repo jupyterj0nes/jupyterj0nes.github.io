@@ -3,6 +3,7 @@ layout: page
 title: "About"
 description: "Who is behind We Investigate Anything."
 lang: en
+ref: about
 permalink: /en/about/
 ---
 

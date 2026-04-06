@@ -4,6 +4,7 @@ title: "Empezando con KAPE: Triage como un profesional"
 date: 2026-04-06 09:00:00 +0100
 category: tools
 lang: es
+ref: getting-started-kape
 tags: [kape, triage, recoleccion, herramientas]
 description: "Guía práctica de KAPE (Kroll Artifact Parser and Extractor) — cómo recolectar y procesar artefactos forenses de forma eficiente."
 comments: true

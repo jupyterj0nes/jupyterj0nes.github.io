@@ -3,6 +3,7 @@ layout: page
 title: "Sobre mí"
 description: "Quién está detrás de We Investigate Anything."
 lang: es
+ref: about
 permalink: /es/about/
 ---
 

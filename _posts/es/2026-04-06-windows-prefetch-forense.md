@@ -4,6 +4,7 @@ title: "Windows Prefetch: Qué revela y cómo analizarlo"
 date: 2026-04-06 10:00:00 +0100
 category: artifacts
 lang: es
+ref: windows-prefetch
 tags: [windows, prefetch, ejecucion, artefactos]
 description: "Análisis en profundidad de los archivos Prefetch de Windows — qué almacenan, dónde encontrarlos y qué nos dicen durante una investigación."
 comments: true

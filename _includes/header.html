@@ -1,6 +1,51 @@
 {% assign lang = page.lang | default: "es" %}
 {% assign t = site.data.translations[lang] %}
 
+{% comment %} Calculate the URL for the language switch {% endcomment %}
+{% if lang == "es" %}
+  {% assign target_lang = "en" %}
+{% else %}
+  {% assign target_lang = "es" %}
+{% endif %}
+
+{% assign lang_url = "" %}
+
+{% if page.ref %}
+  {% comment %} Search in posts {% endcomment %}
+  {% for p in site.posts %}
+    {% if p.ref == page.ref and p.lang == target_lang %}
+      {% assign lang_url = p.url %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+  {% comment %} Search in pages if not found in posts {% endcomment %}
+  {% if lang_url == "" %}
+    {% for p in site.pages %}
+      {% if p.ref == page.ref and p.lang == target_lang %}
+        {% assign lang_url = p.url %}
+        {% break %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endif %}
+
+{% comment %} Fallback: swap /es/ <-> /en/ in URL, or go to home {% endcomment %}
+{% if lang_url == "" %}
+  {% if lang == "es" %}
+    {% if page.url == "/" %}
+      {% assign lang_url = "/en/" %}
+    {% else %}
+      {% assign lang_url = page.url | replace: "/es/", "/en/" %}
+    {% endif %}
+  {% else %}
+    {% if page.url == "/en/" %}
+      {% assign lang_url = "/" %}
+    {% else %}
+      {% assign lang_url = page.url | replace: "/en/", "/es/" %}
+    {% endif %}
+  {% endif %}
+{% endif %}
+
 <header class="site-header">
   <div class="header-inner">
     <a href="{{ '/' | relative_url }}" class="site-logo">
@@ -21,9 +66,9 @@
         <li><a href="{{ '/' | append: lang | append: '/about/' | relative_url }}">{{ t.nav.about }}</a></li>
         <li class="lang-switch">
           {% if lang == "es" %}
-            <a href="/en/" title="Switch to English">EN</a>
+            <a href="{{ lang_url }}" title="Switch to English">EN</a>
           {% else %}
-            <a href="/" title="Cambiar a español">ES</a>
+            <a href="{{ lang_url }}" title="Cambiar a español">ES</a>
           {% endif %}
         </li>
       </ul>
