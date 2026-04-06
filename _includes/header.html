@@ -49,10 +49,7 @@
 <header class="site-header">
   <div class="header-inner">
     <a href="{{ '/' | relative_url }}" class="site-logo">
-      <span class="logo-bracket">[</span>
-      <span class="logo-text">WIA</span>
-      <span class="logo-bracket">]</span>
-      <span class="logo-cursor">_</span>
+      <span class="logo-q">?</span><span class="logo-q">?</span><span class="logo-q">?</span>
     </a>
     <nav class="site-nav">
       <button class="nav-toggle" aria-label="Menu">
@@ -60,7 +57,14 @@
       </button>
       <ul class="nav-links">
         <li><a href="{{ '/' | append: lang | append: '/artifacts/' | relative_url }}">{{ t.nav.artifacts }}</a></li>
-        <li><a href="{{ '/' | append: lang | append: '/tools/' | relative_url }}">{{ t.nav.tools }}</a></li>
+        <li class="nav-dropdown">
+          <a href="{{ '/' | append: lang | append: '/tools/' | relative_url }}" class="dropdown-trigger">{{ t.nav.tools }} <span class="dropdown-arrow">&#9662;</span></a>
+          <ul class="dropdown-menu">
+            <li><a href="{{ '/' | append: lang | append: '/tools/masstin-lateral-movement-rust/' | relative_url }}">Masstin</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/tools/sabonis-pivoting-lateral-movement/' | relative_url }}">Sabonis</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/tools/persistence-boromir/' | relative_url }}">Persistence Boromir</a></li>
+          </ul>
+        </li>
         <li><a href="{{ '/' | append: lang | append: '/cases/' | relative_url }}">{{ t.nav.cases }}</a></li>
         <li><a href="{{ '/' | append: lang | append: '/leon/' | relative_url }}">{{ t.nav.leon }}</a></li>
         <li><a href="{{ '/' | append: lang | append: '/about/' | relative_url }}">{{ t.nav.about }}</a></li>
