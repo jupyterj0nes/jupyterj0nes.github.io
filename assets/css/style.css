@@ -785,6 +785,115 @@ a:hover {
   font-size: 1.05rem;
   line-height: 1.8;
 }
+.page-content h2 {
+  font-family: var(--font-mono);
+  color: var(--accent-green);
+  font-size: 1.4rem;
+  margin: 3rem 0 1.2rem;
+  padding: 0.8rem 0 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+}
+.page-content h2::before {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 60px;
+  height: 2px;
+  background: var(--accent-green);
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+}
+.page-content h3 {
+  font-family: var(--font-mono);
+  color: var(--accent-cyan);
+  font-size: 1.15rem;
+  margin: 2rem 0 0.8rem;
+  padding-left: 0.8rem;
+  border-left: 3px solid var(--accent-cyan);
+}
+.page-content h4 {
+  font-family: var(--font-mono);
+  color: var(--accent-purple);
+  font-size: 1rem;
+  margin: 1.5rem 0 0.6rem;
+}
+.page-content p {
+  margin-bottom: 1.2rem;
+}
+.page-content ul, .page-content ol {
+  margin-bottom: 1.2rem;
+  padding-left: 1.5rem;
+}
+.page-content li {
+  margin-bottom: 0.5rem;
+}
+.page-content strong {
+  color: var(--text-primary);
+}
+.page-content code {
+  font-family: var(--font-mono);
+  background: var(--bg-secondary);
+  color: var(--accent-cyan);
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+.page-content blockquote {
+  border-left: 3px solid var(--accent-green);
+  margin: 1.5rem 0;
+  padding: 1rem 1.5rem;
+  background: rgba(0, 255, 65, 0.03);
+  color: var(--text-secondary);
+  font-style: italic;
+}
+.page-content hr {
+  border: none;
+  height: 1px;
+  background: var(--border-color);
+  margin: 2.5rem 0;
+  position: relative;
+}
+.page-content hr::after {
+  content: '///';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-primary);
+  padding: 0 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 3px;
+}
+.page-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+}
+.page-content th {
+  font-family: var(--font-mono);
+  background: var(--bg-secondary);
+  color: var(--accent-green);
+  padding: 0.7rem 1rem;
+  text-align: left;
+  border: 1px solid var(--border-color);
+}
+.page-content td {
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--border-color);
+}
+.page-content tr:hover {
+  background: rgba(0, 255, 65, 0.02);
+}
+.page-content a {
+  border-bottom: 1px dashed rgba(0, 255, 65, 0.3);
+}
+.page-content a:hover {
+  border-bottom-color: var(--accent-cyan);
+}
 
 /* === EMPTY STATE === */
 .empty-state {
