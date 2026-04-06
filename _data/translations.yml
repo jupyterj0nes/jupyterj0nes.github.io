@@ -6,6 +6,7 @@ en:
     cases: "Cases"
     leon: "León"
     about: "About"
+    lore: "The Lore"
     lang_switch: "ES"
   home:
     subtitle: "Digital Forensics & Incident Response"
@@ -40,6 +41,7 @@ es:
     cases: "Casos"
     leon: "León"
     about: "Sobre mí"
+    lore: "El Lore"
     lang_switch: "EN"
   home:
     subtitle: "Análisis Forense Digital y Respuesta ante Incidentes"
