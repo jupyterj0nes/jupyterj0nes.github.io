@@ -275,10 +275,67 @@ a:hover {
   padding: 8rem 2rem 4rem;
   display: flex;
   justify-content: center;
+  position: relative;
 }
 .hero-inner {
   max-width: var(--container-narrow);
   width: 100%;
+  position: relative;
+}
+
+/* Hero badge - large ??? above terminal */
+.hero-badge {
+  text-align: center;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+.badge-q {
+  font-family: var(--font-mono);
+  font-size: 5rem;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-block;
+  animation: badge-float 3s ease-in-out infinite;
+}
+.badge-q:nth-child(1) {
+  color: var(--accent-green);
+  text-shadow: 0 0 30px rgba(0, 255, 65, 0.4), 0 0 60px rgba(0, 255, 65, 0.1);
+  animation-delay: 0s;
+}
+.badge-q:nth-child(2) {
+  color: var(--accent-cyan);
+  text-shadow: 0 0 30px rgba(0, 212, 255, 0.4), 0 0 60px rgba(0, 212, 255, 0.1);
+  animation-delay: 0.3s;
+}
+.badge-q:nth-child(3) {
+  color: var(--accent-red);
+  text-shadow: 0 0 30px rgba(255, 0, 64, 0.4), 0 0 60px rgba(255, 0, 64, 0.1);
+  animation-delay: 0.6s;
+}
+@keyframes badge-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Hex dump styling */
+.hex-dump {
+  font-size: 0.75rem !important;
+  opacity: 0.6;
+  margin-bottom: 0.2rem !important;
+}
+.hex-offset {
+  color: var(--text-dim);
+  margin-right: 0.5rem;
+}
+.hex-data {
+  color: var(--accent-green-dim);
+  letter-spacing: 1px;
+}
+.hex-ascii {
+  color: var(--text-dim);
+  margin-left: 1rem;
 }
 
 .terminal-window {

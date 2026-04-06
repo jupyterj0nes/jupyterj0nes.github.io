@@ -6,6 +6,11 @@ layout: default
 
 <section class="hero">
   <div class="hero-inner">
+    <div class="hero-badge">
+      <span class="badge-q">?</span>
+      <span class="badge-q">?</span>
+      <span class="badge-q">?</span>
+    </div>
     <div class="terminal-window">
       <div class="terminal-header">
         <span class="three-questions">
@@ -23,6 +28,16 @@ layout: default
         </p>
         <p class="hero-subtitle">{{ t.home.subtitle }}</p>
         <p class="hero-intro">{{ t.home.intro }}</p>
+        <p class="typing-line hex-dump">
+          <span class="hex-offset">0x0000:</span>
+          <span class="hex-data">57 65 20 49 6e 76 65 73 74 69 67 61 74 65</span>
+          <span class="hex-ascii">|We.Investigate|</span>
+        </p>
+        <p class="typing-line hex-dump">
+          <span class="hex-offset">0x000e:</span>
+          <span class="hex-data">41 6e 79 74 68 69 6e 67</span>
+          <span class="hex-ascii">|Anything........|</span>
+        </p>
         <p class="typing-line">
           <span class="prompt">root@wia:~$</span> <span class="cmd blink">_</span>
         </p>
@@ -42,7 +57,7 @@ layout: default
       <a href="{{ '/' | append: lang | append: '/tools/' | relative_url }}" class="category-card">
         <div class="card-icon">&#9874;</div>
         <h3>{{ t.categories.tools }}</h3>
-        <p class="card-desc">Volatility, Autopsy, KAPE, Velociraptor, Timeline Explorer</p>
+        <p class="card-desc">Masstin, Sabonis, Boromir, KAPE, Velociraptor</p>
       </a>
       <a href="{{ '/' | append: lang | append: '/cases/' | relative_url }}" class="category-card">
         <div class="card-icon">&#128373;</div>
@@ -52,7 +67,7 @@ layout: default
       <a href="{{ '/' | append: lang | append: '/leon/' | relative_url }}" class="category-card card-leon">
         <div class="card-icon">&#127956;</div>
         <h3>{{ t.categories.leon }}</h3>
-        <p class="card-desc">Routes, tips & hidden gems from the city of León</p>
+        <p class="card-desc">Cybersecurity hub, events, routes & gastronomy</p>
       </a>
     </div>
   </div>

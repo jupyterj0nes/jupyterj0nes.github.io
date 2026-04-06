@@ -9,14 +9,34 @@ permalink: /en/about/
 
 ## $ whoami
 
-Digital Forensics & Incident Response enthusiast. I created this site to share knowledge, tools, and real-world experience in the DFIR field.
+**Antonio Díaz Castaño** — cybersecurity professional specialized in Digital Forensics & Incident Response (DFIR), based in the province of León, Spain.
 
-Here you'll find detailed breakdowns of forensic artifacts, tool guides, case studies, and the occasional detour through the streets of León.
+I work in the DFIR world, where I investigate security incidents, analyze malware, track lateral movement, and reconstruct what happened on compromised systems. I've built tools like [masstin](/en/tools/masstin-lateral-movement-rust/) and [sabonis](/en/tools/sabonis-pivoting-lateral-movement/) to automate lateral movement analysis, and I contribute to projects like [Persistence Boromir](/en/tools/persistence-boromir/).
 
 ## $ cat /etc/purpose
 
-This is a **reference site** for the DFIR community. Whether you're a seasoned investigator or just starting out, the goal is to provide clear, actionable content — in both English and Spanish, because there's not enough DFIR content in Spanish.
+This site was born with a clear goal: **to be a reference for the DFIR community, especially in Spanish**.
+
+There's plenty of quality DFIR content in English, but Spanish-language resources are scarce. Here you'll find:
+
+- **Forensic artifacts** explained in depth — what they are, where to find them, how to analyze them
+- **Tools** — practical guides for the tools I use and build
+- **Cases** — real investigation write-ups, CTF walkthroughs, and incident breakdowns
+- **León** — because it's not all work: routes, food, cybersecurity community events, and why León is a cybersecurity hub in Spain
+
+All content is **bilingual** (Spanish and English) to maximize its reach.
+
+## $ cat /proc/tools
+
+Tools I've created or contribute to:
+
+| Tool | Description | Role |
+|------|-------------|------|
+| [masstin](https://github.com/jupyterj0nes/masstin) | Lateral movement analysis in Rust | Creator |
+| [sabonis](https://github.com/jupyterj0nes/sabonis) | DFIR pivoting on forensic artifacts | Creator |
+| [Persistence Boromir](https://github.com/AI3xGP/Persistence_Boromir) | Detection of 24 Windows persistence mechanisms | Contributor |
 
 ## $ find / -name "contact"
 
 - GitHub: [jupyterj0nes](https://github.com/jupyterj0nes)
+- LinkedIn: [Antonio Díaz Castaño](https://www.linkedin.com/in/antoniodiazcastano/)
