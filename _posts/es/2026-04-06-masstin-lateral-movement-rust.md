@@ -10,6 +10,8 @@ description: "Masstin es una herramienta DFIR escrita en Rust que parsea más de
 comments: true
 ---
 
+![Masstin Logo](/assets/images/masstin-logo.png){: style="display:block; margin: 0 auto 2rem; max-width: 400px;" }
+
 ## El problema
 
 Estás en medio de una respuesta ante incidentes. Tienes 50 máquinas comprometidas, cada una con sus logs de eventos rotados, el SIEM solo reenvió una fracción de los eventos, y necesitas reconstruir cómo se movió el atacante por la red. **Ahora.**

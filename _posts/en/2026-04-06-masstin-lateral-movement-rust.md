@@ -10,6 +10,8 @@ description: "Masstin is a Rust-based DFIR tool that parses 10+ forensic artifac
 comments: true
 ---
 
+![Masstin Logo](/assets/images/masstin-logo.png){: style="display:block; margin: 0 auto 2rem; max-width: 400px;" }
+
 ## The problem
 
 You're in the middle of an incident response. You've got 50 compromised machines, each with rotated event logs, your SIEM only forwarded a fraction of the events, and you need to reconstruct how the attacker moved through the network. **Now.**
