@@ -1,0 +1,11 @@
+{% assign lang = page.lang | default: "en" %}
+{% assign t = site.data.translations[lang] %}
+{% assign share_url = page.url | absolute_url %}
+{% assign share_title = page.title | url_encode %}
+
+<div class="share-buttons">
+  <span class="share-label">{{ t.post.share }}:</span>
+  <a href="https://twitter.com/intent/tweet?text={{ share_title }}&url={{ share_url }}" target="_blank" rel="noopener" class="share-btn share-twitter" title="Twitter/X">𝕏</a>
+  <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ share_url }}" target="_blank" rel="noopener" class="share-btn share-linkedin" title="LinkedIn">in</a>
+  <a href="https://www.reddit.com/submit?url={{ share_url }}&title={{ share_title }}" target="_blank" rel="noopener" class="share-btn share-reddit" title="Reddit">r/</a>
+</div>

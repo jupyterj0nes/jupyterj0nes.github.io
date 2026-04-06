@@ -1,0 +1,17 @@
+{% if page.comments %}
+<div class="comments-section">
+  <h3 class="section-title"><span class="prompt">$</span> comments</h3>
+  <script src="https://giscus.app/client.js"
+    data-repo="{{ site.giscus.repo }}"
+    data-repo-id="{{ site.giscus.repo_id }}"
+    data-category="{{ site.giscus.category }}"
+    data-category-id="{{ site.giscus.category_id }}"
+    data-mapping="{{ site.giscus.mapping }}"
+    data-reactions-enabled="{{ site.giscus.reactions_enabled }}"
+    data-theme="{{ site.giscus.theme }}"
+    data-lang="{{ page.lang | default: 'en' }}"
+    crossorigin="anonymous"
+    async>
+  </script>
+</div>
+{% endif %}

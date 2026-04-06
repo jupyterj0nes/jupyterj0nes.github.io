@@ -1,0 +1,49 @@
+---
+layout: default
+---
+{% assign lang = page.lang | default: "en" %}
+{% assign t = site.data.translations[lang] %}
+
+<article class="post-full">
+  <div class="container container-narrow">
+    <header class="post-header">
+      <div class="post-meta">
+        <time datetime="{{ page.date | date_to_xmlschema }}">
+          <span class="prompt">$</span> {{ t.post.published }}: {{ page.date | date: "%Y-%m-%d %H:%M" }}
+        </time>
+        <span class="post-category">{{ page.category }}</span>
+        {% assign words = content | number_of_words %}
+        {% assign read_time = words | divided_by: 200 | plus: 1 %}
+        <span class="read-time">{{ read_time }} {{ t.post.read_time }}</span>
+      </div>
+      <h1 class="post-title">{{ page.title }}</h1>
+      {% if page.description %}
+      <p class="post-description">{{ page.description }}</p>
+      {% endif %}
+      {% if page.tags.size > 0 %}
+      <div class="post-tags">
+        {% for tag in page.tags %}
+        <span class="tag">#{{ tag }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </header>
+
+    <div class="post-content">
+      {{ content }}
+    </div>
+
+    {% include share.html %}
+
+    <nav class="post-nav">
+      {% if page.previous %}
+      <a href="{{ page.previous.url | relative_url }}" class="post-nav-prev">← {{ page.previous.title }}</a>
+      {% endif %}
+      {% if page.next %}
+      <a href="{{ page.next.url | relative_url }}" class="post-nav-next">{{ page.next.title }} →</a>
+      {% endif %}
+    </nav>
+
+    {% include giscus.html %}
+  </div>
+</article>

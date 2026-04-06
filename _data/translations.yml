@@ -1,0 +1,67 @@
+en:
+  nav:
+    home: "Home"
+    artifacts: "Artifacts"
+    tools: "Tools"
+    cases: "Cases"
+    leon: "León"
+    about: "About"
+    lang_switch: "ES"
+  home:
+    subtitle: "Digital Forensics & Incident Response"
+    intro: "We dissect digital evidence. We trace the untraceable."
+    latest_posts: "Latest Investigations"
+    read_more: "Read more"
+    view_all: "View all posts"
+  post:
+    published: "Published"
+    modified: "Modified"
+    share: "Share this"
+    comments: "Comments"
+    back: "← Back"
+    read_time: "min read"
+  footer:
+    rights: "All rights reserved"
+    built_with: "Built with"
+    powered_by: "Powered by"
+  categories:
+    artifacts: "Artifacts"
+    tools: "Tools"
+    cases: "Cases"
+    leon: "León"
+  meta:
+    description: "DFIR knowledge base — artifacts, tools, cases and investigations"
+
+es:
+  nav:
+    home: "Inicio"
+    artifacts: "Artefactos"
+    tools: "Herramientas"
+    cases: "Casos"
+    leon: "León"
+    about: "Sobre mí"
+    lang_switch: "EN"
+  home:
+    subtitle: "Análisis Forense Digital y Respuesta ante Incidentes"
+    intro: "Diseccionamos la evidencia digital. Rastreamos lo irrastreable."
+    latest_posts: "Últimas Investigaciones"
+    read_more: "Leer más"
+    view_all: "Ver todos los posts"
+  post:
+    published: "Publicado"
+    modified: "Modificado"
+    share: "Compartir"
+    comments: "Comentarios"
+    back: "← Volver"
+    read_time: "min de lectura"
+  footer:
+    rights: "Todos los derechos reservados"
+    built_with: "Construido con"
+    powered_by: "Powered by"
+  categories:
+    artifacts: "Artefactos"
+    tools: "Herramientas"
+    cases: "Casos"
+    leon: "León"
+  meta:
+    description: "Base de conocimiento DFIR — artefactos, herramientas, casos e investigaciones"

@@ -1,0 +1,82 @@
+---
+layout: default
+---
+{% assign lang = page.lang | default: "en" %}
+{% assign t = site.data.translations[lang] %}
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="terminal-window">
+      <div class="terminal-header">
+        <span class="terminal-dot red"></span>
+        <span class="terminal-dot yellow"></span>
+        <span class="terminal-dot green"></span>
+        <span class="terminal-title">root@wia:~#</span>
+      </div>
+      <div class="terminal-body">
+        <p class="typing-line">
+          <span class="prompt">$</span> <span class="cmd">whoami</span>
+        </p>
+        <h1 class="glitch" data-text="{{ site.title }}">{{ site.title }}</h1>
+        <p class="typing-line">
+          <span class="prompt">$</span> <span class="cmd">cat /etc/motd</span>
+        </p>
+        <p class="hero-subtitle">{{ t.home.subtitle }}</p>
+        <p class="hero-intro">{{ t.home.intro }}</p>
+        <p class="typing-line">
+          <span class="prompt">$</span> <span class="cmd blink">_</span>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="categories-grid">
+  <div class="container">
+    <div class="grid-4">
+      <a href="{{ '/en/artifacts/' | relative_url }}" class="category-card">
+        <div class="card-icon">&#128270;</div>
+        <h3>{{ t.categories.artifacts }}</h3>
+        <p class="card-desc">Windows Registry, Event Logs, Memory, Browser, File System</p>
+      </a>
+      <a href="{{ '/en/tools/' | relative_url }}" class="category-card">
+        <div class="card-icon">&#9874;</div>
+        <h3>{{ t.categories.tools }}</h3>
+        <p class="card-desc">Volatility, Autopsy, KAPE, Velociraptor, Timeline Explorer</p>
+      </a>
+      <a href="{{ '/en/cases/' | relative_url }}" class="category-card">
+        <div class="card-icon">&#128373;</div>
+        <h3>{{ t.categories.cases }}</h3>
+        <p class="card-desc">Real-world investigations, CTF write-ups, incident walkthroughs</p>
+      </a>
+      <a href="{{ '/en/leon/' | relative_url }}" class="category-card card-leon">
+        <div class="card-icon">&#127956;</div>
+        <h3>{{ t.categories.leon }}</h3>
+        <p class="card-desc">Routes, tips & hidden gems from the city of León</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="latest-posts">
+  <div class="container">
+    <h2 class="section-title"><span class="prompt">#</span> {{ t.home.latest_posts }}</h2>
+    <div class="posts-list">
+      {% assign posts = site.posts | where: "lang", lang %}
+      {% for post in posts limit:5 %}
+      <article class="post-preview">
+        <div class="post-meta">
+          <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y-%m-%d" }}</time>
+          <span class="post-category">{{ post.category }}</span>
+          {% assign words = post.content | number_of_words %}
+          {% assign read_time = words | divided_by: 200 | plus: 1 %}
+          <span class="read-time">{{ read_time }} {{ t.post.read_time }}</span>
+        </div>
+        <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+        <p>{{ post.excerpt | strip_html | truncate: 160 }}</p>
+        <a href="{{ post.url | relative_url }}" class="read-more">{{ t.home.read_more }} →</a>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: 'en' }}">
+<head>
+  {% include head.html %}
+</head>
+<body>
+  <div class="scanline"></div>
+  <div class="noise"></div>
+  {% include header.html %}
+  <main class="site-content">
+    {{ content }}
+  </main>
+  {% include footer.html %}
+  <script src="{{ '/assets/js/main.js' | relative_url }}"></script>
+</body>
+</html>

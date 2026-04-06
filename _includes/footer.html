@@ -1,0 +1,32 @@
+{% assign lang = page.lang | default: "en" %}
+{% assign t = site.data.translations[lang] %}
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <div class="footer-logo">
+          <span class="logo-bracket">[</span><span class="logo-text">WIA</span><span class="logo-bracket">]</span><span class="logo-cursor">_</span>
+        </div>
+        <p class="footer-tagline">{{ site.tagline }}</p>
+      </div>
+      <div class="footer-col">
+        <h4>// Links</h4>
+        <ul>
+          <li><a href="{{ '/en/artifacts/' | relative_url }}">{{ t.nav.artifacts }}</a></li>
+          <li><a href="{{ '/en/tools/' | relative_url }}">{{ t.nav.tools }}</a></li>
+          <li><a href="{{ '/en/cases/' | relative_url }}">{{ t.nav.cases }}</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>// Social</h4>
+        <ul>
+          <li><a href="https://github.com/{{ site.author.github }}" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; {{ 'now' | date: "%Y" }} {{ site.title }}. {{ t.footer.rights }}.</p>
+    </div>
+  </div>
+</footer>
