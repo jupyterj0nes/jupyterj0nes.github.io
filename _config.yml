@@ -66,9 +66,9 @@ plugins:
 # Giscus comments
 giscus:
   repo: "jupyterj0nes/jupyterj0nes.github.io"
-  repo_id: ""
-  category: "General"
-  category_id: ""
+  repo_id: "R_kgDOJpfO2Q"
+  category: "Announcements"
+  category_id: "DIC_kwDOJpfO2c4C6LK2"
   mapping: "pathname"
   reactions_enabled: "1"
   theme: "dark"
