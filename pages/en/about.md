@@ -39,6 +39,17 @@ Doctoral research on cryptography applied to smartphones. Designed and implement
 
 ---
 
+## $ cat /etc/education
+
+| Year | Institution | Degree |
+|------|-------------|--------|
+| 2019 - 2021 | **Universitat Oberta de Catalunya** | MSc in ICT Security |
+| 2013 - 2015 | **UNED** | MSc in Communications, Networks & Content Management (Security track). Thesis: *Industrial Environment Security Simulation using Honeypots* |
+| 2010 - 2011 | **KU Leuven** (Belgium) | Master Thesis in Electrical Engineering / Cryptography. *Anonymous ePetitions with secure hardware for smart phones* |
+| 2005 - 2010 | **Universidade de Vigo** | MSc in Telecommunications Engineering (Telematics) |
+
+---
+
 ## $ ls /etc/certs/
 
 **5 GIAC certifications** in DFIR, incident response, and forensic analysis areas.

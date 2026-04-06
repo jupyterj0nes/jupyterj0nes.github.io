@@ -39,6 +39,17 @@ Investigación doctoral sobre criptografía aplicada a smartphones. Diseñé e i
 
 ---
 
+## $ cat /etc/education
+
+| Año | Institución | Titulación |
+|-----|-------------|------------|
+| 2019 - 2021 | **Universitat Oberta de Catalunya** | Máster en Seguridad de las TIC |
+| 2013 - 2015 | **UNED** | Máster en Comunicación, Redes y Gestión de Contenidos (Esp. Seguridad). TFM: *Simulación de Seguridad de Entornos Industriales mediante Honeypots* |
+| 2010 - 2011 | **KU Leuven** (Bélgica) | Master Thesis en Ingeniería Eléctrica / Criptografía. *Anonymous ePetitions with secure hardware for smart phones* |
+| 2005 - 2010 | **Universidade de Vigo** | Ingeniería Superior en Telecomunicaciones (Esp. Telemática) |
+
+---
+
 ## $ ls /etc/certs/
 
 **5 certificaciones GIAC** en áreas de DFIR, respuesta a incidentes y análisis forense.
