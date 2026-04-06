@@ -1,10 +1,5 @@
-{% assign lang = page.lang | default: "en" %}
+{% assign lang = page.lang | default: "es" %}
 {% assign t = site.data.translations[lang] %}
-{% if lang == "en" %}
-  {% assign other_lang = "es" %}
-{% else %}
-  {% assign other_lang = "en" %}
-{% endif %}
 
 <header class="site-header">
   <div class="header-inner">
@@ -19,16 +14,16 @@
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links">
-        <li><a href="{{ '/en/artifacts/' | relative_url }}">{{ t.nav.artifacts }}</a></li>
-        <li><a href="{{ '/en/tools/' | relative_url }}">{{ t.nav.tools }}</a></li>
-        <li><a href="{{ '/en/cases/' | relative_url }}">{{ t.nav.cases }}</a></li>
-        <li><a href="{{ '/en/leon/' | relative_url }}">{{ t.nav.leon }}</a></li>
-        <li><a href="{{ '/en/about/' | relative_url }}">{{ t.nav.about }}</a></li>
+        <li><a href="{{ '/' | append: lang | append: '/artifacts/' | relative_url }}">{{ t.nav.artifacts }}</a></li>
+        <li><a href="{{ '/' | append: lang | append: '/tools/' | relative_url }}">{{ t.nav.tools }}</a></li>
+        <li><a href="{{ '/' | append: lang | append: '/cases/' | relative_url }}">{{ t.nav.cases }}</a></li>
+        <li><a href="{{ '/' | append: lang | append: '/leon/' | relative_url }}">{{ t.nav.leon }}</a></li>
+        <li><a href="{{ '/' | append: lang | append: '/about/' | relative_url }}">{{ t.nav.about }}</a></li>
         <li class="lang-switch">
-          {% if lang == "en" %}
-            <a href="{{ page.url | replace: '/en/', '/es/' }}" title="Cambiar a español">ES</a>
+          {% if lang == "es" %}
+            <a href="/en/" title="Switch to English">EN</a>
           {% else %}
-            <a href="{{ page.url | replace: '/es/', '/en/' }}" title="Switch to English">EN</a>
+            <a href="/" title="Cambiar a español">ES</a>
           {% endif %}
         </li>
       </ul>

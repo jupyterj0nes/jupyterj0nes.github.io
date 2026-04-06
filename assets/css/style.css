@@ -222,14 +222,26 @@ a:hover {
   gap: 0.5rem;
   border-bottom: 1px solid var(--border-color);
 }
-.terminal-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+.terminal-buttons {
+  display: flex;
+  gap: 6px;
 }
-.terminal-dot.red { background: var(--accent-red); }
-.terminal-dot.yellow { background: var(--accent-yellow); }
-.terminal-dot.green { background: var(--accent-green); }
+.terminal-btn {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--text-dim);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  line-height: 16px;
+  text-align: center;
+  border-radius: 2px;
+  cursor: default;
+}
+.terminal-close:hover { border-color: var(--accent-red); color: var(--accent-red); }
+.terminal-minimize:hover { border-color: var(--accent-yellow); color: var(--accent-yellow); }
+.terminal-maximize:hover { border-color: var(--accent-green); color: var(--accent-green); }
 .terminal-title {
   font-family: var(--font-mono);
   font-size: 0.75rem;

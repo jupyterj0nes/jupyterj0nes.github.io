@@ -1,4 +1,4 @@
-{% assign lang = page.lang | default: "en" %}
+{% assign lang = page.lang | default: "es" %}
 {% assign t = site.data.translations[lang] %}
 
 <footer class="site-footer">
@@ -13,9 +13,9 @@
       <div class="footer-col">
         <h4>// Links</h4>
         <ul>
-          <li><a href="{{ '/en/artifacts/' | relative_url }}">{{ t.nav.artifacts }}</a></li>
-          <li><a href="{{ '/en/tools/' | relative_url }}">{{ t.nav.tools }}</a></li>
-          <li><a href="{{ '/en/cases/' | relative_url }}">{{ t.nav.cases }}</a></li>
+          <li><a href="{{ '/' | append: lang | append: '/artifacts/' | relative_url }}">{{ t.nav.artifacts }}</a></li>
+          <li><a href="{{ '/' | append: lang | append: '/tools/' | relative_url }}">{{ t.nav.tools }}</a></li>
+          <li><a href="{{ '/' | append: lang | append: '/cases/' | relative_url }}">{{ t.nav.cases }}</a></li>
         </ul>
       </div>
       <div class="footer-col">
