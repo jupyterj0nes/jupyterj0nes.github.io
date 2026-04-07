@@ -149,6 +149,18 @@ a:hover {
   color: var(--accent-red);
   text-shadow: 0 0 10px rgba(255, 0, 64, 0.5);
 }
+.logo-name {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-left: 0.5rem;
+  letter-spacing: 1px;
+  font-weight: 400;
+  transition: color 0.2s;
+}
+.site-logo:hover .logo-name {
+  color: var(--accent-green);
+}
 .site-logo:hover .logo-q {
   animation: logo-flicker 0.4s ease;
 }
@@ -934,6 +946,14 @@ a:hover {
 }
 .footer-logo .logo-q {
   font-size: 1.4rem;
+}
+.footer-sitename {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+  letter-spacing: 1px;
 }
 .footer-tagline {
   color: var(--text-dim);
