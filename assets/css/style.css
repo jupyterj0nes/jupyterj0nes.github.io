@@ -1129,15 +1129,19 @@ a:hover {
   .lang-switch {
     padding: 1rem 1rem;
     margin-bottom: 1rem;
+    border: none;
   }
-  .lang-switch,
   .nav-links > li.lang-switch > a {
-    border-bottom: none !important;
-  }
-  .lang-switch a {
+    border: none;
     display: inline-block;
-    border: 2px solid var(--accent-green-dim) !important;
+  }
+  li.lang-switch a {
+    border-top: 2px solid var(--accent-green-dim) !important;
+    border-right: 2px solid var(--accent-green-dim) !important;
+    border-bottom: 2px solid var(--accent-green-dim) !important;
+    border-left: 2px solid var(--accent-green-dim) !important;
     padding: 0.4rem 0.8rem;
+    display: inline-block;
   }
   .terminal-body h1 {
     font-size: 1.5rem;
