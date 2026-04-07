@@ -1049,15 +1049,18 @@ a:hover {
     top: 60px;
     left: 0;
     right: 0;
+    bottom: 0;
     background: rgba(10, 10, 15, 0.98);
     backdrop-filter: blur(12px);
     flex-direction: column;
-    padding: 1rem;
+    padding: 1rem 1rem 2rem;
     border-bottom: 1px solid var(--border-color);
     transform: translateY(-100%);
     opacity: 0;
     transition: all 0.3s ease;
     pointer-events: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .nav-links.active {
     transform: translateY(0);
@@ -1067,26 +1070,22 @@ a:hover {
   .grid-4 {
     grid-template-columns: 1fr;
   }
-  .nav-links {
-    max-height: calc(100vh - 60px);
-    overflow-y: auto;
-  }
   .nav-links > li {
     width: 100%;
+    list-style: none;
   }
   .nav-links > li > a,
   .nav-links > li > .dropdown-trigger {
     display: block;
-    padding: 0.6rem 0.8rem;
+    padding: 0.7rem 0.8rem;
     border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
   }
   .nav-dropdown {
     width: 100%;
   }
   .dropdown-menu {
     position: static;
-    opacity: 0;
-    visibility: hidden;
     max-height: 0;
     overflow: hidden;
     transform: none;
@@ -1095,17 +1094,18 @@ a:hover {
     box-shadow: none;
     padding: 0;
     min-width: auto;
-    transition: all 0.3s ease;
-  }
-  .nav-dropdown.open .dropdown-menu {
+    transition: max-height 0.3s ease;
     opacity: 1;
     visibility: visible;
+  }
+  .nav-dropdown.open .dropdown-menu {
     max-height: 500px;
     padding: 0.3rem 0 0.3rem 1rem;
   }
   .dropdown-menu a {
-    padding: 0.4rem 0.8rem;
+    padding: 0.5rem 0.8rem;
     font-size: 0.8rem;
+    display: block;
   }
   .dropdown-arrow {
     float: right;
@@ -1114,10 +1114,19 @@ a:hover {
   .nav-dropdown.open .dropdown-arrow {
     transform: rotate(180deg);
   }
+  .lang-switch {
+    margin-top: 0.5rem;
+    padding-bottom: 1rem;
+  }
   .terminal-body h1 {
     font-size: 1.5rem;
   }
   .hero { padding: 6rem 1rem 2rem; }
   .post-title { font-size: 1.5rem; }
   .logo-name { display: none; }
+  .post-content img,
+  .page-content img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
 }

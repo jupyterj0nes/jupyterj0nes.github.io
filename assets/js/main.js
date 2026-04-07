@@ -3,7 +3,8 @@ document.addEventListener('DOMContentLoaded', function() {
   var nav = document.querySelector('.nav-links');
 
   if (toggle && nav) {
-    toggle.addEventListener('click', function() {
+    toggle.addEventListener('click', function(e) {
+      e.stopPropagation();
       nav.classList.toggle('active');
     });
 
@@ -18,17 +19,38 @@ document.addEventListener('DOMContentLoaded', function() {
   var dropdowns = document.querySelectorAll('.nav-dropdown');
   dropdowns.forEach(function(dropdown) {
     var trigger = dropdown.querySelector('.dropdown-trigger');
-    if (trigger) {
-      trigger.addEventListener('click', function(e) {
-        if (window.innerWidth <= 640) {
-          e.preventDefault();
-          dropdown.classList.toggle('open');
-          // Close other dropdowns
-          dropdowns.forEach(function(other) {
-            if (other !== dropdown) other.classList.remove('open');
-          });
-        }
-      });
-    }
+    if (!trigger) return;
+
+    trigger.addEventListener('click', function(e) {
+      // Only intercept on mobile
+      if (window.innerWidth > 640) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      var isOpen = dropdown.classList.contains('open');
+
+      // Close all dropdowns first
+      dropdowns.forEach(function(d) { d.classList.remove('open'); });
+
+      // Toggle the clicked one
+      if (!isOpen) {
+        dropdown.classList.add('open');
+      }
+    });
+
+    // Also handle touchend to avoid double-tap issues on iOS Safari
+    trigger.addEventListener('touchend', function(e) {
+      if (window.innerWidth > 640) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      var isOpen = dropdown.classList.contains('open');
+      dropdowns.forEach(function(d) { d.classList.remove('open'); });
+      if (!isOpen) {
+        dropdown.classList.add('open');
+      }
+    });
   });
 });

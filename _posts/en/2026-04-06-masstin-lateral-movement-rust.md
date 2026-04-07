@@ -10,7 +10,7 @@ description: "Masstin is a Rust-based DFIR tool that parses 10+ forensic artifac
 comments: true
 ---
 
-![Masstin Logo](/assets/images/masstin-logo.png){: style="display:block; margin: 0 auto 2rem; max-width: 600px;" }
+![Masstin Logo](/assets/images/masstin-logo.png){: style="display:block; margin: 0 auto 2rem; max-width: 100%; width: 600px;" }
 
 ## The problem
 
