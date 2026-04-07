@@ -1,0 +1,161 @@
+---
+layout: post
+title: "Neo4j and Cypher: Lateral Movement Visualization with masstin"
+date: 2026-04-07 05:00:00 +0100
+category: tools
+lang: en
+ref: tool-masstin-neo4j
+tags: [masstin, neo4j, cypher, graphs, lateral-movement, visualization, tools]
+description: "Complete guide to lateral movement visualization in Neo4j with masstin: Cypher queries for time filtering, service accounts, specific users, and pivot detection."
+comments: true
+---
+
+## Why visualize in graphs
+
+When you have 50 machines, thousands of logons, and need to find how the attacker moved, a CSV isn't enough. You need to see the **relationships** — which machine connected to which, with what user, and when.
+
+Neo4j turns [masstin's](/en/tools/masstin-lateral-movement-rust/) timeline into an interactive graph where every machine is a node and every lateral connection is an edge. This lets you see patterns that would be invisible in a table.
+
+---
+
+## Data transformations
+
+Before writing queries, it's important to understand that masstin applies transformations when loading data into Neo4j, due to Cypher language restrictions:
+
+| Original character | Transformation | Example |
+|--------------------|----------------|---------|
+| Dots (`.`) | Replaced with `_` | `10.10.1.50` → `10_10_1_50` |
+| Hyphens (`-`) | Replaced with `_` | `SRV-FILE01` → `SRV_FILE01` |
+| Spaces | Replaced with `_` | |
+| Lowercase | Converted to UPPERCASE | `adm_domain` → `ADM_DOMAIN` |
+| `@` and after | Removed | `user@domain` → `USER` |
+
+Keep this in mind when writing queries — always use the transformed values.
+
+---
+
+## The power of time filtering
+
+This is the most valuable feature of masstin's Neo4j visualization.
+
+Masstin groups connections by source machine, destination machine, user, and logon type, and stores the **earliest date** of each group. This means that when you filter by time range, you **automatically remove all connections that existed before that period**.
+
+Why is this so important? During incident response, the network is full of legitimate lateral movement: service accounts, admins doing their jobs, users accessing file shares. All that noise has been there for months. But the attacker's connections are **new**.
+
+By filtering for the period when you suspect the attack started, all the historical noise disappears and only connections seen **for the first time** in that time window remain. In seconds you go from an unreadable graph to a clear map of the attacker's movement.
+
+---
+
+## Cypher Queries
+
+### View all lateral movement
+
+```cypher
+MATCH (h1:host)-[r]->(h2:host)
+RETURN h1, r, h2
+```
+
+### Filter by time range
+
+```cypher
+MATCH (h1:host)-[r]->(h2:host)
+WHERE datetime(r.time) >= datetime("2026-03-12T00:00:00.000000000Z")
+  AND datetime(r.time) <= datetime("2026-03-13T00:00:00.000000000Z")
+RETURN h1, r, h2
+ORDER BY datetime(r.time)
+```
+
+### Exclude machine accounts and unresolved users
+
+Machine accounts (ending in `$`) and connections without a resolved user (`NO_USER`) generate significant noise. Filtering them shows only human-initiated lateral movement:
+
+```cypher
+MATCH (h1:host)-[r]->(h2:host)
+WHERE datetime(r.time) >= datetime("2026-03-12T00:00:00.000000000Z")
+  AND datetime(r.time) <= datetime("2026-03-13T00:00:00.000000000Z")
+  AND NOT r.target_user_name ENDS WITH '$'
+  AND NOT r.target_user_name = 'NO_USER'
+RETURN h1, r, h2
+ORDER BY datetime(r.time)
+```
+
+### RDP-only connections (logon type 10)
+
+```cypher
+MATCH (h1:host)-[r]->(h2:host)
+WHERE datetime(r.time) >= datetime("2026-03-12T00:00:00.000000000Z")
+  AND datetime(r.time) <= datetime("2026-03-13T00:00:00.000000000Z")
+  AND NOT r.target_user_name ENDS WITH '$'
+  AND r.logon_type = '10'
+RETURN h1, r, h2
+ORDER BY datetime(r.time)
+```
+
+### Network logons only (logon type 3 — SMB, PsExec, WMI)
+
+```cypher
+MATCH (h1:host)-[r]->(h2:host)
+WHERE datetime(r.time) >= datetime("2026-03-12T00:00:00.000000000Z")
+  AND datetime(r.time) <= datetime("2026-03-13T00:00:00.000000000Z")
+  AND NOT r.target_user_name ENDS WITH '$'
+  AND r.logon_type = '3'
+RETURN h1, r, h2
+ORDER BY datetime(r.time)
+```
+
+### Service accounts by naming convention
+
+If your organization uses a prefix for service accounts (e.g., `SVC_`):
+
+```cypher
+MATCH (h1:host)-[r]->(h2:host)
+WHERE datetime(r.time) >= datetime("2026-03-10T00:00:00.000000000Z")
+  AND datetime(r.time) <= datetime("2026-03-14T00:00:00.000000000Z")
+  AND (
+    r.target_user_name STARTS WITH 'SVC'
+    OR r.subject_user_name STARTS WITH 'SVC'
+  )
+RETURN h1, r, h2
+ORDER BY datetime(r.time)
+```
+
+### Filter by specific users, hosts, and IPs
+
+When you've identified suspicious accounts or machines, this query traces their full activity. Remember to use transformed values (underscores, uppercase):
+
+```cypher
+MATCH (h1:host)-[r]->(h2:host)
+WHERE datetime(r.time) >= datetime("2026-03-12T00:00:00.000000000Z")
+  AND datetime(r.time) <= datetime("2026-03-13T00:00:00.000000000Z")
+  AND NOT r.target_user_name ENDS WITH '$'
+  AND NOT r.target_user_name = 'NO_USER'
+  AND r.logon_type IN ['3', '10']
+  AND (
+    (h1.name = 'WS_HR02' OR h2.name = 'WS_HR02')
+    OR r.target_user_name IN ['ADM_DOMAIN', 'M_LOPEZ']
+    OR r.subject_user_name IN ['ADM_DOMAIN', 'M_LOPEZ']
+    OR r.src_ip IN ['10_99_88_77', '10_10_1_80']
+  )
+RETURN h1, r, h2
+ORDER BY datetime(r.time)
+```
+
+### Trace a specific user
+
+```cypher
+MATCH (h1:host)-[r]->(h2:host)
+WHERE r.target_user_name = 'ADM_DOMAIN'
+RETURN h1, r, h2
+ORDER BY datetime(r.time)
+```
+
+### Most connected nodes (targets or pivot points)
+
+Identify which machines have the most incoming connections:
+
+```cypher
+MATCH (h1:host)-[r]->(h2:host)
+RETURN h2.name AS target, COUNT(r) AS connections
+ORDER BY connections DESC
+LIMIT 10
+```
