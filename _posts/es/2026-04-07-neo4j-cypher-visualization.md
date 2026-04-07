@@ -46,6 +46,23 @@ Al filtrar por el periodo en el que sospechas que comenzó el ataque, todo el ru
 
 ---
 
+## Instalación de Neo4j
+
+| Plataforma | Instalación |
+|------------|-------------|
+| **Windows** | Descarga desde [neo4j.com/download](https://neo4j.com/download/). Instala Neo4j Desktop, crea una base de datos e iníciala. Accede al browser en `http://localhost:7474` |
+| **Linux** | `sudo apt install neo4j` o descarga desde [neo4j.com/download](https://neo4j.com/download/). Inicia con `sudo systemctl start neo4j`. Accede en `http://localhost:7474` |
+| **macOS** | `brew install neo4j` o descarga desde [neo4j.com/download](https://neo4j.com/download/). Inicia con `neo4j start`. Accede en `http://localhost:7474` |
+| **Docker** | `docker run -p 7474:7474 -p 7687:7687 -e NEO4J_AUTH=neo4j/password neo4j` |
+
+Carga los datos con:
+
+```bash
+masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j
+```
+
+---
+
 ## Queries Cypher
 
 ### Ver todo el movimiento lateral

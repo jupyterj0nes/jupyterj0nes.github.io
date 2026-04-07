@@ -30,13 +30,14 @@ Cuando estás en medio de un incidente y necesitas levantar un entorno de visual
 
 ---
 
-## Instalación
+## Instalación de Memgraph
 
-Un comando. En serio, solo uno:
-
-```bash
-docker run -p 7687:7687 -p 7444:7444 -p 3000:3000 memgraph/memgraph-platform
-```
+| Plataforma | Instalación |
+|------------|-------------|
+| **Windows** | Descarga el instalador MSI desde [memgraph.com/download](https://memgraph.com/download). Ejecuta el instalador e inicia el servicio. Accede a Memgraph Lab en `http://localhost:3000` |
+| **Linux** | `sudo apt install memgraph` o descarga el paquete `.deb`/`.rpm` desde [memgraph.com/download](https://memgraph.com/download). Inicia con `sudo systemctl start memgraph`. Accede a Memgraph Lab en `http://localhost:3000` |
+| **macOS** | Se recomienda usar Docker: `docker run -p 7687:7687 -p 7444:7444 -p 3000:3000 memgraph/memgraph-platform` |
+| **Docker** | `docker run -p 7687:7687 -p 7444:7444 -p 3000:3000 memgraph/memgraph-platform` |
 
 Esto levanta tres servicios:
 - **Puerto 7687**: conexión Bolt para queries Cypher

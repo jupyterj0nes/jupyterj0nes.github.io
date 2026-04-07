@@ -30,13 +30,14 @@ When you're in the middle of an incident and need to spin up a visualization env
 
 ---
 
-## Installation
+## Installing Memgraph
 
-One command. Seriously, just one:
-
-```bash
-docker run -p 7687:7687 -p 7444:7444 -p 3000:3000 memgraph/memgraph-platform
-```
+| Platform | Installation |
+|----------|-------------|
+| **Windows** | Download the MSI installer from [memgraph.com/download](https://memgraph.com/download). Run the installer and start the service. Access Memgraph Lab at `http://localhost:3000` |
+| **Linux** | `sudo apt install memgraph` or download the `.deb`/`.rpm` package from [memgraph.com/download](https://memgraph.com/download). Start with `sudo systemctl start memgraph`. Access Memgraph Lab at `http://localhost:3000` |
+| **macOS** | Docker is recommended: `docker run -p 7687:7687 -p 7444:7444 -p 3000:3000 memgraph/memgraph-platform` |
+| **Docker** | `docker run -p 7687:7687 -p 7444:7444 -p 3000:3000 memgraph/memgraph-platform` |
 
 This starts three services:
 - **Port 7687**: Bolt connection for Cypher queries

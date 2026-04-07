@@ -46,6 +46,23 @@ By filtering for the period when you suspect the attack started, all the histori
 
 ---
 
+## Installing Neo4j
+
+| Platform | Installation |
+|----------|-------------|
+| **Windows** | Download from [neo4j.com/download](https://neo4j.com/download/). Install Neo4j Desktop, create a database, and start it. Access the browser at `http://localhost:7474` |
+| **Linux** | `sudo apt install neo4j` or download from [neo4j.com/download](https://neo4j.com/download/). Start with `sudo systemctl start neo4j`. Access at `http://localhost:7474` |
+| **macOS** | `brew install neo4j` or download from [neo4j.com/download](https://neo4j.com/download/). Start with `neo4j start`. Access at `http://localhost:7474` |
+| **Docker** | `docker run -p 7474:7474 -p 7687:7687 -e NEO4J_AUTH=neo4j/password neo4j` |
+
+Load data with:
+
+```bash
+masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j
+```
+
+---
+
 ## Cypher Queries
 
 ### View all lateral movement
