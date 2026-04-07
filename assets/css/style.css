@@ -1127,11 +1127,14 @@ a:hover {
     transform: rotate(180deg);
   }
   .lang-switch {
-    padding: 0.8rem 1rem 1.5rem;
+    padding: 1rem 1rem;
     border-bottom: none !important;
+    margin-bottom: 1rem;
   }
   .lang-switch a {
     display: inline-block;
+    border: 2px solid var(--accent-green-dim);
+    padding: 0.4rem 0.8rem;
   }
   .terminal-body h1 {
     font-size: 1.5rem;
