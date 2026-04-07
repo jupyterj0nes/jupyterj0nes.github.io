@@ -30,7 +30,7 @@ A boutique incident response firm with ties to SANS. I led the DFIR area, overse
 ### Inditex
 **Blue Team Lead / Information Security Specialist** *(2011 - 2021)*
 
-Nearly a decade at one of the world's largest companies. Started in OS, database, network device, and POS system hardening. Evolved to lead the Blue Team, managing L2/L3 of the CERT. Designed the complete log lifecycle — from the hardening that generates them, SIEM forwarding, parsing, alerts, and associated procedures. Led threat hunting, purple teaming, and deception projects.
+Nearly a decade at one of the world's largest retail companies. Started in OS, database, network device, and POS system hardening. Evolved to lead the Blue Team, managing L2/L3 of the CERT. Designed the complete log lifecycle — from the hardening that generates them, SIEM forwarding, parsing, alerts, and associated procedures. Led threat hunting, purple teaming, and deception projects.
 
 ### COSIC — KU Leuven (Belgium)
 **Cryptography Researcher** *(2011)*

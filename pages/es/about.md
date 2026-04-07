@@ -30,7 +30,7 @@ Boutique de referencia en incident response vinculada a SANS. Dirigí el área d
 ### Inditex
 **Responsable Blue Team / Information Security Specialist** *(2011 - 2021)*
 
-Casi una década en una de las mayores empresas del mundo. Empecé en hardening de sistemas operativos, bases de datos, dispositivos de red y sistemas POS. Evolucioné hasta liderar el Blue Team, gestionando los niveles 2 y 3 del CERT. Diseñé el ciclo de vida completo de los logs — desde el bastionado que los genera, el reenvío al SIEM, el parsing, las alertas y los procedimientos asociados. Dirigí proyectos de threat hunting, purple teaming y deception.
+Casi una década en una de las mayores empresas de retail del mundo. Empecé en hardening de sistemas operativos, bases de datos, dispositivos de red y sistemas POS. Evolucioné hasta liderar el Blue Team, gestionando los niveles 2 y 3 del CERT. Diseñé el ciclo de vida completo de los logs — desde el bastionado que los genera, el reenvío al SIEM, el parsing, las alertas y los procedimientos asociados. Dirigí proyectos de threat hunting, purple teaming y deception.
 
 ### COSIC — KU Leuven (Bélgica)
 **Investigador en Criptografía** *(2011)*
