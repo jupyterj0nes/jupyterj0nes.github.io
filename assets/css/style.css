@@ -1128,6 +1128,7 @@ a:hover {
   }
   .lang-switch {
     padding: 0.8rem 1rem 1.5rem;
+    border-bottom: none !important;
   }
   .lang-switch a {
     display: inline-block;
