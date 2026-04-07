@@ -195,6 +195,8 @@ MATCH (h1:host)-[r]->(h2:host)
 RETURN h1, r, h2
 ```
 
+![Grafo de movimiento lateral en Memgraph Lab](/assets/images/memgraph_output1.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+
 ### Filtrar por rango temporal
 
 ```cypher
