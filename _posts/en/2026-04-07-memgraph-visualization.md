@@ -51,7 +51,7 @@ This downloads a `docker-compose.yml` and starts two containers automatically:
 | `memgraph` | `memgraph/memgraph-mage` | 7687 (Bolt), 7444 (logs) | Graph database engine + MAGE algorithms |
 | `lab` | `memgraph/lab` | 3000 | Web interface (Memgraph Lab) |
 
-Open [http://localhost:3000](http://localhost:3000) in your browser and Memgraph Lab is ready, already connected to the database.
+Open [http://localhost:3000](http://localhost:3000) in your browser, click **"Connect now"**, and Memgraph Lab is ready. No database creation, no project setup — Memgraph is schemaless and accepts data immediately.
 
 ---
 
@@ -101,7 +101,7 @@ iwr https://windows.memgraph.com | iex
 
 This downloads a `docker-compose.yml` and starts two containers: the Memgraph database (`memgraph/memgraph-mage`) and the web interface (`memgraph/lab`).
 
-Open [http://localhost:3000](http://localhost:3000) and Memgraph Lab is ready, already connected to the database.
+Open [http://localhost:3000](http://localhost:3000), click **"Connect now"**, and Memgraph Lab is ready.
 
 <details>
 <summary><strong>Troubleshooting WSL / Docker</strong></summary>
