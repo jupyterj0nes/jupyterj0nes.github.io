@@ -159,3 +159,20 @@ RETURN h2.name AS target, COUNT(r) AS connections
 ORDER BY connections DESC
 LIMIT 10
 ```
+
+### Camino temporal entre dos hosts
+
+Esta es una de las queries más potentes para la reconstrucción de incidentes. Encuentra todos los caminos entre dos hosts donde **cada salto es cronológicamente posterior al anterior** — dándote la cadena real del ataque tal como ocurrió en el tiempo:
+
+```cypher
+MATCH path = (start:host {name:'10_99_88_77'})-[*]->(end:host {name:'SRV_BACKUP'})
+WHERE ALL(i IN range(0, size(relationships(path))-2)
+  WHERE datetime(relationships(path)[i].time) < datetime(relationships(path)[i+1].time))
+RETURN path
+ORDER BY length(path)
+LIMIT 5
+```
+
+Reemplaza los nombres de host de inicio y fin con los tuyos. El resultado muestra la progresión del atacante a través de la red, validada temporalmente:
+
+![Camino temporal mostrando la cadena del ataque](/assets/images/temporal_path.png)
