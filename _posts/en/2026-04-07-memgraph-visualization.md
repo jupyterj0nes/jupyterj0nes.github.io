@@ -234,6 +234,23 @@ For the full query catalog (filtering by logon type, service accounts, specific 
 
 ---
 
+## Graph style
+
+By default, Memgraph Lab shows all text in the same color, making it hard to distinguish machine names (nodes) from user names (edges). The masstin repository includes a custom GSS style at [`memgraph-resources/style.gss`](https://github.com/jupyterj0nes/masstin/blob/main/memgraph-resources/style.gss) that fixes this:
+
+- **Node labels** (machine names): black, larger font
+- **Edge labels** (user names): blue, smaller font
+
+To apply it:
+
+1. Open the **Graph Style editor** tab in Memgraph Lab (next to Cypher editor)
+2. Select all the existing content (Ctrl+A)
+3. Paste the contents of [`style.gss`](https://github.com/jupyterj0nes/masstin/blob/main/memgraph-resources/style.gss)
+4. Click **Apply**
+5. Optionally, click **Save style** to keep it in your browser for future sessions
+
+---
+
 ## When to use Memgraph vs Neo4j
 
 | | Memgraph | Neo4j |

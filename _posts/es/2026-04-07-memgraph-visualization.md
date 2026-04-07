@@ -234,6 +234,23 @@ Para el catálogo completo de queries (filtrado por tipo de logon, cuentas de se
 
 ---
 
+## Estilo del grafo
+
+Por defecto, Memgraph Lab muestra todo el texto en el mismo color, lo que dificulta distinguir los nombres de maquinas (nodos) de los nombres de usuario (relaciones). El repositorio de masstin incluye un estilo GSS personalizado en [`memgraph-resources/style.gss`](https://github.com/jupyterj0nes/masstin/blob/main/memgraph-resources/style.gss) que soluciona esto:
+
+- **Etiquetas de nodos** (nombres de maquinas): negro, fuente mas grande
+- **Etiquetas de relaciones** (nombres de usuario): azul, fuente mas pequena
+
+Para aplicarlo:
+
+1. Abre la pestana **Graph Style editor** en Memgraph Lab (junto al Cypher editor)
+2. Selecciona todo el contenido existente (Ctrl+A)
+3. Pega el contenido de [`style.gss`](https://github.com/jupyterj0nes/masstin/blob/main/memgraph-resources/style.gss)
+4. Haz click en **Apply**
+5. Opcionalmente, haz click en **Save style** para guardarlo en tu navegador para futuras sesiones
+
+---
+
 ## Cuándo usar Memgraph vs Neo4j
 
 | | Memgraph | Neo4j |
