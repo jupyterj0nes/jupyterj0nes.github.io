@@ -34,7 +34,7 @@ When you're in the middle of an incident and need to spin up a visualization env
 
 | Platform | Installation |
 |----------|-------------|
-| **Windows** | Download the MSI installer from [memgraph.com/download](https://memgraph.com/download). Run the installer and start the service. Access Memgraph Lab at `http://localhost:3000` |
+| **Windows** | Via Docker (see [Windows prerequisites](#windows-prerequisites-wsl-2--docker) below) |
 | **Linux** | `sudo apt install memgraph` or download the `.deb`/`.rpm` package from [memgraph.com/download](https://memgraph.com/download). Start with `sudo systemctl start memgraph`. Access Memgraph Lab at `http://localhost:3000` |
 | **macOS** | Docker is recommended: `docker run -p 7687:7687 -p 7444:7444 -p 3000:3000 memgraph/memgraph-platform` |
 | **Docker** | `docker run -p 7687:7687 -p 7444:7444 -p 3000:3000 memgraph/memgraph-platform` |
@@ -45,6 +45,81 @@ This starts three services:
 - **Port 3000**: Memgraph Lab (web interface)
 
 Open [http://localhost:3000](http://localhost:3000) in your browser and Memgraph Lab is ready. No database creation, no user setup, no configuration files. It just works.
+
+---
+
+## Windows prerequisites: WSL 2 + Docker
+
+On Windows, Memgraph runs inside a Docker container, and Docker Desktop requires **WSL 2** (Windows Subsystem for Linux). The dependency chain is:
+
+```
+WSL 2 → Docker Desktop → Memgraph container
+```
+
+### Step 1: Enable WSL 2
+
+Open **PowerShell as Administrator** and run:
+
+```powershell
+dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+```
+
+**Restart your PC** after both commands complete.
+
+After restarting, open PowerShell as Administrator again:
+
+```powershell
+wsl --update
+wsl --set-default-version 2
+wsl --install
+```
+
+This installs Ubuntu by default. You will be asked to create a Unix username and password.
+
+### Step 2: Install Docker Desktop
+
+1. Download Docker Desktop from [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/)
+2. Run the installer — make sure **"Use WSL 2 instead of Hyper-V"** is selected
+3. Restart your PC if prompted
+4. Launch Docker Desktop — confirm "Engine running" appears in green at the bottom left
+
+### Step 3: Run Memgraph
+
+```powershell
+docker run -d --name memgraph -p 7687:7687 -p 7444:7444 -p 3000:3000 memgraph/memgraph-platform
+```
+
+Open [http://localhost:3000](http://localhost:3000) and Memgraph Lab is ready.
+
+<details>
+<summary><strong>Troubleshooting WSL / Docker</strong></summary>
+
+**WSL service not found** (`ERROR_SERVICE_DOES_NOT_EXIST` when running `wsl --status`): ensure the Windows features from Step 1 are enabled and you have restarted your PC. If the error persists, register the service manually:
+
+```powershell
+sc.exe create WslService binPath= 'C:\Program Files\WSL\wslservice.exe' start= auto
+sc.exe start WslService
+wsl --install
+```
+
+**wsl --update fails** ("The older version cannot be removed"): a previous WSL installation left a corrupted entry. Remove it first, then reinstall:
+
+```powershell
+winget uninstall "Windows Subsystem for Linux"
+wsl --install
+```
+
+**Verify everything works:**
+
+```powershell
+wsl --status              # WSL is working
+docker --version          # Docker is installed
+docker run hello-world    # Docker engine is running
+docker ps                 # Memgraph container is up
+```
+
+</details>
 
 ---
 

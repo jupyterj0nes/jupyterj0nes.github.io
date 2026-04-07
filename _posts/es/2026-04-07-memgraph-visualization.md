@@ -30,21 +30,96 @@ Cuando estás en medio de un incidente y necesitas levantar un entorno de visual
 
 ---
 
-## Instalación de Memgraph
+## Instalacion de Memgraph
 
-| Plataforma | Instalación |
+| Plataforma | Instalacion |
 |------------|-------------|
-| **Windows** | Descarga el instalador MSI desde [memgraph.com/download](https://memgraph.com/download). Ejecuta el instalador e inicia el servicio. Accede a Memgraph Lab en `http://localhost:3000` |
+| **Windows** | Via Docker (ver [Requisitos previos en Windows](#requisitos-previos-en-windows-wsl-2--docker) mas abajo) |
 | **Linux** | `sudo apt install memgraph` o descarga el paquete `.deb`/`.rpm` desde [memgraph.com/download](https://memgraph.com/download). Inicia con `sudo systemctl start memgraph`. Accede a Memgraph Lab en `http://localhost:3000` |
 | **macOS** | Se recomienda usar Docker: `docker run -p 7687:7687 -p 7444:7444 -p 3000:3000 memgraph/memgraph-platform` |
 | **Docker** | `docker run -p 7687:7687 -p 7444:7444 -p 3000:3000 memgraph/memgraph-platform` |
 
 Esto levanta tres servicios:
-- **Puerto 7687**: conexión Bolt para queries Cypher
+- **Puerto 7687**: conexion Bolt para queries Cypher
 - **Puerto 7444**: logs de Memgraph
 - **Puerto 3000**: Memgraph Lab (interfaz web)
 
-Abre [http://localhost:3000](http://localhost:3000) en tu navegador y ya tienes Memgraph Lab listo. No necesitas crear bases de datos, ni configurar usuarios, ni tocar archivos de configuración. Funciona directamente.
+Abre [http://localhost:3000](http://localhost:3000) en tu navegador y ya tienes Memgraph Lab listo. No necesitas crear bases de datos, ni configurar usuarios, ni tocar archivos de configuracion. Funciona directamente.
+
+---
+
+## Requisitos previos en Windows: WSL 2 + Docker
+
+En Windows, Memgraph se ejecuta dentro de un contenedor Docker, y Docker Desktop requiere **WSL 2** (Windows Subsystem for Linux). La cadena de dependencias es:
+
+```
+WSL 2 → Docker Desktop → Contenedor Memgraph
+```
+
+### Paso 1: Habilitar WSL 2
+
+Abre **PowerShell como Administrador** y ejecuta:
+
+```powershell
+dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+```
+
+**Reinicia tu PC** despues de que ambos comandos se completen.
+
+Tras reiniciar, abre PowerShell como Administrador de nuevo:
+
+```powershell
+wsl --update
+wsl --set-default-version 2
+wsl --install
+```
+
+Esto instala Ubuntu por defecto. Se te pedira crear un nombre de usuario y contrasena Unix.
+
+### Paso 2: Instalar Docker Desktop
+
+1. Descarga Docker Desktop desde [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/)
+2. Ejecuta el instalador — asegurate de que **"Use WSL 2 instead of Hyper-V"** esta seleccionado
+3. Reinicia tu PC si se te solicita
+4. Abre Docker Desktop — confirma que "Engine running" aparece en verde en la parte inferior izquierda
+
+### Paso 3: Ejecutar Memgraph
+
+```powershell
+docker run -d --name memgraph -p 7687:7687 -p 7444:7444 -p 3000:3000 memgraph/memgraph-platform
+```
+
+Abre [http://localhost:3000](http://localhost:3000) y Memgraph Lab estara listo.
+
+<details>
+<summary><strong>Solucion de problemas WSL / Docker</strong></summary>
+
+**Servicio WSL no encontrado** (`ERROR_SERVICE_DOES_NOT_EXIST` al ejecutar `wsl --status`): asegurate de que las features de Windows del Paso 1 estan habilitadas y de que has reiniciado tu PC. Si el error persiste, registra el servicio manualmente:
+
+```powershell
+sc.exe create WslService binPath= 'C:\Program Files\WSL\wslservice.exe' start= auto
+sc.exe start WslService
+wsl --install
+```
+
+**wsl --update falla** ("The older version cannot be removed"): una instalacion previa de WSL dejo una entrada corrupta. Eliminala primero y luego reinstala:
+
+```powershell
+winget uninstall "Windows Subsystem for Linux"
+wsl --install
+```
+
+**Verificar que todo funciona:**
+
+```powershell
+wsl --status              # WSL funciona
+docker --version          # Docker esta instalado
+docker run hello-world    # El motor de Docker esta corriendo
+docker ps                 # El contenedor de Memgraph esta activo
+```
+
+</details>
 
 ---
 
