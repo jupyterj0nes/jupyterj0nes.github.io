@@ -171,7 +171,7 @@ SMB events don't exist in isolation. For a complete investigation, correlate the
 [Masstin](/en/tools/masstin-lateral-movement-rust/) extracts SMBServer and SMBClient events automatically and normalizes them into the CSV timeline, including source IP, accessed share, account used, and connection result.
 
 ```bash
-masstin parse -i /path/to/artifacts/ -o timeline.csv
+masstin -a parse-windows -d /evidence/logs/ -o timeline.csv
 ```
 
 Combined with Security.evtx and Terminal Services events, SMB events complete the picture of network-based lateral movement, covering the three main vectors: RDP, SMB, and authentication.

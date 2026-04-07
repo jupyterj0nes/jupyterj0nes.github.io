@@ -197,20 +197,42 @@ These events complement 4624 type 10 events for complete RDP activity reconstruc
 
 ---
 
+## The Security.evtx Rotation Problem
+
+There's something every DFIR analyst discovers sooner or later: **Security.evtx rotates constantly**. On a busy Active Directory server, security logs can rotate every few days — or even every few hours in heavily audited environments.
+
+This means that when you arrive to investigate an incident, Security.evtx likely only covers the last 2-3 days. Earlier events have been lost to rotation.
+
+**Why is this a problem?**
+
+Because the attacker may have been in the network for weeks or months before detection. If you only have 3 days of Security.evtx, you're missing the entire initial phase of the attack.
+
+**What's the solution?**
+
+That's why masstin doesn't stop at Security.evtx. Other Windows event logs rotate far less frequently:
+
+- **TerminalServices-LocalSessionManager** can cover months or even years of RDP sessions
+- **SMBServer/Security** and **SMBClient/Connectivity** typically have much longer retention
+- **System.evtx** keeps service installation records for extended periods
+
+Masstin combines all these artifacts into a single timeline precisely to overcome Security.evtx rotation limitations. When Security.evtx doesn't cover your timeframe, the other logs fill the gaps.
+
+---
+
 ## How Masstin Parses Security.evtx
 
-[Masstin](/en/tools/masstin-lateral-movement-rust/) automatically extracts events 4624 (types 3 and 10), 4625, 4648, and others from Security.evtx, normalizing them into a unified CSV format with fields like timestamp, source IP, destination host, username, and event type. This lets you build a complete lateral movement timeline without manually reviewing each EVTX file.
+[Masstin](/en/tools/masstin-lateral-movement-rust/) automatically extracts events 4624 (types 3 and 10), 4625, 4648, and others from Security.evtx, normalizing them into a unified CSV format with fields like timestamp, source IP, destination host, username, and event type.
 
 ```bash
-masstin parse -i /path/to/artifacts/ -o timeline.csv
+masstin -a parse-windows -d /evidence/logs/ -o timeline.csv
 ```
 
-The output includes all Security.evtx events alongside those from other logs (Terminal Services, SMB, etc.), sorted chronologically and ready for analysis or Neo4j ingestion.
+The output includes all Security.evtx events alongside those from other logs (Terminal Services, SMB, etc.), sorted chronologically and ready for analysis or Neo4j ingestion. This lets you see exactly when Security.evtx events start and how much ground the other artifacts cover before that date.
 
 ---
 
 ## Conclusion
 
-Security.evtx is the cornerstone of any Windows lateral movement investigation. Knowing these Event IDs, their relevant fields, and how to correlate them is what separates a superficial review from a complete forensic reconstruction.
+Security.evtx is the cornerstone of any Windows lateral movement investigation, but **it's not enough on its own**. Frequent rotation means it often covers only a fraction of the period you need to investigate. Knowing these Event IDs and combining them with other artifacts (Terminal Services, SMB, System) is what lets you reconstruct the full story.
 
-If you need to process these artifacts at scale, [masstin](/en/tools/masstin-lateral-movement-rust/) lets you do it in seconds instead of hours.
+If you need to process these artifacts at scale, [masstin](/en/tools/masstin-lateral-movement-rust/) unifies all these sources into a single timeline in seconds.

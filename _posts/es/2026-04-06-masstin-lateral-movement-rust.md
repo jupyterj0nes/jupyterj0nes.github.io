@@ -96,7 +96,7 @@ Masstin puede procesar directamente paquetes de triage comprimidos generados por
 Esto significa que no necesitas descomprimir manualmente los paquetes de triage antes de analizarlos -- simplemente apunta masstin al archivo comprimido y el se encarga del resto.
 
 ```bash
-masstin -a parse -d /evidence/triage_packages/ -o timeline.csv
+masstin -a parse-windows -d /evidence/triage_packages/ -o timeline.csv
 ```
 
 ## Uso
@@ -105,18 +105,18 @@ masstin -a parse -d /evidence/triage_packages/ -o timeline.csv
 
 ```bash
 # Parsear un directorio con artefactos de multiples maquinas
-masstin -a parse -d /evidence/machine1/logs -d /evidence/machine2/logs -o timeline.csv
+masstin -a parse-windows -d /evidence/machine1/logs -d /evidence/machine2/logs -o timeline.csv
 
 # Parsear archivos EVTX individuales
-masstin -a parse -f Security.evtx -f System.evtx -o timeline.csv
+masstin -a parse-windows -f Security.evtx -f System.evtx -o timeline.csv
 
 # Filtrar por rango temporal
-masstin -a parse -d /evidence/ -o timeline.csv \
+masstin -a parse-windows -d /evidence/ -o timeline.csv \
   --start-time "2024-08-12 00:00:00" \
   --end-time "2024-08-14 00:00:00"
 
 # Sobrescribir output existente
-masstin -a parse -d /evidence/ -o timeline.csv --overwrite
+masstin -a parse-windows -d /evidence/ -o timeline.csv --overwrite
 ```
 
 ### Parseo de Winlogbeat JSON

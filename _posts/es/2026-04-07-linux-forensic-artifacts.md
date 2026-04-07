@@ -237,7 +237,7 @@ www-data                                   **Never logged in**
 [Masstin](/es/tools/masstin-lateral-movement-rust/) soporta el parseo de logs de autenticación Linux, extrayendo logons exitosos y fallidos de `/var/log/secure` (y `/var/log/auth.log`), y los normaliza en el mismo formato CSV que utiliza para los artefactos Windows.
 
 ```bash
-masstin parse -i /ruta/con/logs/linux/ -o timeline.csv
+masstin -a parse-linux -d /evidence/var/log/ -o timeline.csv
 ```
 
 Esto permite crear timelines de movimiento lateral que cruzan las fronteras de sistema operativo: un atacante que se mueve de una workstation Windows a un servidor Linux vía SSH aparecerá en la misma timeline que sus movimientos RDP o SMB.

@@ -171,7 +171,7 @@ En el origen, busca el **1024** (RDPClient) para confirmar qué máquina inició
 [Masstin](/es/tools/masstin-lateral-movement-rust/) parsea los logs de TerminalServices-LocalSessionManager y RemoteConnectionManager automáticamente, extrayendo los Event IDs 21, 22, 24, 25 y 1149, y los integra en la timeline unificada CSV junto con los eventos de Security.evtx y otros artefactos.
 
 ```bash
-masstin parse -i /ruta/con/evtx/ -o timeline.csv
+masstin -a parse-windows -d /evidence/logs/ -o timeline.csv
 ```
 
 Esto te permite ver en una sola vista cronológica cómo el atacante se movió vía RDP entre diferentes máquinas, correlacionando orígenes y destinos sin tener que abrir cada EVTX individualmente.
