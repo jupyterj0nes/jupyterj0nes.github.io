@@ -232,7 +232,9 @@ ORDER BY length(path)
 LIMIT 5
 ```
 
-Para el catálogo completo de queries (filtrado por tipo de logon, cuentas de servicio, usuarios específicos, nodos más conectados), consulta el [artículo de Neo4j y Cypher](/es/tools/2026-04-07-neo4j-cypher-visualization/). Todas funcionan en Memgraph sustituyendo `datetime()` por `localDateTime()`.
+![Reconstruccion de camino temporal en Memgraph Lab](/assets/images/memgraph_temporal_path.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+
+Para el catalogo completo de queries (filtrado por tipo de logon, cuentas de servicio, usuarios especificos, nodos mas conectados), consulta el [articulo de Neo4j y Cypher](/es/tools/2026-04-07-neo4j-cypher-visualization/). Todas funcionan en Memgraph sustituyendo `datetime()` por `localDateTime()`.
 
 ---
 
