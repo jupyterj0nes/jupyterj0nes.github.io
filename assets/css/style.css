@@ -1127,21 +1127,18 @@ a:hover {
     transform: rotate(180deg);
   }
   .lang-switch {
-    padding: 1rem 1rem;
+    padding: 0.5rem 1rem 1rem;
     margin-bottom: 1rem;
-    border: none;
   }
   .nav-links > li.lang-switch > a {
-    border: none;
-    display: inline-block;
-  }
-  li.lang-switch a {
     border-top: 2px solid var(--accent-green-dim) !important;
     border-right: 2px solid var(--accent-green-dim) !important;
     border-bottom: 2px solid var(--accent-green-dim) !important;
     border-left: 2px solid var(--accent-green-dim) !important;
-    padding: 0.4rem 0.8rem;
-    display: inline-block;
+    display: block;
+    text-align: center;
+    padding: 0.5rem;
+    max-width: 60px;
   }
   .terminal-body h1 {
     font-size: 1.5rem;
