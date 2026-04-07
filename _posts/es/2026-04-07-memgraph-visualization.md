@@ -36,31 +36,22 @@ Cuando estás en medio de un incidente y necesitas levantar un entorno de visual
 |------------|-------------|
 | **Windows** | Via Docker (ver [Requisitos previos en Windows](#requisitos-previos-en-windows-wsl-2--docker) mas abajo) |
 | **Linux** | `sudo apt install memgraph` o descarga el paquete `.deb`/`.rpm` desde [memgraph.com/download](https://memgraph.com/download). Inicia con `sudo systemctl start memgraph` |
-| **macOS** | Se recomienda usar Docker (ver Docker mas abajo) |
-| **Docker** | Ver comandos mas abajo |
+| **macOS** | `docker compose` (mismo enfoque que Windows/Docker) |
 
-Memgraph tiene dos componentes que se ejecutan como **contenedores separados**:
+Una vez que Docker esta corriendo, instala Memgraph con:
 
-**1. Base de datos Memgraph** (el motor de grafos):
-
-```bash
-docker run -d --name memgraph -p 7687:7687 -p 7444:7444 memgraph/memgraph-mage
+```powershell
+iwr https://windows.memgraph.com | iex
 ```
 
-- **Puerto 7687**: conexion Bolt para queries Cypher
-- **Puerto 7444**: logs de Memgraph
+Esto descarga un `docker-compose.yml` e inicia dos contenedores automaticamente:
 
-**2. Memgraph Lab** (la interfaz web):
+| Contenedor | Imagen | Puerto | Funcion |
+|------------|--------|--------|---------|
+| `memgraph` | `memgraph/memgraph-mage` | 7687 (Bolt), 7444 (logs) | Motor de grafos + algoritmos MAGE |
+| `lab` | `memgraph/lab` | 3000 | Interfaz web (Memgraph Lab) |
 
-```bash
-docker run -d --name memgraph-lab -p 3000:3000 memgraph/lab
-```
-
-- **Puerto 3000**: interfaz web de Memgraph Lab
-
-Alternativamente, Memgraph Lab se puede instalar como [aplicacion de escritorio](https://memgraph.com/download) en lugar de ejecutarlo en Docker.
-
-Abre [http://localhost:3000](http://localhost:3000) en tu navegador, conecta a `localhost:7687`, y Memgraph Lab estara listo.
+Abre [http://localhost:3000](http://localhost:3000) en tu navegador y Memgraph Lab estara listo, ya conectado a la base de datos.
 
 ---
 
@@ -100,16 +91,17 @@ Esto instala Ubuntu por defecto. Se te pedira crear un nombre de usuario y contr
 3. Reinicia tu PC si se te solicita
 4. Abre Docker Desktop — confirma que "Engine running" aparece en verde en la parte inferior izquierda
 
-### Paso 3: Ejecutar Memgraph
+### Paso 3: Instalar y ejecutar Memgraph
 
-Inicia la base de datos y la interfaz web como dos contenedores separados:
+Con Docker Desktop corriendo, abre PowerShell y ejecuta:
 
 ```powershell
-docker run -d --name memgraph -p 7687:7687 -p 7444:7444 memgraph/memgraph-mage
-docker run -d --name memgraph-lab -p 3000:3000 memgraph/lab
+iwr https://windows.memgraph.com | iex
 ```
 
-Abre [http://localhost:3000](http://localhost:3000), conecta a `localhost:7687`, y Memgraph Lab estara listo.
+Esto descarga un `docker-compose.yml` e inicia dos contenedores: la base de datos Memgraph (`memgraph/memgraph-mage`) y la interfaz web (`memgraph/lab`).
+
+Abre [http://localhost:3000](http://localhost:3000) y Memgraph Lab estara listo, ya conectado a la base de datos.
 
 <details>
 <summary><strong>Solucion de problemas WSL / Docker</strong></summary>
