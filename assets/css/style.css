@@ -1128,12 +1128,15 @@ a:hover {
   }
   .lang-switch {
     padding: 1rem 1rem;
-    border-bottom: none !important;
     margin-bottom: 1rem;
+  }
+  .lang-switch,
+  .nav-links > li.lang-switch > a {
+    border-bottom: none !important;
   }
   .lang-switch a {
     display: inline-block;
-    border: 2px solid var(--accent-green-dim);
+    border: 2px solid var(--accent-green-dim) !important;
     padding: 0.4rem 0.8rem;
   }
   .terminal-body h1 {
