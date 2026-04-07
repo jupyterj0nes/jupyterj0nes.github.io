@@ -5,8 +5,8 @@ date: 2026-04-06 07:00:00 +0100
 category: tools
 lang: es
 ref: tool-masstin
-tags: [masstin, lateral-movement, rust, neo4j, evtx, herramientas]
-description: "Masstin es una herramienta DFIR escrita en Rust que parsea mas de 10 tipos de artefactos forenses y genera timelines unificadas de movimiento lateral, con integracion directa en Neo4j."
+tags: [masstin, lateral-movement, rust, neo4j, memgraph, evtx, herramientas]
+description: "Masstin es una herramienta DFIR escrita en Rust que parsea artefactos forenses y genera timelines unificadas de movimiento lateral, con visualizacion en bases de datos graficas."
 comments: true
 ---
 
@@ -22,32 +22,52 @@ Para eso existe **masstin**.
 
 ## Que es Masstin?
 
-Masstin es una herramienta DFIR escrita en **Rust** que parsea mas de 10 tipos de artefactos forenses y los fusiona en una **timeline cronologica unificada en CSV**, centrada exclusivamente en el movimiento lateral. Es la evolucion de [sabonis](/es/tools/sabonis-pivoting-lateral-movement/), reescrita desde cero para conseguir un rendimiento ~90% superior.
+Masstin es una herramienta DFIR escrita en **Rust** que parsea artefactos forenses y los fusiona en una **timeline cronologica unificada en CSV**, centrada exclusivamente en el movimiento lateral. Es la evolucion de [sabonis](/es/tools/sabonis-pivoting-lateral-movement/), reescrita desde cero para conseguir un rendimiento ~90% superior.
 
 - **Repositorio:** [github.com/jupyterj0nes/masstin](https://github.com/jupyterj0nes/masstin)
-- **Licencia:** GPLv3
-- **Plataformas:** Windows y Linux (binarios precompilados, sin dependencias)
+- **Licencia:** AGPL-3.0
+- **Plataformas:** Windows, Linux y macOS (binarios precompilados, sin dependencias)
 
 ## Acciones disponibles
 
-Masstin incluye 7 acciones para cubrir todo el flujo de trabajo forense:
-
 | Accion | Descripcion |
 |--------|-------------|
-| `parse` | Parsea archivos EVTX de Windows y genera la timeline CSV de movimiento lateral |
-| `load` | Sube un CSV previamente generado a una base de datos Neo4j para visualizacion en grafos |
-| `merge` | Combina multiples CSVs en una sola timeline ordenada cronologicamente |
-| `parser-elastic` | Parsea logs de Winlogbeat en formato JSON exportados desde Elasticsearch |
-| `parse-cortex` | Consulta la API de Cortex XDR para obtener datos de conexiones de red |
-| `parse-cortex-evtx-forensics` | Consulta los EVTX recopilados por agentes de recoleccion forense de Cortex XDR |
+| `parse-windows` | Parsea archivos EVTX de Windows y genera la timeline CSV de movimiento lateral |
 | `parse-linux` | Parsea logs de Linux (secure, messages, audit.log, utmp, wtmp, btmp, lastlog) |
+| `parser-elastic` | Parsea logs de Winlogbeat en formato JSON exportados desde Elasticsearch |
+| `parse-cortex` | Consulta APIs de EDR para obtener datos de conexiones de red |
+| `parse-cortex-evtx-forensics` | Consulta los EVTX recopilados por agentes de recoleccion forense de EDR |
+| `merge` | Combina multiples CSVs en una sola timeline ordenada cronologicamente |
+| `load-neo4j` | Sube un CSV a una base de datos Neo4j para visualizacion en grafos |
+| `load-memgraph` | Sube un CSV a una base de datos Memgraph para visualizacion en grafos |
+
+## Indice de documentacion
+
+### Artefactos
+
+| Artefacto | Accion masstin | Articulo |
+|-----------|----------------|----------|
+| Security.evtx | `parse-windows` | [Security.evtx y movimiento lateral](/es/artifacts/security-evtx-lateral-movement/) |
+| Terminal Services EVTX | `parse-windows` | [Terminal Services EVTX](/es/artifacts/terminal-services-evtx/) |
+| SMB EVTX | `parse-windows` | [Eventos SMB en EVTX](/es/artifacts/smb-evtx-events/) |
+| Windows Prefetch | — | [Windows Prefetch](/es/artifacts/windows-prefetch-forensics/) |
+| Logs de Linux | `parse-linux` | [Artefactos forenses de Linux](/es/artifacts/linux-forensic-artifacts/) |
+| Winlogbeat JSON | `parser-elastic` | [Winlogbeat: artefactos en JSON](/es/artifacts/winlogbeat-elastic-artifacts/) |
+| Cortex XDR | `parse-cortex` / `parse-cortex-evtx-forensics` | [Cortex XDR: artefactos forenses](/es/artifacts/cortex-xdr-artifacts/) |
+
+### Bases de datos graficas
+
+| Base de datos | Accion masstin | Articulo |
+|---------------|----------------|----------|
+| Neo4j | `load-neo4j` | [Neo4j y Cypher: visualizacion de movimiento lateral](/es/tools/neo4j-cypher-visualization/) |
+| Memgraph | `load-memgraph` | [Memgraph: visualizacion en memoria](/es/tools/memgraph-visualization/) |
 
 ## Artefactos soportados
 
 ### Windows Event Logs (EVTX)
 
-| Event Log | Event IDs relevantes | Que detecta |
-|-----------|---------------------|-------------|
+| Event Log | Event IDs | Que detecta |
+|-----------|-----------|-------------|
 | Security.evtx | 4624, 4625, 4634, 4647, 4648, 4768, 4769, 4770, 4771, 4776, 4778, 4779 | Logons, logoffs, Kerberos, NTLM, RDP reconnect |
 | TerminalServices-LocalSessionManager | 21, 22, 24, 25 | Sesiones RDP entrantes/salientes |
 | TerminalServices-RDPClient | 1024, 1102 | Conexiones RDP salientes |
@@ -56,9 +76,6 @@ Masstin incluye 7 acciones para cubrir todo el flujo de trabajo forense:
 | SMBServer/Security | 1009, 551 | Conexiones y autenticacion SMB del servidor |
 | SMBClient/Security | 31001 | Acceso a shares SMB del cliente |
 | SMBClient/Connectivity | 30803-30808 | Eventos de conectividad SMB |
-| System.evtx | 7045 | Instalacion de servicios remotos |
-| WinRM | Conexiones WinRM | Ejecucion remota via PowerShell |
-| PowerShell | Script blocks, modulos | Ejecucion remota de scripts |
 
 ### Linux
 
@@ -75,25 +92,12 @@ Masstin incluye 7 acciones para cubrir todo el flujo de trabajo forense:
 | Fuente | Que captura |
 |--------|------------|
 | Winlogbeat JSON | Los 28 Event IDs de Windows en formato JSON |
-| Cortex XDR (red) | Conexiones de red a puertos RDP (3389), SMB (445), SSH (22) |
-| Cortex XDR (EVTX Forensics) | Logs EVTX recopilados por agentes forenses de Cortex |
-
-### Tabla de artefactos soportados
-
-| Artefacto | Accion masstin | Articulo |
-|-----------|----------------|----------|
-| Security.evtx | `parse` | [Security.evtx y movimiento lateral](/es/artifacts/security-evtx-lateral-movement/) |
-| Terminal Services EVTX | `parse` | [Terminal Services EVTX](/es/artifacts/terminal-services-evtx/) |
-| SMB EVTX | `parse` | [Eventos SMB en EVTX](/es/artifacts/smb-evtx-events/) |
-| Logs de Linux | `parse-linux` | [Artefactos forenses de Linux](/es/artifacts/linux-forensic-artifacts/) |
-| Winlogbeat JSON | `parser-elastic` | [Winlogbeat: artefactos en JSON](/es/artifacts/winlogbeat-elastic-artifacts/) |
-| Cortex XDR | `parse-cortex` / `parse-cortex-evtx-forensics` | [Cortex XDR: artefactos forenses](/es/artifacts/cortex-xdr-artifacts/) |
+| EDR (red) | Conexiones de red a puertos RDP (3389), SMB (445), SSH (22) |
+| EDR (EVTX Forensics) | Logs EVTX recopilados por agentes forenses |
 
 ## Soporte de triage comprimido
 
-Masstin puede procesar directamente paquetes de triage comprimidos generados por herramientas como **Velociraptor** o **Cortex XDR Offline Collector**. Descomprime recursivamente los paquetes e identifica todos los archivos EVTX en su interior, incluso cuando hay logs archivados con nombres de archivo duplicados.
-
-Esto significa que no necesitas descomprimir manualmente los paquetes de triage antes de analizarlos -- simplemente apunta masstin al archivo comprimido y el se encarga del resto.
+Masstin puede procesar directamente paquetes de triage comprimidos generados por herramientas como **Velociraptor** o colectores offline de EDR. Descomprime recursivamente los paquetes e identifica todos los archivos EVTX en su interior, incluso cuando hay logs archivados con nombres de archivo duplicados.
 
 ```bash
 masstin -a parse-windows -d /evidence/triage_packages/ -o timeline.csv
@@ -101,7 +105,7 @@ masstin -a parse-windows -d /evidence/triage_packages/ -o timeline.csv
 
 ## Uso
 
-### Parseo de EVTX: generar la timeline CSV
+### Parseo de Windows EVTX
 
 ```bash
 # Parsear un directorio con artefactos de multiples maquinas
@@ -119,30 +123,30 @@ masstin -a parse-windows -d /evidence/ -o timeline.csv \
 masstin -a parse-windows -d /evidence/ -o timeline.csv --overwrite
 ```
 
+### Parseo de logs de Linux
+
+```bash
+masstin -a parse-linux -d /evidence/var/log/ -o linux-timeline.csv
+```
+
 ### Parseo de Winlogbeat JSON
 
 ```bash
 masstin -a parser-elastic -d /evidence/winlogbeat/ -o elastic-timeline.csv
 ```
 
-### Parseo de Cortex XDR
+### Parseo de EDR
 
 ```bash
 # Conexiones de red
-masstin -a parse-cortex --cortex-url api-xxxx.xdr.xx.paloaltonetworks.com \
+masstin -a parse-cortex --cortex-url api-xxxx.xdr.example.com \
   --start-time "2024-08-12 00:00:00" --end-time "2024-08-14 00:00:00" \
-  -o cortex-network.csv
+  -o edr-network.csv
 
 # EVTX recopilados por agentes forenses
-masstin -a parse-cortex-evtx-forensics --cortex-url api-xxxx.xdr.xx.paloaltonetworks.com \
+masstin -a parse-cortex-evtx-forensics --cortex-url api-xxxx.xdr.example.com \
   --start-time "2024-08-12 00:00:00" --end-time "2024-08-14 00:00:00" \
-  -o cortex-evtx.csv
-```
-
-### Parseo de logs de Linux
-
-```bash
-masstin -a parse-linux -d /evidence/var/log/ -o linux-timeline.csv
+  -o edr-evtx.csv
 ```
 
 ### Merge: combinar multiples timelines
@@ -151,15 +155,17 @@ masstin -a parse-linux -d /evidence/var/log/ -o linux-timeline.csv
 masstin -a merge -f timeline1.csv -f timeline2.csv -o merged.csv
 ```
 
-### Carga en Neo4j: visualizacion en grafos
+### Carga en base de datos grafica
 
 ```bash
-masstin -a load -f timeline.csv --database localhost:7687 --user neo4j
+# Neo4j
+masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j
+
+# Memgraph
+masstin -a load-memgraph -f timeline.csv --database localhost:7687 --user memgraph
 ```
 
 ### Formato del CSV de salida
-
-Cada fila del CSV contiene:
 
 | Campo | Descripcion |
 |-------|-------------|
@@ -173,6 +179,7 @@ Cada fila del CSV contiene:
 | `logon_type` | Tipo de logon (3=red/SMB, 10=RDP, SSH) |
 | `src_computer` | Maquina de origen |
 | `src_ip` | IP de origen |
+| `process` | Proceso que inicio la accion |
 | `log_filename` | Archivo de log de origen |
 
 ## Caracteristicas clave
@@ -187,12 +194,13 @@ Para reducir el ruido en investigaciones con miles de eventos, masstin agrupa co
 
 ### Consultas Cypher pre-construidas
 
-El repositorio incluye consultas Cypher listas para usar en Neo4j que permiten:
+El repositorio incluye consultas Cypher listas para usar en bases de datos graficas que permiten:
 
 - Visualizar el grafo completo de movimiento lateral
 - Identificar maquinas con mas conexiones entrantes (posibles objetivos)
 - Detectar patrones de movimiento anomalos
 - Rastrear la progresion de un usuario/atacante concreto
+- Reconstruir el camino temporal del ataque entre dos hosts
 
 ## Por que Rust?
 
@@ -202,22 +210,11 @@ El repositorio incluye consultas Cypher listas para usar en Neo4j que permiten:
 | Dependencias | Python + libs | Ninguna (binario estatico) |
 | Despliegue | Instalar Python + pip | Copiar binario |
 | Artefactos | 7+ tipos | 10+ tipos |
-| Neo4j | Exporta CSV manual | Subida directa |
+| Bases de datos graficas | Exporta CSV manual | Subida directa a Neo4j y Memgraph |
 | Resolucion IP | Manual | Automatica |
-
-En investigaciones con decenas de maquinas y GBs de logs, la diferencia de rendimiento no es un lujo -- es una necesidad.
 
 ## Roadmap
 
-- **Reconstruccion de eventos** -- Reconstruir eventos de movimiento lateral incluso cuando los logs EVTX han sido borrados o manipulados en el sistema.
-
-## Articulos relacionados
-
-- [Security.evtx y movimiento lateral](/es/artifacts/security-evtx-lateral-movement/)
-- [Terminal Services EVTX](/es/artifacts/terminal-services-evtx/)
-- [Eventos SMB en EVTX](/es/artifacts/smb-evtx-events/)
-- [Artefactos forenses de Linux](/es/artifacts/linux-forensic-artifacts/)
-- [Winlogbeat: artefactos en JSON](/es/artifacts/winlogbeat-elastic-artifacts/)
-- [Cortex XDR: artefactos forenses](/es/artifacts/cortex-xdr-artifacts/)
-- [Neo4j y Cypher: visualización de movimiento lateral](/es/tools/neo4j-cypher-visualization/)
-- [Memgraph: visualización en memoria](/es/tools/memgraph-visualization/)
+- Reconstruccion de eventos incluso cuando los logs EVTX han sido borrados o manipulados
+- Parseo de logs de VPN
+- Parser generico para formatos de log personalizados

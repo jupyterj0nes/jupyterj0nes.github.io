@@ -5,8 +5,8 @@ date: 2026-04-06 07:00:00 +0100
 category: tools
 lang: en
 ref: tool-masstin
-tags: [masstin, lateral-movement, rust, neo4j, evtx, tools]
-description: "Masstin is a Rust-based DFIR tool that parses 10+ forensic artifact types and generates unified lateral movement timelines, with direct Neo4j integration."
+tags: [masstin, lateral-movement, rust, neo4j, memgraph, evtx, tools]
+description: "Masstin is a Rust-based DFIR tool that parses forensic artifacts and generates unified lateral movement timelines, with graph database visualization."
 comments: true
 ---
 
@@ -22,32 +22,52 @@ That's what **masstin** is for.
 
 ## What is Masstin?
 
-Masstin is a DFIR tool written in **Rust** that parses 10+ forensic artifact types and merges them into a **unified chronological CSV timeline**, focused exclusively on lateral movement. It's the evolution of [sabonis](/en/tools/sabonis-pivoting-lateral-movement/), rewritten from scratch to achieve ~90% better performance.
+Masstin is a DFIR tool written in **Rust** that parses forensic artifacts and merges them into a **unified chronological CSV timeline**, focused exclusively on lateral movement. It's the evolution of [sabonis](/en/tools/sabonis-pivoting-lateral-movement/), rewritten from scratch to achieve ~90% better performance.
 
 - **Repository:** [github.com/jupyterj0nes/masstin](https://github.com/jupyterj0nes/masstin)
-- **License:** GPLv3
-- **Platforms:** Windows and Linux (prebuilt binaries, no dependencies)
+- **License:** AGPL-3.0
+- **Platforms:** Windows, Linux and macOS (prebuilt binaries, no dependencies)
 
 ## Available Actions
 
-Masstin includes 7 actions to cover the full forensic workflow:
-
 | Action | Description |
 |--------|-------------|
-| `parse` | Parses Windows EVTX files and generates the lateral movement CSV timeline |
-| `load` | Uploads a previously generated CSV to a Neo4j graph database for visualization |
-| `merge` | Combines multiple CSVs into a single chronologically sorted timeline |
-| `parser-elastic` | Parses Winlogbeat logs in JSON format exported from Elasticsearch |
-| `parse-cortex` | Queries the Cortex XDR API for network connection data |
-| `parse-cortex-evtx-forensics` | Queries EVTX logs collected by Cortex XDR forensic collection agents |
+| `parse-windows` | Parses Windows EVTX files and generates the lateral movement CSV timeline |
 | `parse-linux` | Parses Linux logs (secure, messages, audit.log, utmp, wtmp, btmp, lastlog) |
+| `parser-elastic` | Parses Winlogbeat logs in JSON format exported from Elasticsearch |
+| `parse-cortex` | Queries EDR APIs for network connection data |
+| `parse-cortex-evtx-forensics` | Queries EVTX logs collected by EDR forensic collection agents |
+| `merge` | Combines multiple CSVs into a single chronologically sorted timeline |
+| `load-neo4j` | Uploads a CSV to a Neo4j graph database for visualization |
+| `load-memgraph` | Uploads a CSV to a Memgraph graph database for visualization |
+
+## Documentation Index
+
+### Artifacts
+
+| Artifact | Masstin action | Article |
+|----------|---------------|---------|
+| Security.evtx | `parse-windows` | [Security.evtx and lateral movement](/en/artifacts/security-evtx-lateral-movement/) |
+| Terminal Services EVTX | `parse-windows` | [Terminal Services EVTX](/en/artifacts/terminal-services-evtx/) |
+| SMB EVTX | `parse-windows` | [SMB EVTX events](/en/artifacts/smb-evtx-events/) |
+| Windows Prefetch | — | [Windows Prefetch](/en/artifacts/windows-prefetch-forensics/) |
+| Linux logs | `parse-linux` | [Linux forensic artifacts](/en/artifacts/linux-forensic-artifacts/) |
+| Winlogbeat JSON | `parser-elastic` | [Winlogbeat: JSON artifacts](/en/artifacts/winlogbeat-elastic-artifacts/) |
+| Cortex XDR | `parse-cortex` / `parse-cortex-evtx-forensics` | [Cortex XDR: forensic artifacts](/en/artifacts/cortex-xdr-artifacts/) |
+
+### Graph Databases
+
+| Database | Masstin action | Article |
+|----------|---------------|---------|
+| Neo4j | `load-neo4j` | [Neo4j and Cypher: lateral movement visualization](/en/tools/neo4j-cypher-visualization/) |
+| Memgraph | `load-memgraph` | [Memgraph: in-memory visualization](/en/tools/memgraph-visualization/) |
 
 ## Supported Artifacts
 
 ### Windows Event Logs (EVTX)
 
-| Event Log | Relevant Event IDs | What it detects |
-|-----------|-------------------|-----------------|
+| Event Log | Event IDs | What it detects |
+|-----------|-----------|-----------------|
 | Security.evtx | 4624, 4625, 4634, 4647, 4648, 4768, 4769, 4770, 4771, 4776, 4778, 4779 | Logons, logoffs, Kerberos, NTLM, RDP reconnect |
 | TerminalServices-LocalSessionManager | 21, 22, 24, 25 | Incoming/outgoing RDP sessions |
 | TerminalServices-RDPClient | 1024, 1102 | Outgoing RDP connections |
@@ -56,9 +76,6 @@ Masstin includes 7 actions to cover the full forensic workflow:
 | SMBServer/Security | 1009, 551 | SMB server connections and auth |
 | SMBClient/Security | 31001 | SMB client share access |
 | SMBClient/Connectivity | 30803-30808 | SMB connectivity events |
-| System.evtx | 7045 | Remote service installation |
-| WinRM | WinRM connections | Remote execution via PowerShell |
-| PowerShell | Script blocks, modules | Remote script execution |
 
 ### Linux
 
@@ -75,25 +92,12 @@ Masstin includes 7 actions to cover the full forensic workflow:
 | Source | What it captures |
 |--------|-----------------|
 | Winlogbeat JSON | All 28 Windows Event IDs in JSON format |
-| Cortex XDR (network) | Network connections to RDP (3389), SMB (445), SSH (22) ports |
-| Cortex XDR (EVTX Forensics) | EVTX logs collected by Cortex forensic agents |
-
-### Supported Artifacts Table
-
-| Artifact | Masstin action | Article |
-|----------|---------------|---------|
-| Security.evtx | `parse` | [Security.evtx and lateral movement](/en/artifacts/security-evtx-lateral-movement/) |
-| Terminal Services EVTX | `parse` | [Terminal Services EVTX](/en/artifacts/terminal-services-evtx/) |
-| SMB EVTX | `parse` | [SMB EVTX events](/en/artifacts/smb-evtx-events/) |
-| Linux logs | `parse-linux` | [Linux forensic artifacts](/en/artifacts/linux-forensic-artifacts/) |
-| Winlogbeat JSON | `parser-elastic` | [Winlogbeat: JSON artifacts](/en/artifacts/winlogbeat-elastic-artifacts/) |
-| Cortex XDR | `parse-cortex` / `parse-cortex-evtx-forensics` | [Cortex XDR: forensic artifacts](/en/artifacts/cortex-xdr-artifacts/) |
+| EDR (network) | Network connections to RDP (3389), SMB (445), SSH (22) ports |
+| EDR (EVTX Forensics) | EVTX logs collected by forensic agents |
 
 ## Compressed Triage Support
 
-Masstin can directly process compressed triage packages generated by tools like **Velociraptor** or **Cortex XDR Offline Collector**. It recursively decompresses the packages and identifies all EVTX files within them, even when there are archived logs with duplicate filenames.
-
-This means you don't need to manually decompress triage packages before analyzing them -- just point masstin at the compressed file and it handles the rest.
+Masstin can directly process compressed triage packages generated by tools like **Velociraptor** or EDR offline collectors. It recursively decompresses the packages and identifies all EVTX files within them, even when there are archived logs with duplicate filenames.
 
 ```bash
 masstin -a parse-windows -d /evidence/triage_packages/ -o timeline.csv
@@ -101,7 +105,7 @@ masstin -a parse-windows -d /evidence/triage_packages/ -o timeline.csv
 
 ## Usage
 
-### EVTX Parsing: generate the CSV timeline
+### Parse Windows EVTX
 
 ```bash
 # Parse a directory with artifacts from multiple machines
@@ -119,30 +123,30 @@ masstin -a parse-windows -d /evidence/ -o timeline.csv \
 masstin -a parse-windows -d /evidence/ -o timeline.csv --overwrite
 ```
 
-### Winlogbeat JSON Parsing
+### Parse Linux logs
+
+```bash
+masstin -a parse-linux -d /evidence/var/log/ -o linux-timeline.csv
+```
+
+### Parse Winlogbeat JSON
 
 ```bash
 masstin -a parser-elastic -d /evidence/winlogbeat/ -o elastic-timeline.csv
 ```
 
-### Cortex XDR Parsing
+### Parse EDR
 
 ```bash
 # Network connections
-masstin -a parse-cortex --cortex-url api-xxxx.xdr.xx.paloaltonetworks.com \
+masstin -a parse-cortex --cortex-url api-xxxx.xdr.example.com \
   --start-time "2024-08-12 00:00:00" --end-time "2024-08-14 00:00:00" \
-  -o cortex-network.csv
+  -o edr-network.csv
 
 # EVTX collected by forensic agents
-masstin -a parse-cortex-evtx-forensics --cortex-url api-xxxx.xdr.xx.paloaltonetworks.com \
+masstin -a parse-cortex-evtx-forensics --cortex-url api-xxxx.xdr.example.com \
   --start-time "2024-08-12 00:00:00" --end-time "2024-08-14 00:00:00" \
-  -o cortex-evtx.csv
-```
-
-### Linux Log Parsing
-
-```bash
-masstin -a parse-linux -d /evidence/var/log/ -o linux-timeline.csv
+  -o edr-evtx.csv
 ```
 
 ### Merge: combine multiple timelines
@@ -151,15 +155,17 @@ masstin -a parse-linux -d /evidence/var/log/ -o linux-timeline.csv
 masstin -a merge -f timeline1.csv -f timeline2.csv -o merged.csv
 ```
 
-### Loading into Neo4j: graph visualization
+### Load into graph database
 
 ```bash
-masstin -a load -f timeline.csv --database localhost:7687 --user neo4j
+# Neo4j
+masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j
+
+# Memgraph
+masstin -a load-memgraph -f timeline.csv --database localhost:7687 --user memgraph
 ```
 
 ### CSV Output Format
-
-Each CSV row contains:
 
 | Field | Description |
 |-------|-------------|
@@ -173,6 +179,7 @@ Each CSV row contains:
 | `logon_type` | Logon type (3=Network/SMB, 10=RDP, SSH) |
 | `src_computer` | Source hostname |
 | `src_ip` | Source IP address |
+| `process` | Process that initiated the action |
 | `log_filename` | Original log file |
 
 ## Key Features
@@ -187,12 +194,13 @@ To reduce noise in investigations with thousands of events, masstin groups repet
 
 ### Pre-built Cypher Queries
 
-The repository includes ready-to-use Cypher queries for Neo4j that enable:
+The repository includes ready-to-use Cypher queries for graph databases that enable:
 
 - Visualizing the complete lateral movement graph
 - Identifying machines with the most incoming connections (potential targets)
 - Detecting anomalous movement patterns
 - Tracing a specific user/attacker's progression
+- Reconstructing the temporal attack path between two hosts
 
 ## Why Rust?
 
@@ -202,22 +210,11 @@ The repository includes ready-to-use Cypher queries for Neo4j that enable:
 | Dependencies | Python + libs | None (static binary) |
 | Deployment | Install Python + pip | Copy binary |
 | Artifacts | 7+ types | 10+ types |
-| Neo4j | Manual CSV export | Direct upload |
+| Graph databases | Manual CSV export | Direct upload to Neo4j and Memgraph |
 | IP resolution | Manual | Automatic |
-
-In investigations with dozens of machines and GBs of logs, the performance difference isn't a luxury -- it's a necessity.
 
 ## Roadmap
 
-- **Event reconstruction** -- Reconstruct lateral movement events even when EVTX logs have been cleared or tampered with on the system.
-
-## Related Articles
-
-- [Security.evtx and lateral movement](/en/artifacts/security-evtx-lateral-movement/)
-- [Terminal Services EVTX](/en/artifacts/terminal-services-evtx/)
-- [SMB EVTX events](/en/artifacts/smb-evtx-events/)
-- [Linux forensic artifacts](/en/artifacts/linux-forensic-artifacts/)
-- [Winlogbeat: JSON artifacts](/en/artifacts/winlogbeat-elastic-artifacts/)
-- [Cortex XDR: forensic artifacts](/en/artifacts/cortex-xdr-artifacts/)
-- [Neo4j and Cypher: lateral movement visualization](/en/tools/neo4j-cypher-visualization/)
-- [Memgraph: in-memory visualization](/en/tools/memgraph-visualization/)
+- Event reconstruction even when EVTX logs have been deleted or tampered with
+- VPN log parsing
+- Generic parser for custom log formats
