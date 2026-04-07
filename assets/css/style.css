@@ -252,6 +252,14 @@ a:hover {
   text-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
 }
 
+.dropdown-viewall a {
+  color: var(--accent-green) !important;
+  font-weight: 600;
+  font-size: 0.78rem;
+  border-bottom: 1px dashed rgba(0, 255, 65, 0.2);
+  margin-bottom: 0.2rem;
+}
+
 .lang-switch a {
   border: 1px solid var(--accent-green-dim);
   color: var(--accent-green) !important;

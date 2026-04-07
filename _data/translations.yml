@@ -10,6 +10,7 @@ en:
     leon_offtopic: "Routes & Food"
     about: "About"
     lore: "The Lore"
+    view_all: "View all →"
     lang_switch: "ES"
   home:
     subtitle: "Digital Forensics & Incident Response"
@@ -48,6 +49,7 @@ es:
     leon_offtopic: "Rutas y Gastronomía"
     about: "Sobre mí"
     lore: "El Lore"
+    view_all: "Ver todo →"
     lang_switch: "EN"
   home:
     subtitle: "Análisis Forense Digital y Respuesta ante Incidentes"
