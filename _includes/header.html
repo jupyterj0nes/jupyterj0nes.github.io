@@ -78,7 +78,15 @@
           </ul>
         </li>
         <li><a href="{{ '/' | append: lang | append: '/cases/' | relative_url }}">{{ t.nav.cases }}</a></li>
-        <li><a href="{{ '/' | append: lang | append: '/leon/' | relative_url }}">{{ t.nav.leon }}</a></li>
+        <li class="nav-dropdown">
+          <a href="{{ '/' | append: lang | append: '/leon/' | relative_url }}" class="dropdown-trigger">{{ t.nav.leon }} <span class="dropdown-arrow">&#9662;</span></a>
+          <ul class="dropdown-menu">
+            <li><a href="{{ '/' | append: lang | append: '/leon/ciudad/' | relative_url }}">{{ t.nav.leon_city }}</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/leon/facendera-hacking/' | relative_url }}">Facendera Hacking</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/leon/eventos/' | relative_url }}">{{ t.nav.leon_events }}</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/leon/rutas-gastronomia/' | relative_url }}">{{ t.nav.leon_offtopic }}</a></li>
+          </ul>
+        </li>
         <li><a href="{{ '/' | append: lang | append: '/about/' | relative_url }}">{{ t.nav.about }}</a></li>
         <li><a href="{{ '/' | append: lang | append: '/lore/' | relative_url }}">{{ t.nav.lore }}</a></li>
         <li class="lang-switch">
