@@ -219,3 +219,4 @@ In investigations with dozens of machines and GBs of logs, the performance diffe
 - [Linux forensic artifacts](/en/artifacts/linux-forensic-artifacts/)
 - [Winlogbeat: JSON artifacts](/en/artifacts/winlogbeat-elastic-artifacts/)
 - [Cortex XDR: forensic artifacts](/en/artifacts/cortex-xdr-artifacts/)
+- [Neo4j and Cypher: lateral movement visualization](/en/tools/neo4j-cypher-visualization/)

@@ -219,3 +219,4 @@ En investigaciones con decenas de maquinas y GBs de logs, la diferencia de rendi
 - [Artefactos forenses de Linux](/es/artifacts/linux-forensic-artifacts/)
 - [Winlogbeat: artefactos en JSON](/es/artifacts/winlogbeat-elastic-artifacts/)
 - [Cortex XDR: artefactos forenses](/es/artifacts/cortex-xdr-artifacts/)
+- [Neo4j y Cypher: visualización de movimiento lateral](/es/tools/neo4j-cypher-visualization/)
