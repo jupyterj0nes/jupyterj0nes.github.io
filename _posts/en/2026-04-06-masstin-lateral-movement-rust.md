@@ -162,7 +162,7 @@ masstin -a merge -f timeline1.csv -f timeline2.csv -o merged.csv
 masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j
 
 # Memgraph
-masstin -a load-memgraph -f timeline.csv --database localhost:7687 --user memgraph
+masstin -a load-memgraph -f timeline.csv --database localhost:7687
 ```
 
 ### CSV Output Format

@@ -139,7 +139,7 @@ docker ps                 # El contenedor de Memgraph esta activo
 El comando para cargar la timeline en Memgraph es `load-memgraph` (no `load-neo4j`):
 
 ```bash
-masstin -a load-memgraph -f timeline.csv --database localhost:7687 --user memgraph
+masstin -a load-memgraph -f timeline.csv --database localhost:7687
 ```
 
 Por defecto, Memgraph no tiene autenticación habilitada. Si has configurado credenciales en tu instancia, usa los parámetros correspondientes. Pero para un despliegue rápido de análisis, la configuración por defecto es todo lo que necesitas.
