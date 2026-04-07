@@ -35,16 +35,32 @@ When you're in the middle of an incident and need to spin up a visualization env
 | Platform | Installation |
 |----------|-------------|
 | **Windows** | Via Docker (see [Windows prerequisites](#windows-prerequisites-wsl-2--docker) below) |
-| **Linux** | `sudo apt install memgraph` or download the `.deb`/`.rpm` package from [memgraph.com/download](https://memgraph.com/download). Start with `sudo systemctl start memgraph`. Access Memgraph Lab at `http://localhost:3000` |
-| **macOS** | Docker is recommended: `docker run -p 7687:7687 -p 7444:7444 -p 3000:3000 memgraph/memgraph-platform` |
-| **Docker** | `docker run -p 7687:7687 -p 7444:7444 -p 3000:3000 memgraph/memgraph-platform` |
+| **Linux** | `sudo apt install memgraph` or download the `.deb`/`.rpm` package from [memgraph.com/download](https://memgraph.com/download). Start with `sudo systemctl start memgraph` |
+| **macOS** | Docker is recommended (see Docker below) |
+| **Docker** | See commands below |
 
-This starts three services:
+Memgraph has two components that run as **separate containers**:
+
+**1. Memgraph database** (the graph engine):
+
+```bash
+docker run -d --name memgraph -p 7687:7687 -p 7444:7444 memgraph/memgraph-mage
+```
+
 - **Port 7687**: Bolt connection for Cypher queries
 - **Port 7444**: Memgraph logs
-- **Port 3000**: Memgraph Lab (web interface)
 
-Open [http://localhost:3000](http://localhost:3000) in your browser and Memgraph Lab is ready. No database creation, no user setup, no configuration files. It just works.
+**2. Memgraph Lab** (the web interface):
+
+```bash
+docker run -d --name memgraph-lab -p 3000:3000 memgraph/lab
+```
+
+- **Port 3000**: Memgraph Lab web UI
+
+Alternatively, Memgraph Lab can be installed as a [desktop application](https://memgraph.com/download) instead of running it in Docker.
+
+Open [http://localhost:3000](http://localhost:3000) in your browser, connect to `localhost:7687`, and Memgraph Lab is ready.
 
 ---
 
@@ -86,11 +102,14 @@ This installs Ubuntu by default. You will be asked to create a Unix username and
 
 ### Step 3: Run Memgraph
 
+Start the database and the web interface as two separate containers:
+
 ```powershell
-docker run -d --name memgraph -p 7687:7687 -p 7444:7444 -p 3000:3000 memgraph/memgraph-platform
+docker run -d --name memgraph -p 7687:7687 -p 7444:7444 memgraph/memgraph-mage
+docker run -d --name memgraph-lab -p 3000:3000 memgraph/lab
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and Memgraph Lab is ready.
+Open [http://localhost:3000](http://localhost:3000), connect to `localhost:7687`, and Memgraph Lab is ready.
 
 <details>
 <summary><strong>Troubleshooting WSL / Docker</strong></summary>
