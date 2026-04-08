@@ -236,12 +236,14 @@ Masstin clasifica cada evento en una de cuatro categorias:
 
 #### SMB
 
-| Event ID | Origen | event_type | Descripcion |
-|---|---|---|---|
-| 1009 | SMBServer/Security | `CONNECT` | Conexion SMB |
-| 551 | SMBServer/Security | `FAILED_LOGON` | Autenticacion SMB fallida |
-| 31001 | SMBClient/Security | `CONNECT` | Acceso a share SMB |
-| 30803-30808 | SMBClient/Connectivity | `CONNECT` | Eventos de conectividad SMB |
+| Event ID | Origen | event_type | Descripcion | Columna detail |
+|---|---|---|---|---|
+| 1009 | SMBServer/Security | `SUCCESSFUL_LOGON` | Conexion SMB aceptada | |
+| 551 | SMBServer/Security | `FAILED_LOGON` | Autenticacion SMB fallida | |
+| 31001 | SMBClient/Security | `SUCCESSFUL_LOGON` | Acceso a share SMB | ShareName |
+| 5140 | Security.evtx | `SUCCESSFUL_LOGON` | Acceso a recurso compartido | ShareName (ej: `\\*\IPC$`) |
+| 5145 | Security.evtx | `SUCCESSFUL_LOGON` | Comprobacion de objeto en share | ShareName\NombreFichero |
+| 30803-30808 | SMBClient/Connectivity | `CONNECT` | Eventos de conectividad SMB | |
 
 #### Linux
 
