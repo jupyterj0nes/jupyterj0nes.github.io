@@ -180,7 +180,7 @@ Todas las acciones producen un CSV unificado con 14 columnas:
 | `dst_computer` | Maquina destino (la que recibe la conexion) |
 | `event_type` | Clasificacion del evento (ver tabla abajo) |
 | `event_id` | ID original del evento (ej: `4624`, `SSH_SUCCESS`) |
-| `logon_type` | Tipo de logon: `3` (Red/SMB), `10` (RDP), `SSH` |
+| `logon_type` | Tipo de logon de Windows tal como lo reporta el evento (ej: `2`, `3`, `7`, `10`, `11`) |
 | `target_user_name` | Cuenta de usuario objetivo de la accion |
 | `target_domain_name` | Dominio del usuario objetivo |
 | `src_computer` | Maquina origen (la que inicio la conexion) |
