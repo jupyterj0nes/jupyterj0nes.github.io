@@ -6,72 +6,149 @@ category: tools
 lang: en
 ref: tool-vshadow
 tags: [vshadow, vss, shadow-copy, forensics, dfir, rust, tools]
-description: "Pure Rust parser for Windows Volume Shadow Copy (VSS) snapshots. Read VSS stores from E01 and dd forensic images cross-platform, without Windows APIs."
+description: "Pure Rust parser for Windows Volume Shadow Copy (VSS) snapshots. Inspect, list and extract files from VSS stores in E01 and dd forensic images, cross-platform."
 comments: true
 ---
 
 ## The problem
 
-Attackers clear Windows event logs. But if Volume Shadow Copies exist on the disk, the old logs are still there — frozen in time inside the shadow copy snapshots. The challenge is accessing them:
+Attackers clear Windows event logs. But if Volume Shadow Copies exist on the disk, the old logs are still there — frozen in time. The challenge: existing tools can't access them easily.
 
-- **vshadowmount** requires FUSE and only works on Linux
-- **EVTXECmd --vss** requires the Windows VSS COM API and only works on live systems
-- **Neither** can read directly from E01 forensic images
+| Tool | Limitation |
+|------|-----------|
+| **vshadowmount** | Requires FUSE, Linux only |
+| **EVTXECmd --vss** | Requires Windows VSS COM API, live systems only |
+| **Both** | Cannot read from E01 forensic images directly |
 
 ## What is vshadow-rs?
 
-A **pure Rust** library and CLI tool that reads the VSS on-disk format directly from any `Read + Seek` source — E01 images, raw/dd images, or partition dumps. No Windows APIs, no C dependencies, works on Windows, Linux, and macOS.
+A **pure Rust** library and CLI tool that reads the VSS on-disk format directly from E01, raw/dd, or partition images. No Windows APIs, no C dependencies, works on Windows, Linux, and macOS.
 
 - **Repository:** [github.com/jupyterj0nes/vshadow-rs](https://github.com/jupyterj0nes/vshadow-rs)
 - **Crate:** [crates.io/crates/vshadow](https://crates.io/crates/vshadow)
 - **License:** MIT / Apache 2.0
 
-## CLI Usage
+---
+
+## Key Features
+
+| Feature | Description |
+|---------|-------------|
+| Inspect VSS stores | List all shadow copy snapshots with GUIDs, creation times and volume sizes |
+| List files | Browse NTFS directories inside any VSS store or the live volume |
+| Extract files | Extract files from VSS stores to disk — recover deleted event logs |
+| E01 support | Read directly from Expert Witness Format images, no ewfmount needed |
+| Auto partition detection | Finds NTFS partitions automatically via GPT and MBR partition tables |
+| Cross-platform | Windows, Linux and macOS — single binary, zero dependencies |
+| Library + CLI | Use as a Rust crate or as a standalone command-line tool |
+
+---
+
+## Install
 
 ```bash
-# Install
 cargo install vshadow
-
-# Inspect a forensic image for VSS stores
-vshadow-info -f evidence.E01
-
-# Specify partition offset manually
-vshadow-info -f disk.dd --offset 0x26700000
 ```
 
-The tool auto-detects NTFS partitions via GPT and MBR partition tables, then checks each one for VSS snapshots.
+---
+
+## CLI Usage
+
+### Inspect: find VSS stores
+
+```bash
+vshadow-info info -f evidence.E01
+```
+
+### List: browse files in a VSS store or live volume
+
+```bash
+# Live volume
+vshadow-info list -f evidence.E01 --live -p "Windows/System32/winevt/Logs"
+
+# VSS store 0
+vshadow-info list -f evidence.E01 -s 0 -p "Windows/System32/winevt/Logs"
+```
+
+### Extract: recover files from VSS stores
+
+```bash
+# Extract from VSS store 0 (recover cleared event logs)
+vshadow-info extract -f evidence.E01 -s 0 -p "Windows/System32/winevt/Logs" -o ./recovered/
+
+# Extract from live volume
+vshadow-info extract -f evidence.E01 --live -p "Windows/System32/winevt/Logs" -o ./evtx_live/
+```
+
+### Typical forensic workflow
+
+```bash
+# 1. Check for VSS stores
+vshadow-info info -f suspect.E01
+
+# 2. Compare file sizes between live and snapshot (cleared = smaller)
+vshadow-info list -f suspect.E01 --live -p "Windows/System32/winevt/Logs"
+vshadow-info list -f suspect.E01 -s 0 -p "Windows/System32/winevt/Logs"
+
+# 3. Extract pre-deletion logs from VSS
+vshadow-info extract -f suspect.E01 -s 0 -p "Windows/System32/winevt/Logs" -o ./recovered/
+
+# 4. Parse recovered logs with masstin
+masstin -a parse-windows -d ./recovered/ -o timeline.csv
+```
+
+---
+
+## Comparison with existing tools
+
+| Feature | vshadowmount | vshadowinfo | **vshadow-info** |
+|---------|-------------|-------------|-----------------|
+| List VSS stores | No | Yes | **Yes** |
+| Show GUIDs, dates | No | Yes | **Yes** |
+| Mount as FUSE filesystem | Yes | No | No |
+| **List files in VSS store** | Via mount | No | **Yes** |
+| **Extract files from VSS** | Via mount | No | **Yes** |
+| **List files in live volume** | No | No | **Yes** |
+| **Read E01 directly** | No | No | **Yes** |
+| **Auto-detect GPT/MBR** | No | No | **Yes** |
+| Cross-platform | Linux only | Linux/Mac/Win | **Win/Linux/Mac** |
+
+---
+
+## How VSS works
+
+Volume Shadow Copy uses a copy-on-write mechanism at the block level (16 KiB blocks):
+
+1. **Snapshot creation**: the catalog records metadata (GUID, timestamp)
+2. **Block modification**: when a block is about to be overwritten, the **old** data is copied to a store area first
+3. **Reconstruction**: read from the store for changed blocks, from the live volume for unchanged blocks
+
+vshadow-rs parses the on-disk structures: volume header at `0x1E00`, catalog (linked list of 16 KiB blocks), and block descriptors (32-byte entries mapping original offsets to stored data).
+
+---
 
 ## Library Usage
 
 ```rust
 use vshadow::VssVolume;
 
-let mut reader = /* any Read+Seek: File, BufReader, ewf::EwfReader, etc. */;
+let mut reader = /* any Read+Seek source */;
 let vss = VssVolume::new(&mut reader)?;
 
 for i in 0..vss.store_count() {
-    let info = vss.store_info(i)?;
     let mut store = vss.store_reader(&mut reader, i)?;
-    // store implements Read + Seek — pass it to an NTFS parser
+    // store implements Read + Seek — pass to ntfs crate
 }
 ```
 
+---
+
 ## Integration with masstin
 
-[Masstin](/en/tools/masstin-lateral-movement-rust/) uses vshadow-rs to extract EVTX files from both the live volume and all VSS snapshots within forensic images:
+[Masstin](/en/tools/masstin-lateral-movement-rust/) uses vshadow-rs to process forensic images with a single command:
 
 ```bash
 masstin -a parse-image-windows -f evidence.E01 -o timeline.csv
 ```
 
-This single command opens the image, finds NTFS partitions, extracts EVTX from the live volume, detects VSS stores, extracts EVTX from each snapshot, and generates a unified lateral movement timeline — including events that were deleted from the live volume but preserved in shadow copies.
-
-## How VSS works
-
-Volume Shadow Copy uses a copy-on-write mechanism:
-
-1. When a snapshot is created, the current state of every 16 KiB block is recorded
-2. When a block is later modified, the **old** data is copied to a store area before the write
-3. To reconstruct the snapshot: read from the store area for changed blocks, from the current volume for unchanged blocks
-
-vshadow-rs parses the on-disk structures: volume header at offset `0x1E00`, catalog (linked list of 16 KiB blocks with store metadata), and block descriptors (32-byte entries mapping original offsets to stored data locations).
+This extracts EVTX from both the live volume and all VSS snapshots, generating a unified lateral movement timeline that includes events the attacker deleted.
