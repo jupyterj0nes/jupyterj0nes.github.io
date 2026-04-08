@@ -251,7 +251,15 @@ To apply it:
 2. Select all the existing content (Ctrl+A)
 3. Paste the contents of [`style.gss`](https://github.com/jupyterj0nes/masstin/blob/main/memgraph-resources/style.gss)
 4. Click **Apply**
-5. Optionally, click **Save style** to keep it in your browser for future sessions
+
+To save it permanently and make it the default for all future queries:
+
+1. Click **Save style**
+2. Enter the name `masstin`
+3. Select **Save locally**
+4. Enable **Default Graph Style** — this will automatically apply the style to all new query results
+
+![Save style as default](/assets/images/memgraph_save_style.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
 
 ---
 
