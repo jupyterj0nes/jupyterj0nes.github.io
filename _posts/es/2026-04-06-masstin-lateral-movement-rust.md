@@ -103,8 +103,6 @@ Masstin puede procesar directamente paquetes de triage comprimidos generados por
 masstin -a parse-windows -d /evidence/triage_packages/ -o timeline.csv
 ```
 
-![Salida CLI de Masstin](/assets/images/masstin_cli_output.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
-
 ## Uso
 
 ### Parseo de Windows EVTX
@@ -124,6 +122,8 @@ masstin -a parse-windows -d /evidence/ -o timeline.csv \
 # Sobrescribir output existente
 masstin -a parse-windows -d /evidence/ -o timeline.csv --overwrite
 ```
+
+![Salida CLI de Masstin](/assets/images/masstin_cli_output.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
 
 ### Parseo de logs de Linux
 
