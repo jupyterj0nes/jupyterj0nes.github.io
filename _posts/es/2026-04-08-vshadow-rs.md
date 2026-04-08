@@ -26,7 +26,7 @@ Una libreria y herramienta CLI en **Rust puro** que lee el formato VSS directame
 
 - **Repositorio:** [github.com/jupyterj0nes/vshadow-rs](https://github.com/jupyterj0nes/vshadow-rs)
 - **Crate:** [crates.io/crates/vshadow](https://crates.io/crates/vshadow)
-- **Licencia:** MIT / Apache 2.0
+- **Licencia:** AGPL-3.0
 
 ---
 

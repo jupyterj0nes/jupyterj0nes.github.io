@@ -26,7 +26,7 @@ A **pure Rust** library and CLI tool that reads the VSS on-disk format directly 
 
 - **Repository:** [github.com/jupyterj0nes/vshadow-rs](https://github.com/jupyterj0nes/vshadow-rs)
 - **Crate:** [crates.io/crates/vshadow](https://crates.io/crates/vshadow)
-- **License:** MIT / Apache 2.0
+- **License:** AGPL-3.0
 
 ---
 

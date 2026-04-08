@@ -38,6 +38,8 @@ Masstin parsea **todas** estas fuentes y las fusiona en una **unica timeline cro
 | Reconstruccion de camino temporal | Query Cypher para encontrar la ruta cronologicamente coherente del atacante entre dos nodos | [Neo4j — camino temporal](/es/tools/neo4j-cypher-visualization/) / [Memgraph — camino temporal](/es/tools/memgraph-visualization/) |
 | Correlacion de sesiones | Campo `logon_id` permite vincular eventos de logon/logoff para determinar duracion de sesion | [Formato CSV — logon_id](/es/tools/masstin-csv-format/) |
 | Modo silencioso | Flag `--silent` suprime toda la salida para integracion con Velociraptor, plataformas SOAR y pipelines de automatizacion | [Tabla de acciones](#acciones-disponibles) |
+| Analisis de imagenes forenses | Abre imagenes E01/dd directamente, encuentra particiones NTFS (GPT/MBR), extrae EVTX — sin necesidad de montar | [Recuperacion VSS](/es/tools/masstin-vss-recovery/) |
+| Recuperacion de snapshots VSS | Detecta y extrae EVTX de Volume Shadow Copies — recupera logs borrados por atacantes | [Recuperacion VSS](/es/tools/masstin-vss-recovery/) |
 | Reporte transparente | La CLI muestra descubrimiento de artefactos, progreso de procesamiento, inferencias de hostname/ano y recuento de eventos por artefacto | [Parsear evidencia](#parsear-evidencia) |
 
 ---
@@ -121,11 +123,13 @@ RETURN path ORDER BY length(path) LIMIT 5
 | Winlogbeat JSON | [Winlogbeat: artefactos en JSON](/es/artifacts/winlogbeat-elastic-artifacts/) |
 | Cortex XDR | [Cortex XDR: artefactos forenses](/es/artifacts/cortex-xdr-artifacts/) |
 
-### Formato de salida
+### Formato de salida y funcionalidades avanzadas
 
 | Tema | Articulo |
 |------|----------|
 | Columnas CSV, event_type, mapeo Event ID, logon_id, detail | [Formato CSV y Clasificacion de Eventos](/es/tools/masstin-csv-format/) |
+| Analisis de imagenes forenses y recuperacion VSS | [Recuperando logs borrados desde VSS](/es/tools/masstin-vss-recovery/) |
+| vshadow-rs — parser VSS en Rust puro | [vshadow-rs](/es/tools/vshadow-rs/) |
 
 ### Bases de datos graficas
 
