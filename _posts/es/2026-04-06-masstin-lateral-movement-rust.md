@@ -28,17 +28,17 @@ Masstin parsea **todas** estas fuentes y las fusiona en una **unica timeline cro
 
 | Caracteristica | Descripcion | Articulo |
 |----------------|-------------|----------|
-| Analisis multi-directorio | Analiza docenas de maquinas a la vez con multiples flags `-d`, critico para investigaciones de ransomware | [Uso](#inicio-rapido) |
-| Timeline multiplataforma | Windows EVTX + Linux SSH + datos EDR fusionados en un CSV con `merge` | [Uso](#inicio-rapido) |
-| 30+ Event IDs de 9 fuentes Windows | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS — cubriendo RDP, SMB, Kerberos, NTLM y acceso a shares | [Security.evtx](/es/artifacts/security-evtx-lateral-movement/) |
-| Clasificacion de eventos | Cada evento clasificado como `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF` o `CONNECT` | [Formato CSV](/es/tools/masstin-csv-format/) |
-| Descompresion recursiva | Extrae automaticamente paquetes ZIP/triage de forma recursiva, gestiona logs archivados con nombres duplicados, detecta contrasenas forenses comunes | [Artefactos Linux](/es/artifacts/linux-forensic-artifacts/) |
-| Linux: inferencia inteligente | Auto-detecta hostname, infiere ano desde `dpkg.log`, soporta Debian (`auth.log`) y RHEL (`secure`), formatos RFC3164 y RFC5424 | [Artefactos Linux](/es/artifacts/linux-forensic-artifacts/) |
+| Analisis multi-directorio | Analiza docenas de maquinas a la vez con multiples flags `-d`, critico para investigaciones de ransomware | [Parsear evidencia](#parsear-evidencia) |
+| Timeline multiplataforma | Windows EVTX + Linux SSH + datos EDR fusionados en un CSV con `merge` | [Windows](/es/artifacts/security-evtx-lateral-movement/) / [Linux](/es/artifacts/linux-forensic-artifacts/) / [Cortex](/es/artifacts/cortex-xdr-artifacts/) |
+| 30+ Event IDs de 9 fuentes Windows | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS — cubriendo RDP, SMB, Kerberos, NTLM y acceso a shares | [Security.evtx](/es/artifacts/security-evtx-lateral-movement/) / [RDP](/es/artifacts/terminal-services-evtx/) / [SMB](/es/artifacts/smb-evtx-events/) |
+| Clasificacion de eventos | Cada evento clasificado como `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF` o `CONNECT` | [Formato CSV — event_type](/es/tools/masstin-csv-format/) |
+| Descompresion recursiva | Extrae automaticamente paquetes ZIP/triage de forma recursiva, gestiona logs archivados con nombres duplicados, detecta contrasenas forenses comunes | [Artefactos Linux — soporte triage](/es/artifacts/linux-forensic-artifacts/) |
+| Linux: inferencia inteligente | Auto-detecta hostname, infiere ano desde `dpkg.log`, soporta Debian (`auth.log`) y RHEL (`secure`), formatos RFC3164 y RFC5424 | [Artefactos Linux — inferencia](/es/artifacts/linux-forensic-artifacts/) |
 | Visualizacion en grafos con reduccion de ruido | Carga directa a Neo4j o Memgraph con agrupacion de conexiones (fecha mas temprana + recuento) y resolucion automatica IP-a-hostname | [Neo4j](/es/tools/neo4j-cypher-visualization/) / [Memgraph](/es/tools/memgraph-visualization/) |
-| Reconstruccion de camino temporal | Query Cypher para encontrar la ruta cronologicamente coherente del atacante entre dos nodos | [Neo4j](/es/tools/neo4j-cypher-visualization/) |
-| Correlacion de sesiones | Campo `logon_id` permite vincular eventos de logon/logoff para determinar duracion de sesion | [Formato CSV](/es/tools/masstin-csv-format/) |
-| Modo silencioso | Flag `--silent` suprime toda la salida para integracion con Velociraptor, plataformas SOAR y pipelines de automatizacion | [Uso](#inicio-rapido) |
-| Reporte transparente | La CLI muestra descubrimiento de artefactos, progreso de procesamiento, inferencias de hostname/ano y recuento de eventos por artefacto | [Uso](#inicio-rapido) |
+| Reconstruccion de camino temporal | Query Cypher para encontrar la ruta cronologicamente coherente del atacante entre dos nodos | [Neo4j — camino temporal](/es/tools/neo4j-cypher-visualization/) / [Memgraph — camino temporal](/es/tools/memgraph-visualization/) |
+| Correlacion de sesiones | Campo `logon_id` permite vincular eventos de logon/logoff para determinar duracion de sesion | [Formato CSV — logon_id](/es/tools/masstin-csv-format/) |
+| Modo silencioso | Flag `--silent` suprime toda la salida para integracion con Velociraptor, plataformas SOAR y pipelines de automatizacion | [Tabla de acciones](#acciones-disponibles) |
+| Reporte transparente | La CLI muestra descubrimiento de artefactos, progreso de procesamiento, inferencias de hostname/ano y recuento de eventos por artefacto | [Parsear evidencia](#parsear-evidencia) |
 
 ---
 
