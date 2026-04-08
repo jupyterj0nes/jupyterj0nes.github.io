@@ -28,12 +28,31 @@ Masstin is a DFIR tool written in **Rust** that parses forensic artifacts and me
 - **License:** AGPL-3.0
 - **Platforms:** Windows, Linux and macOS (prebuilt binaries, no dependencies)
 
+---
+
+## Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **Multi-artifact parsing** | 30+ Windows Event IDs + Linux logs + Winlogbeat JSON + Cortex XDR |
+| **Unified timeline** | All sources merged into a single chronological CSV with [14 standardized columns](/en/tools/masstin-csv-format/) |
+| **Event classification** | Every event classified as `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF`, or `CONNECT` — [full mapping](/en/tools/masstin-csv-format/) |
+| **Compressed triage support** | Processes ZIP packages from Velociraptor or Cortex XDR, including password-protected archives |
+| **Graph database support** | Direct upload to [Neo4j](/en/tools/neo4j-cypher-visualization/) or [Memgraph](/en/tools/memgraph-visualization/) with Cypher queries |
+| **Auto IP-to-hostname** | Frequency-based resolution from the logs themselves |
+| **Connection grouping** | Reduces noise by grouping repetitive connections |
+| **Session correlation** | `logon_id` field for matching logon/logoff events — [details](/en/tools/masstin-csv-format/) |
+| **Silent mode** | `--silent` flag for Velociraptor and automation integration |
+| **Cross-platform** | Windows, Linux & macOS — zero dependencies |
+
+---
+
 ## Available Actions
 
 | Action | Description |
 |--------|-------------|
-| `parse-windows` | Parses Windows EVTX files and generates the lateral movement CSV timeline |
-| `parse-linux` | Parses Linux logs (secure, messages, audit.log, utmp, wtmp, btmp, lastlog) |
+| `parse-windows` | Parses Windows EVTX files and generates the lateral movement timeline |
+| `parse-linux` | Parses Linux logs (auth.log, secure, messages, audit.log, utmp, wtmp, btmp, lastlog) |
 | `parser-elastic` | Parses Winlogbeat logs in JSON format exported from Elasticsearch |
 | `parse-cortex` | Queries EDR APIs for network connection data |
 | `parse-cortex-evtx-forensics` | Queries EVTX logs collected by EDR forensic collection agents |
@@ -41,19 +60,48 @@ Masstin is a DFIR tool written in **Rust** that parses forensic artifacts and me
 | `load-neo4j` | Uploads a CSV to a Neo4j graph database for visualization |
 | `load-memgraph` | Uploads a CSV to a Memgraph graph database for visualization |
 
-## Documentation Index
+---
+
+## Quick Start
+
+Download the latest binary from the [Releases page](https://github.com/jupyterj0nes/masstin/releases) — no installation needed.
+
+```bash
+# Parse Windows EVTX from a directory
+masstin -a parse-windows -d /evidence/logs/ -o timeline.csv
+
+# Parse Linux logs (supports ZIP with auto-password detection)
+masstin -a parse-linux -d /evidence/triage/ -o linux-timeline.csv
+
+# Load into Memgraph for visualization
+masstin -a load-memgraph -f timeline.csv --database localhost:7687
+```
+
+![Masstin CLI output](/assets/images/masstin_cli_output.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+
+---
+
+## Documentation
 
 ### Artifacts
 
+Detailed documentation for every artifact masstin parses:
+
 | Artifact | Masstin action | Article |
 |----------|---------------|---------|
-| Security.evtx | `parse-windows` | [Security.evtx and lateral movement](/en/artifacts/security-evtx-lateral-movement/) |
+| Security.evtx (30+ Event IDs) | `parse-windows` | [Security.evtx and lateral movement](/en/artifacts/security-evtx-lateral-movement/) |
 | Terminal Services EVTX | `parse-windows` | [Terminal Services EVTX](/en/artifacts/terminal-services-evtx/) |
 | SMB EVTX | `parse-windows` | [SMB EVTX events](/en/artifacts/smb-evtx-events/) |
-| Windows Prefetch | — | [Windows Prefetch](/en/artifacts/windows-prefetch-forensics/) |
-| Linux logs | `parse-linux` | [Linux forensic artifacts](/en/artifacts/linux-forensic-artifacts/) |
+| Windows Prefetch | -- | [Windows Prefetch](/en/artifacts/windows-prefetch-forensics/) |
+| Linux logs (auth.log, secure, utmp/wtmp) | `parse-linux` | [Linux forensic artifacts](/en/artifacts/linux-forensic-artifacts/) |
 | Winlogbeat JSON | `parser-elastic` | [Winlogbeat: JSON artifacts](/en/artifacts/winlogbeat-elastic-artifacts/) |
 | Cortex XDR | `parse-cortex` / `parse-cortex-evtx-forensics` | [Cortex XDR: forensic artifacts](/en/artifacts/cortex-xdr-artifacts/) |
+
+### Output Format
+
+| Topic | Article |
+|-------|---------|
+| CSV columns, event_type classification, Event ID mapping | [CSV Format and Event Classification](/en/tools/masstin-csv-format/) |
 
 ### Graph Databases
 
@@ -62,239 +110,7 @@ Masstin is a DFIR tool written in **Rust** that parses forensic artifacts and me
 | Neo4j | `load-neo4j` | [Neo4j and Cypher: lateral movement visualization](/en/tools/neo4j-cypher-visualization/) |
 | Memgraph | `load-memgraph` | [Memgraph: in-memory visualization](/en/tools/memgraph-visualization/) |
 
-## Supported Artifacts
-
-### Windows Event Logs (EVTX)
-
-| Event Log | Event IDs | What it detects |
-|-----------|-----------|-----------------|
-| Security.evtx | 4624, 4625, 4634, 4647, 4648, 4768, 4769, 4770, 4771, 4776, 4778, 4779 | Logons, logoffs, Kerberos, NTLM, RDP reconnect |
-| TerminalServices-LocalSessionManager | 21, 22, 24, 25 | Incoming/outgoing RDP sessions |
-| TerminalServices-RDPClient | 1024, 1102 | Outgoing RDP connections |
-| TerminalServices-RemoteConnectionManager | 1149 | Incoming RDP connections accepted |
-| RdpCoreTS | 131 | RDP transport negotiation |
-| SMBServer/Security | 1009, 551 | SMB server connections and auth |
-| SMBClient/Security | 31001 | SMB client share access |
-| SMBClient/Connectivity | 30803-30808 | SMB connectivity events |
-
-### Linux
-
-| Source | What it captures |
-|--------|-----------------|
-| `/var/log/auth.log` (Debian/Ubuntu), `/var/log/secure` (RHEL/CentOS) | SSH success, failure, PAM authentication |
-| `/var/log/messages` | SSH events via syslog |
-| `/var/log/audit/audit.log` | Authentication events via audit subsystem |
-| `utmp` / `wtmp` | Active and historical login sessions |
-| `btmp` | Failed login attempts |
-| `lastlog` | Last login per user |
-
-### Other Sources
-
-| Source | What it captures |
-|--------|-----------------|
-| Winlogbeat JSON | All 28 Windows Event IDs in JSON format |
-| EDR (network) | Network connections to RDP (3389), SMB (445), SSH (22) ports |
-| EDR (EVTX Forensics) | EVTX logs collected by forensic agents |
-
-## Compressed Triage Support
-
-Masstin can directly process compressed triage packages generated by tools like **Velociraptor** or EDR offline collectors. It recursively decompresses the packages and identifies all EVTX files within them, even when there are archived logs with duplicate filenames.
-
-```bash
-masstin -a parse-windows -d /evidence/triage_packages/ -o timeline.csv
-```
-
-## Usage
-
-### Parse Windows EVTX
-
-```bash
-# Parse a directory with artifacts from multiple machines
-masstin -a parse-windows -d /evidence/machine1/logs -d /evidence/machine2/logs -o timeline.csv
-
-# Parse individual EVTX files
-masstin -a parse-windows -f Security.evtx -f System.evtx -o timeline.csv
-
-# Time filtering
-masstin -a parse-windows -d /evidence/ -o timeline.csv \
-  --start-time "2024-08-12 00:00:00" \
-  --end-time "2024-08-14 00:00:00"
-
-# Overwrite existing output
-masstin -a parse-windows -d /evidence/ -o timeline.csv --overwrite
-```
-
-![Masstin CLI output](/assets/images/masstin_cli_output.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
-
-The output shows three phases: **[1/3]** scans directories and compressed packages to discover EVTX artifacts, **[2/3]** processes each artifact and shows progress, then lists every source that produced events with its count, and **[3/3]** generates the sorted CSV timeline. The final summary shows how many artifacts were parsed, how many were skipped (no relevant events or access denied), total events collected, and execution time. Use `--silent` to suppress all output for automation.
-
-### Parse Linux logs
-
-```bash
-masstin -a parse-linux -d /evidence/var/log/ -o linux-timeline.csv
-```
-
-### Parse Winlogbeat JSON
-
-```bash
-masstin -a parser-elastic -d /evidence/winlogbeat/ -o elastic-timeline.csv
-```
-
-### Parse EDR
-
-```bash
-# Network connections
-masstin -a parse-cortex --cortex-url api-xxxx.xdr.example.com \
-  --start-time "2024-08-12 00:00:00" --end-time "2024-08-14 00:00:00" \
-  -o edr-network.csv
-
-# EVTX collected by forensic agents
-masstin -a parse-cortex-evtx-forensics --cortex-url api-xxxx.xdr.example.com \
-  --start-time "2024-08-12 00:00:00" --end-time "2024-08-14 00:00:00" \
-  -o edr-evtx.csv
-```
-
-### Merge: combine multiple timelines
-
-```bash
-masstin -a merge -f timeline1.csv -f timeline2.csv -o merged.csv
-```
-
-### Load into graph database
-
-```bash
-# Neo4j
-masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j
-
-# Memgraph
-masstin -a load-memgraph -f timeline.csv --database localhost:7687
-```
-
-### CSV Output Format
-
-All actions produce a unified CSV with 14 columns:
-
-| Column | Description |
-|--------|-------------|
-| `time_created` | Event timestamp |
-| `dst_computer` | Destination hostname (machine that received the connection) |
-| `event_type` | Event classification (see table below) |
-| `event_id` | Original Event ID from the source (e.g., `4624`, `SSH_SUCCESS`) |
-| `logon_type` | Windows logon type as reported by the event (e.g., `2`, `3`, `7`, `10`, `11`) |
-| `target_user_name` | User account targeted by the action |
-| `target_domain_name` | Domain of the target user |
-| `src_computer` | Source hostname (machine that initiated the connection) |
-| `src_ip` | Source IP address |
-| `subject_user_name` | User account that initiated the action |
-| `subject_domain_name` | Domain of the subject user |
-| `logon_id` | Logon session ID for correlation (e.g., `0x1A2B3C`) |
-| `detail` | Additional context depending on event type |
-| `log_filename` | Source artifact file |
-
-### Event Type Classification
-
-Masstin classifies every event into one of four categories:
-
-| event_type | Meaning | When |
-|---|---|---|
-| `SUCCESSFUL_LOGON` | Authentication succeeded | User authenticated correctly and session was established |
-| `FAILED_LOGON` | Authentication failed | Incorrect credentials, locked account, or pre-auth failure |
-| `LOGOFF` | Session ended | User logged off or session was disconnected |
-| `CONNECT` | Connection event | Network-level connection with no authentication result |
-
-### Event ID to event_type Mapping
-
-#### Security.evtx
-
-| Event ID | event_type | Description | detail column |
-|---|---|---|---|
-| 4624 | `SUCCESSFUL_LOGON` | Successful logon | Process name |
-| 4625 | `FAILED_LOGON` | Failed logon | SubStatus code (e.g., `0xC000006A` = wrong password) |
-| 4634 | `LOGOFF` | Logoff | |
-| 4647 | `LOGOFF` | User-initiated logoff | |
-| 4648 | `SUCCESSFUL_LOGON` | Logon with explicit credentials (runas) | Process name |
-| 4768 | `SUCCESSFUL_LOGON` / `FAILED_LOGON` | Kerberos TGT request | Based on Status field |
-| 4769 | `SUCCESSFUL_LOGON` / `FAILED_LOGON` | Kerberos Service Ticket | Based on Status field |
-| 4770 | `SUCCESSFUL_LOGON` | Kerberos TGT renewal | |
-| 4771 | `FAILED_LOGON` | Kerberos pre-auth failure | |
-| 4776 | `SUCCESSFUL_LOGON` / `FAILED_LOGON` | NTLM authentication | Based on Status field |
-| 4778 | `SUCCESSFUL_LOGON` | Session reconnected | |
-| 4779 | `LOGOFF` | Session disconnected | |
-
-#### Terminal Services (RDP)
-
-| Event ID | Source | event_type | Description |
-|---|---|---|---|
-| 21 | LocalSessionManager | `SUCCESSFUL_LOGON` | RDP session logon succeeded |
-| 22 | LocalSessionManager | `SUCCESSFUL_LOGON` | RDP shell started |
-| 24 | LocalSessionManager | `LOGOFF` | RDP session disconnected |
-| 25 | LocalSessionManager | `SUCCESSFUL_LOGON` | RDP session reconnected |
-| 1024 | RDPClient | `CONNECT` | Outgoing RDP connection |
-| 1102 | RDPClient | `CONNECT` | Outgoing RDP connection |
-| 1149 | RemoteConnectionManager | `SUCCESSFUL_LOGON` | RDP authentication succeeded |
-| 131 | RdpCoreTS | `CONNECT` | RDP transport accepted |
-
-#### SMB
-
-| Event ID | Source | event_type | Description | detail column |
-|---|---|---|---|---|
-| 1009 | SMBServer/Security | `SUCCESSFUL_LOGON` | SMB connection accepted | |
-| 551 | SMBServer/Security | `FAILED_LOGON` | SMB authentication failed | |
-| 31001 | SMBClient/Security | `SUCCESSFUL_LOGON` | SMB share access | ShareName |
-| 5140 | Security.evtx | `SUCCESSFUL_LOGON` | Network share accessed | ShareName (e.g., `\\*\IPC$`) |
-| 5145 | Security.evtx | `SUCCESSFUL_LOGON` | Network share object checked | ShareName\FileName |
-| 30803-30808 | SMBClient/Connectivity | `CONNECT` | SMB connectivity events | |
-
-#### Linux
-
-| Event ID | event_type | Description | detail column |
-|---|---|---|---|
-| `SSH_SUCCESS` | `SUCCESSFUL_LOGON` | SSH authentication succeeded | Auth method (password/publickey) |
-| `SSH_FAILED` | `FAILED_LOGON` | SSH authentication failed | Auth method |
-| `SSH_CONNECT` | `CONNECT` | SSH connection (xinetd) | |
-
-#### Cortex XDR
-
-| Source | event_type | Description |
-|---|---|---|
-| Network (ports 3389/445/22) | `CONNECT` | Network-level connection data |
-| EVTX Forensics | Same as Security.evtx | Classified by Event ID |
-
-### The logon_id Column
-
-The `logon_id` field contains the session identifier extracted from the `TargetLogonId` field in Security.evtx events. This enables future session correlation: matching a 4624 (logon) with its corresponding 4634 (logoff) to determine session duration.
-
-### The detail Column
-
-The `detail` column provides additional context that varies by event type:
-
-| Event | Content in detail |
-|---|---|
-| 4624, 4648 | Process name that initiated the logon |
-| 4625 | SubStatus hex code indicating failure reason |
-| SSH events | Authentication method (`password`, `publickey`) |
-| Cortex Network | Command line of the process that generated the connection |
-| Other events | Empty |
-
-## Key Features
-
-### Automatic IP -> Hostname Resolution
-
-Masstin analyzes IP-hostname association frequency within the logs themselves to automatically resolve IPs to machine names, without needing an external DNS.
-
-### Connection Grouping
-
-To reduce noise in investigations with thousands of events, masstin groups repetitive connections between the same machines, letting you see patterns without drowning in data.
-
-### Pre-built Cypher Queries
-
-The repository includes ready-to-use Cypher queries for graph databases that enable:
-
-- Visualizing the complete lateral movement graph
-- Identifying machines with the most incoming connections (potential targets)
-- Detecting anomalous movement patterns
-- Tracing a specific user/attacker's progression
-- Reconstructing the temporal attack path between two hosts
+---
 
 ## Why Rust?
 
@@ -306,6 +122,8 @@ The repository includes ready-to-use Cypher queries for graph databases that ena
 | Artifacts | 7+ types | 10+ types |
 | Graph databases | Manual CSV export | Direct upload to Neo4j and Memgraph |
 | IP resolution | Manual | Automatic |
+
+---
 
 ## Roadmap
 
