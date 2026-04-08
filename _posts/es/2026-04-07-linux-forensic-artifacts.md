@@ -266,7 +266,9 @@ Los logs de Linux difieren segun la distribucion, pero masstin los maneja de for
 Mar 16 08:25:22 app-1 sshd[4894]: Accepted password for user3 from 192.168.126.1 port 61474 ssh2
 ```
 
-Masstin infiere el ano a partir de la fecha de modificacion del fichero. Este es el formato syslog estandar utilizado por practicamente todas las distribuciones Linux.
+Dado que RFC3164 no incluye el ano, masstin lo infiere automaticamente de ficheros vecinos en el mismo directorio. El orden de prioridad es: `dpkg.log` (contiene fechas completas `YYYY-MM-DD`), `wtmp` (timestamps epoch con ano), fecha de modificacion del fichero, y ano actual como ultimo recurso. Masstin reporta que infiere y de que fuente lo obtiene, para que el analista siempre conozca la base de los timestamps.
+
+Lo mismo aplica a la identificacion del hostname: masstin comprueba `/etc/hostname`, `dmesg`, `/etc/hosts`, y como fallback extrae el hostname de la propia cabecera syslog. Todas las inferencias se reportan de forma transparente en la salida.
 
 **RFC5424** (syslog estructurado) incluye timestamps completos con zona horaria:
 
