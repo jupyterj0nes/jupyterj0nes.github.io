@@ -26,17 +26,19 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 
 ## Key Features
 
-- **Multi-directory incident analysis** — Analyze dozens of machines at once with multiple `-d` flags, critical for ransomware investigations
-- **Cross-platform timeline** — Windows EVTX + Linux SSH + EDR data merged into one CSV with `merge`
-- **30+ Event IDs from 9 Windows sources** — Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS ([full list](/en/artifacts/security-evtx-lateral-movement/))
-- **Event classification** — Every event classified as `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF`, or `CONNECT` ([mapping](/en/tools/masstin-csv-format/))
-- **Recursive decompression** — Auto-extracts ZIP/triage packages, handles archived logs with duplicate filenames, auto-detects forensic passwords
-- **Linux smart inference** — Auto-detects hostname, infers year from `dpkg.log`, supports Debian and RHEL, RFC3164 and RFC5424 ([details](/en/artifacts/linux-forensic-artifacts/))
-- **Graph visualization** — Direct upload to [Neo4j](/en/tools/neo4j-cypher-visualization/) or [Memgraph](/en/tools/memgraph-visualization/) with connection grouping and IP-to-hostname resolution
-- **Temporal path reconstruction** — Cypher query to find the chronologically coherent attacker route between two nodes ([queries](/en/tools/neo4j-cypher-visualization/))
-- **Session correlation** — `logon_id` field for matching logon/logoff to determine session duration ([format](/en/tools/masstin-csv-format/))
-- **Silent mode** — `--silent` flag for integration with Velociraptor, SOAR platforms, and automation
-- **Transparent reporting** — CLI shows artifact discovery, processing progress, and hostname/year inferences
+| Feature | Description | Article |
+|---------|-------------|---------|
+| Multi-directory incident analysis | Analyze dozens of machines at once with multiple `-d` flags, critical for ransomware investigations | [Usage](#quick-start) |
+| Cross-platform timeline | Windows EVTX + Linux SSH + EDR data merged into one CSV with `merge` | [Usage](#quick-start) |
+| 30+ Event IDs from 9 Windows sources | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS — covering RDP, SMB, Kerberos, NTLM and share access | [Security.evtx](/en/artifacts/security-evtx-lateral-movement/) |
+| Event classification | Every event classified as `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF` or `CONNECT` | [CSV Format](/en/tools/masstin-csv-format/) |
+| Recursive decompression | Auto-extracts ZIP/triage packages recursively, handles archived logs with duplicate filenames, auto-detects common forensic passwords | [Linux artifacts](/en/artifacts/linux-forensic-artifacts/) |
+| Linux smart inference | Auto-detects hostname, infers year from `dpkg.log`, supports Debian (`auth.log`) and RHEL (`secure`), RFC3164 and RFC5424 formats | [Linux artifacts](/en/artifacts/linux-forensic-artifacts/) |
+| Graph visualization with noise reduction | Direct upload to Neo4j or Memgraph with connection grouping (earliest date + count) and automatic IP-to-hostname resolution | [Neo4j](/en/tools/neo4j-cypher-visualization/) / [Memgraph](/en/tools/memgraph-visualization/) |
+| Temporal path reconstruction | Cypher query to find the chronologically coherent attacker route between two nodes | [Neo4j](/en/tools/neo4j-cypher-visualization/) |
+| Session correlation | `logon_id` field enables matching logon/logoff events to determine session duration | [CSV Format](/en/tools/masstin-csv-format/) |
+| Silent mode | `--silent` flag suppresses all output for integration with Velociraptor, SOAR platforms and automation pipelines | [Usage](#quick-start) |
+| Transparent reporting | CLI shows artifact discovery, processing progress, hostname/year inferences and per-artifact event counts | [Usage](#quick-start) |
 
 ---
 
