@@ -172,20 +172,107 @@ masstin -a load-memgraph -f timeline.csv --database localhost:7687
 
 ### CSV Output Format
 
-| Field | Description |
-|-------|-------------|
-| `time_created` | Event timestamp (UTC) |
-| `dst_computer` | Destination hostname |
-| `event_id` | Windows Event ID or equivalent |
-| `subject_user_name` | Source user account |
-| `subject_domain_name` | Source domain |
-| `target_user_name` | Target user account |
-| `target_domain_name` | Target domain |
-| `logon_type` | Logon type (3=Network/SMB, 10=RDP, SSH) |
-| `src_computer` | Source hostname |
+All actions produce a unified CSV with 14 columns:
+
+| Column | Description |
+|--------|-------------|
+| `time_created` | Event timestamp |
+| `dst_computer` | Destination hostname (machine that received the connection) |
+| `event_type` | Event classification (see table below) |
+| `event_id` | Original Event ID from the source (e.g., `4624`, `SSH_SUCCESS`) |
+| `logon_type` | Logon type: `3` (Network/SMB), `10` (RDP), `SSH` |
+| `target_user_name` | User account targeted by the action |
+| `target_domain_name` | Domain of the target user |
+| `src_computer` | Source hostname (machine that initiated the connection) |
 | `src_ip` | Source IP address |
-| `process` | Process that initiated the action |
-| `log_filename` | Original log file |
+| `subject_user_name` | User account that initiated the action |
+| `subject_domain_name` | Domain of the subject user |
+| `logon_id` | Logon session ID for correlation (e.g., `0x1A2B3C`) |
+| `detail` | Additional context depending on event type |
+| `log_filename` | Source artifact file |
+
+### Event Type Classification
+
+Masstin classifies every event into one of four categories:
+
+| event_type | Meaning | When |
+|---|---|---|
+| `SUCCESSFUL_LOGON` | Authentication succeeded | User authenticated correctly and session was established |
+| `FAILED_LOGON` | Authentication failed | Incorrect credentials, locked account, or pre-auth failure |
+| `LOGOFF` | Session ended | User logged off or session was disconnected |
+| `CONNECT` | Connection event | Network-level connection with no authentication result |
+
+### Event ID to event_type Mapping
+
+#### Security.evtx
+
+| Event ID | event_type | Description | detail column |
+|---|---|---|---|
+| 4624 | `SUCCESSFUL_LOGON` | Successful logon | Process name |
+| 4625 | `FAILED_LOGON` | Failed logon | SubStatus code (e.g., `0xC000006A` = wrong password) |
+| 4634 | `LOGOFF` | Logoff | |
+| 4647 | `LOGOFF` | User-initiated logoff | |
+| 4648 | `SUCCESSFUL_LOGON` | Logon with explicit credentials (runas) | Process name |
+| 4768 | `SUCCESSFUL_LOGON` / `FAILED_LOGON` | Kerberos TGT request | Based on Status field |
+| 4769 | `SUCCESSFUL_LOGON` / `FAILED_LOGON` | Kerberos Service Ticket | Based on Status field |
+| 4770 | `SUCCESSFUL_LOGON` | Kerberos TGT renewal | |
+| 4771 | `FAILED_LOGON` | Kerberos pre-auth failure | |
+| 4776 | `SUCCESSFUL_LOGON` / `FAILED_LOGON` | NTLM authentication | Based on Status field |
+| 4778 | `SUCCESSFUL_LOGON` | Session reconnected | |
+| 4779 | `LOGOFF` | Session disconnected | |
+
+#### Terminal Services (RDP)
+
+| Event ID | Source | event_type | Description |
+|---|---|---|---|
+| 21 | LocalSessionManager | `SUCCESSFUL_LOGON` | RDP session logon succeeded |
+| 22 | LocalSessionManager | `SUCCESSFUL_LOGON` | RDP shell started |
+| 24 | LocalSessionManager | `LOGOFF` | RDP session disconnected |
+| 25 | LocalSessionManager | `SUCCESSFUL_LOGON` | RDP session reconnected |
+| 1024 | RDPClient | `CONNECT` | Outgoing RDP connection |
+| 1102 | RDPClient | `CONNECT` | Outgoing RDP connection |
+| 1149 | RemoteConnectionManager | `SUCCESSFUL_LOGON` | RDP authentication succeeded |
+| 131 | RdpCoreTS | `CONNECT` | RDP transport accepted |
+
+#### SMB
+
+| Event ID | Source | event_type | Description |
+|---|---|---|---|
+| 1009 | SMBServer/Security | `CONNECT` | SMB connection |
+| 551 | SMBServer/Security | `FAILED_LOGON` | SMB authentication failed |
+| 31001 | SMBClient/Security | `CONNECT` | SMB share access |
+| 30803-30808 | SMBClient/Connectivity | `CONNECT` | SMB connectivity events |
+
+#### Linux
+
+| Event ID | event_type | Description | detail column |
+|---|---|---|---|
+| `SSH_SUCCESS` | `SUCCESSFUL_LOGON` | SSH authentication succeeded | Auth method (password/publickey) |
+| `SSH_FAILED` | `FAILED_LOGON` | SSH authentication failed | Auth method |
+| `SSH_CONNECT` | `CONNECT` | SSH connection (xinetd) | |
+
+#### Cortex XDR
+
+| Source | event_type | Description |
+|---|---|---|
+| Network (ports 3389/445/22) | `CONNECT` | Network-level connection data |
+| EVTX Forensics | Same as Security.evtx | Classified by Event ID |
+
+### The logon_id Column
+
+The `logon_id` field contains the session identifier extracted from the `TargetLogonId` field in Security.evtx events. This enables future session correlation: matching a 4624 (logon) with its corresponding 4634 (logoff) to determine session duration.
+
+### The detail Column
+
+The `detail` column provides additional context that varies by event type:
+
+| Event | Content in detail |
+|---|---|
+| 4624, 4648 | Process name that initiated the logon |
+| 4625 | SubStatus hex code indicating failure reason |
+| SSH events | Authentication method (`password`, `publickey`) |
+| Cortex Network | Command line of the process that generated the connection |
+| Other events | Empty |
 
 ## Key Features
 
