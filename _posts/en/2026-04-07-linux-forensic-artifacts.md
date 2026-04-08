@@ -237,10 +237,48 @@ www-data                                   **Never logged in**
 [Masstin](/en/tools/masstin-lateral-movement-rust/) supports parsing Linux authentication logs, extracting successful and failed logons from `/var/log/secure` (and `/var/log/auth.log`), and normalizing them into the same CSV format used for Windows artifacts.
 
 ```bash
+# Directory with extracted logs
 masstin -a parse-linux -d /evidence/var/log/ -o timeline.csv
+
+# Compressed forensic package (auto-extracts, supports passwords)
+masstin -a parse-linux -d /evidence/triage_package/ -o timeline.csv
 ```
 
 This enables creating lateral movement timelines that cross operating system boundaries: an attacker moving from a Windows workstation to a Linux server via SSH will appear in the same timeline as their RDP or SMB movements.
+
+---
+
+## Distribution compatibility
+
+Linux logs differ by distribution, but masstin handles both transparently:
+
+| Distribution | Log file | Format |
+|-------------|----------|--------|
+| **Debian, Ubuntu** | `/var/log/auth.log` | RFC3164 (legacy syslog) |
+| **RHEL, CentOS, Fedora, Rocky** | `/var/log/secure` | RFC3164 (legacy syslog) |
+| **Any (systemd journal export)** | Varies | RFC5424 (structured syslog) |
+
+### Timestamp formats
+
+**RFC3164** (most common in practice) uses timestamps without year:
+
+```
+Mar 16 08:25:22 app-1 sshd[4894]: Accepted password for user3 from 192.168.126.1 port 61474 ssh2
+```
+
+Masstin infers the year from the file's modification date. This is the standard syslog format used by virtually all Linux distributions.
+
+**RFC5424** (structured syslog) includes full timestamps with timezone:
+
+```
+<38>1 2024-03-16T08:25:22+00:00 app-1 sshd 4894 - - Accepted password for user3 from 192.168.126.1 port 61474 ssh2
+```
+
+This format is used when systemd journal is exported or rsyslog is configured with structured output.
+
+### Compressed triage support
+
+Like `parse-windows`, `parse-linux` can process compressed triage packages directly. It recursively decompresses ZIP archives — including **password-protected** ones using common forensic passwords (`cyberdefenders.org`, `infected`, `malware`, `password`). When a password-protected archive is detected and unlocked, masstin notifies the user.
 
 ---
 

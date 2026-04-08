@@ -237,15 +237,53 @@ www-data                                   **Never logged in**
 [Masstin](/es/tools/masstin-lateral-movement-rust/) soporta el parseo de logs de autenticación Linux, extrayendo logons exitosos y fallidos de `/var/log/secure` (y `/var/log/auth.log`), y los normaliza en el mismo formato CSV que utiliza para los artefactos Windows.
 
 ```bash
+# Directorio con logs extraidos
 masstin -a parse-linux -d /evidence/var/log/ -o timeline.csv
+
+# Paquete forense comprimido (extraccion automatica, soporta contrasenas)
+masstin -a parse-linux -d /evidence/triage_package/ -o timeline.csv
 ```
 
-Esto permite crear timelines de movimiento lateral que cruzan las fronteras de sistema operativo: un atacante que se mueve de una workstation Windows a un servidor Linux vía SSH aparecerá en la misma timeline que sus movimientos RDP o SMB.
+Esto permite crear timelines de movimiento lateral que cruzan las fronteras de sistema operativo: un atacante que se mueve de una workstation Windows a un servidor Linux via SSH aparecera en la misma timeline que sus movimientos RDP o SMB.
 
 ---
 
-## Conclusión
+## Compatibilidad entre distribuciones
 
-En entornos híbridos, ignorar los artefactos Linux deja puntos ciegos críticos en la investigación. Los logs de autenticación SSH, los registros binarios utmp/wtmp/btmp y audit.log proporcionan la misma riqueza forense que los EVTX de Windows — solo hay que saber dónde buscar.
+Los logs de Linux difieren segun la distribucion, pero masstin los maneja de forma transparente:
 
-[Masstin](/es/tools/masstin-lateral-movement-rust/) unifica estos artefactos con los de Windows para darte una visión completa del movimiento lateral a través de toda la infraestructura.
+| Distribucion | Fichero de log | Formato |
+|-------------|----------------|---------|
+| **Debian, Ubuntu** | `/var/log/auth.log` | RFC3164 (syslog legacy) |
+| **RHEL, CentOS, Fedora, Rocky** | `/var/log/secure` | RFC3164 (syslog legacy) |
+| **Cualquiera (export journal systemd)** | Variable | RFC5424 (syslog estructurado) |
+
+### Formatos de timestamp
+
+**RFC3164** (el mas comun en la practica) usa timestamps sin ano:
+
+```
+Mar 16 08:25:22 app-1 sshd[4894]: Accepted password for user3 from 192.168.126.1 port 61474 ssh2
+```
+
+Masstin infiere el ano a partir de la fecha de modificacion del fichero. Este es el formato syslog estandar utilizado por practicamente todas las distribuciones Linux.
+
+**RFC5424** (syslog estructurado) incluye timestamps completos con zona horaria:
+
+```
+<38>1 2024-03-16T08:25:22+00:00 app-1 sshd 4894 - - Accepted password for user3 from 192.168.126.1 port 61474 ssh2
+```
+
+Este formato se utiliza cuando se exporta el journal de systemd o cuando rsyslog esta configurado con salida estructurada.
+
+### Soporte de triage comprimido
+
+Al igual que `parse-windows`, `parse-linux` puede procesar paquetes de triage comprimidos directamente. Descomprime archivos ZIP de forma recursiva — incluyendo archivos **protegidos con contrasena** utilizando contrasenas forenses comunes (`cyberdefenders.org`, `infected`, `malware`, `password`). Cuando se detecta y desbloquea un archivo protegido, masstin notifica al usuario.
+
+---
+
+## Conclusion
+
+En entornos hibridos, ignorar los artefactos Linux deja puntos ciegos criticos en la investigacion. Los logs de autenticacion SSH, los registros binarios utmp/wtmp/btmp y audit.log proporcionan la misma riqueza forense que los EVTX de Windows — solo hay que saber donde buscar.
+
+[Masstin](/es/tools/masstin-lateral-movement-rust/) unifica estos artefactos con los de Windows para darte una vision completa del movimiento lateral a traves de toda la infraestructura.

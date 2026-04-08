@@ -81,7 +81,8 @@ Masstin es una herramienta DFIR escrita en **Rust** que parsea artefactos forens
 
 | Fuente | Que captura |
 |--------|------------|
-| `/var/log/secure`, `/var/log/messages` | SSH exito, fallo, intentos de conexion |
+| `/var/log/auth.log` (Debian/Ubuntu), `/var/log/secure` (RHEL/CentOS) | SSH exito, fallo, autenticacion PAM |
+| `/var/log/messages` | Eventos SSH via syslog |
 | `/var/log/audit/audit.log` | Eventos de autenticacion via subsistema de auditoria |
 | `utmp` / `wtmp` | Sesiones de login activas e historicas |
 | `btmp` | Intentos de login fallidos |
