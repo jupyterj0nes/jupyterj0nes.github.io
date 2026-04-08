@@ -144,7 +144,7 @@ masstin -a load-memgraph -f timeline.csv --database localhost:7687
 
 Por defecto, Memgraph no tiene autenticación habilitada. Si has configurado credenciales en tu instancia, usa los parámetros correspondientes. Pero para un despliegue rápido de análisis, la configuración por defecto es todo lo que necesitas.
 
-Las mismas transformaciones de datos que masstin aplica en Neo4j se aplican aquí: puntos y guiones se convierten en guiones bajos, todo se pasa a mayúsculas, y se elimina el dominio de los usuarios. Consulta el [artículo de Neo4j](/es/tools/2026-04-07-neo4j-cypher-visualization/) para la tabla completa de transformaciones.
+Masstin preserva los valores originales de la evidencia. Los nombres de nodos y propiedades se almacenan sin transformacion. Solo los tipos de relacion (cuentas de usuario) se normalizan a identificadores Cypher validos (mayusculas, guiones bajos, eliminar `@dominio`). Consulta el [articulo de Neo4j](/es/tools/2026-04-07-neo4j-cypher-visualization/) para mas detalles.
 
 ---
 

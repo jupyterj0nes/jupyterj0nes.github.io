@@ -20,17 +20,18 @@ Neo4j turns [masstin's](/en/tools/masstin-lateral-movement-rust/) timeline into 
 
 ## Data transformations
 
-Before writing queries, it's important to understand that masstin applies transformations when loading data into Neo4j, due to Cypher language restrictions:
+Masstin preserves the original values from the evidence as much as possible. Node names (hostnames, IPs) and properties are stored **without transformation** — `SRV-FILE01` stays as `SRV-FILE01`, `10.10.1.50` stays as `10.10.1.50`.
 
-| Original character | Transformation | Example |
-|--------------------|----------------|---------|
-| Dots (`.`) | Replaced with `_` | `10.10.1.50` → `10_10_1_50` |
-| Hyphens (`-`) | Replaced with `_` | `SRV-FILE01` → `SRV_FILE01` |
-| Spaces | Replaced with `_` | |
-| Lowercase | Converted to UPPERCASE | `adm_domain` → `ADM_DOMAIN` |
-| `@` and after | Removed | `user@domain` → `USER` |
+The only transformation applies to **relationship types** (the edge label, which represents the user account). This is a Cypher language restriction — relationship types must be valid identifiers and cannot contain dots, hyphens, or start with a number:
 
-Keep this in mind when writing queries — always use the transformed values.
+| What | Transformation | Example |
+|------|----------------|---------|
+| Relationship type (user) | Dots, hyphens, spaces → `_`, UPPERCASE, strip `@domain` | `j.garcia@ACME.LOCAL` → `J_GARCIA` |
+| Node names (hostnames, IPs) | **No transformation** — original value preserved | `SRV-FILE01` stays `SRV-FILE01` |
+| Properties (src_ip, etc.) | **No transformation** — original value preserved | `10.10.1.50` stays `10.10.1.50` |
+| Usernames in properties | Only `@domain` suffix stripped | `j.garcia@ACME.LOCAL` → `j.garcia` |
+
+When writing queries, use the original values for node names and properties, and the normalized form only for relationship types.
 
 ---
 

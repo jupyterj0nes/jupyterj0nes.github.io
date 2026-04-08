@@ -20,17 +20,18 @@ Neo4j convierte la timeline de [masstin](/es/tools/masstin-lateral-movement-rust
 
 ## Transformaciones de datos
 
-Antes de escribir queries, es importante entender que masstin aplica transformaciones al cargar datos en Neo4j, debido a restricciones del lenguaje Cypher:
+Masstin preserva los valores originales de la evidencia en la medida de lo posible. Los nombres de nodos (hostnames, IPs) y propiedades se almacenan **sin transformacion** — `SRV-FILE01` se mantiene como `SRV-FILE01`, `10.10.1.50` se mantiene como `10.10.1.50`.
 
-| Carácter original | Transformación | Ejemplo |
-|-------------------|----------------|---------|
-| Puntos (`.`) | Reemplazados por `_` | `10.10.1.50` → `10_10_1_50` |
-| Guiones (`-`) | Reemplazados por `_` | `SRV-FILE01` → `SRV_FILE01` |
-| Espacios | Reemplazados por `_` | |
-| Minúsculas | Convertidas a MAYÚSCULAS | `adm_domain` → `ADM_DOMAIN` |
-| `@` y posteriores | Eliminados | `user@domain` → `USER` |
+La unica transformacion se aplica a los **tipos de relacion** (la etiqueta del edge, que representa la cuenta de usuario). Es una restriccion del lenguaje Cypher — los tipos de relacion deben ser identificadores validos y no pueden contener puntos, guiones ni empezar por un numero:
 
-Tenlo en cuenta al escribir tus queries — usa siempre los valores transformados.
+| Que | Transformacion | Ejemplo |
+|-----|----------------|---------|
+| Tipo de relacion (usuario) | Puntos, guiones, espacios → `_`, MAYUSCULAS, eliminar `@dominio` | `j.garcia@ACME.LOCAL` → `J_GARCIA` |
+| Nombres de nodo (hostnames, IPs) | **Sin transformacion** — valor original | `SRV-FILE01` se mantiene `SRV-FILE01` |
+| Propiedades (src_ip, etc.) | **Sin transformacion** — valor original | `10.10.1.50` se mantiene `10.10.1.50` |
+| Usuarios en propiedades | Solo se elimina el sufijo `@dominio` | `j.garcia@ACME.LOCAL` → `j.garcia` |
+
+Al escribir queries, usa los valores originales para nombres de nodos y propiedades, y la forma normalizada solo para los tipos de relacion.
 
 ---
 
