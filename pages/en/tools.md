@@ -11,7 +11,8 @@ permalink: /en/tools/
 
 | Tool | Description | Language | Article |
 |------|-------------|----------|---------|
-| **Masstin** | Lateral movement analysis — parses 28 Windows Event IDs, Linux logs, Winlogbeat and Cortex XDR into a unified timeline with Neo4j visualization | Rust | [Read →](/en/tools/masstin-lateral-movement-rust/) |
+| **Masstin** | Lateral movement analysis — parses 30+ Windows Event IDs, Linux logs, Winlogbeat and Cortex XDR into a unified timeline with Neo4j and Memgraph visualization | Rust | [Read →](/en/tools/masstin-lateral-movement-rust/) |
+| **vshadow-rs** | Pure Rust parser for Windows Volume Shadow Copy (VSS) — inspect, list and extract files from VSS snapshots in E01/dd forensic images, cross-platform | Rust | [Read →](/en/tools/vshadow-rs/) |
 | **Sabonis** | DFIR pivoting on forensic artifacts — EVTX, PCAP and Squid proxy logs with Neo4j integration | Python | [Read →](/en/tools/sabonis-pivoting-lateral-movement/) |
 
 ## Contributed tools
