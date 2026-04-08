@@ -244,6 +244,10 @@ masstin -a parse-linux -d /evidence/var/log/ -o timeline.csv
 masstin -a parse-linux -d /evidence/triage_package/ -o timeline.csv
 ```
 
+![Salida CLI de masstin parse-linux](/assets/images/masstin_cli_linux.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+
+Masstin reporta de forma transparente todas las inferencias: identificacion del hostname (desde `/etc/hostname`, `dmesg` o la cabecera syslog), inferencia del ano (desde `dpkg.log`, `wtmp` o fecha de modificacion del fichero) y extraccion de ZIPs protegidos con contrasena.
+
 Esto permite crear timelines de movimiento lateral que cruzan las fronteras de sistema operativo: un atacante que se mueve de una workstation Windows a un servidor Linux via SSH aparecera en la misma timeline que sus movimientos RDP o SMB.
 
 ---
