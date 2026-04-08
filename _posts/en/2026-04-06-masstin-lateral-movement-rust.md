@@ -125,6 +125,8 @@ masstin -a parse-windows -d /evidence/ -o timeline.csv --overwrite
 
 ![Masstin CLI output](/assets/images/masstin_cli_output.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
 
+The output shows three phases: **[1/3]** scans directories and compressed packages to discover EVTX artifacts, **[2/3]** processes each artifact and shows progress, then lists every source that produced events with its count, and **[3/3]** generates the sorted CSV timeline. The final summary shows how many artifacts were parsed, how many were skipped (no relevant events or access denied), total events collected, and execution time. Use `--silent` to suppress all output for automation.
+
 ### Parse Linux logs
 
 ```bash
