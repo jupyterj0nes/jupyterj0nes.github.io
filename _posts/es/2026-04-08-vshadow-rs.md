@@ -22,7 +22,9 @@ Los atacantes borran los logs de eventos de Windows. Pero si existen Volume Shad
 
 ## Que es vshadow-rs?
 
-Una libreria y herramienta CLI en **Rust puro** que lee el formato VSS directamente desde imagenes E01, raw/dd o de particion. Sin APIs de Windows, sin dependencias en C, funciona en Windows, Linux y macOS.
+Una libreria y herramienta CLI en **Rust puro** que lee el formato VSS directamente desde imagenes E01, raw/dd, de particion o volumenes montados. Sin APIs de Windows, sin dependencias en C, funciona en Windows, Linux y macOS.
+
+Su logo es [Ferris](https://rustacean.net/) (el cangrejo de Rust) con casco de minero — un guino a los mineros del carbon de [Leon](https://es.wikipedia.org/wiki/Provincia_de_Le%C3%B3n), que excavaban capas de oscuridad para sacar a la superficie lo que estaba oculto.
 
 - **Repositorio:** [github.com/jupyterj0nes/vshadow-rs](https://github.com/jupyterj0nes/vshadow-rs)
 - **Crate:** [crates.io/crates/vshadow](https://crates.io/crates/vshadow)
