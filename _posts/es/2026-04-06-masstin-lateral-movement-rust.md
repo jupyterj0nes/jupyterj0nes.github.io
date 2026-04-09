@@ -40,6 +40,7 @@ Masstin parsea **todas** estas fuentes y las fusiona en una **unica timeline cro
 | Modo silencioso | Flag `--silent` suprime toda la salida para integracion con Velociraptor, plataformas SOAR y pipelines de automatizacion | [Tabla de acciones](#acciones-disponibles) |
 | Analisis de imagenes forenses | Abre imagenes E01/dd directamente, encuentra particiones NTFS (GPT/MBR), extrae EVTX — sin necesidad de montar | [Recuperacion VSS](/es/tools/masstin-vss-recovery/) |
 | Recuperacion de snapshots VSS | Detecta y extrae EVTX de Volume Shadow Copies — recupera logs borrados por atacantes | [Recuperacion VSS](/es/tools/masstin-vss-recovery/) |
+| Soporte de volumenes montados | Apunta `-d D:` a un volumen montado o usa `--all-volumes` — EVTX live + recuperacion VSS desde discos conectados, sin necesidad de crear imagen | |
 | Reporte transparente | La CLI muestra descubrimiento de artefactos, progreso de procesamiento, inferencias de hostname/ano y recuento de eventos por artefacto | [Parsear evidencia](#parsear-evidencia) |
 
 ---
@@ -103,6 +104,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 | `parse-linux` | Parsea logs de Linux: auth.log, secure, messages, audit.log, utmp, wtmp, btmp, lastlog |
 | `parser-elastic` | Parsea logs de Winlogbeat en JSON exportados desde Elasticsearch |
 | `parse-cortex` | Consulta la API de Cortex XDR para conexiones de red (RDP/SMB/SSH) |
+| `parse-image-windows` | Abre imagenes E01/dd o volumenes montados (`-d D:`), extrae EVTX del live + todos los stores VSS. Usa `--all-volumes` para escanear todos los discos NTFS |
 | `parse-cortex-evtx-forensics` | Consulta la API de Cortex XDR para colecciones EVTX forenses de multiples maquinas |
 | `merge` | Combina multiples CSVs en una unica timeline cronologica |
 | `load-neo4j` | Sube la timeline a Neo4j para visualizacion en grafos |
