@@ -6,7 +6,7 @@ category: tools
 lang: en
 ref: tool-vshadow
 tags: [vshadow, vss, shadow-copy, forensics, dfir, rust, tools]
-description: "Pure Rust parser for Windows Volume Shadow Copy (VSS) snapshots. Inspect, list and extract files from VSS stores in E01 and dd forensic images, cross-platform."
+description: "Pure Rust parser for Windows Volume Shadow Copy (VSS) snapshots. Identify, timeline and recover files from VSS stores in E01 and dd forensic images, cross-platform."
 comments: true
 ---
 
@@ -34,8 +34,10 @@ A **pure Rust** library and CLI tool that reads the VSS on-disk format directly 
 
 | Feature | Description |
 |---------|-------------|
-| Inspect VSS stores | List all shadow copy snapshots with GUIDs, creation times and volume sizes |
+| Inspect VSS stores | List all shadow copy snapshots with GUIDs, creation times and delta sizes |
 | List files | Browse NTFS directories inside any VSS store or the live volume |
+| **Delta detection** | Compare VSS snapshots against the live volume — find deleted and changed files |
+| **MACB timelines** | Generate forensic timelines from the delta with full NTFS timestamp precision |
 | Extract files | Extract files from VSS stores to disk — recover deleted event logs |
 | E01 support | Read directly from Expert Witness Format images, no ewfmount needed |
 | Auto partition detection | Finds NTFS partitions automatically via GPT and MBR partition tables |
@@ -57,57 +59,106 @@ cargo install vshadow
 ### Inspect: find VSS stores
 
 ```bash
-vshadow-info info -f evidence.E01
+vshadow-rs info -f evidence.E01
 ```
 
 ### List: browse files in a VSS store or live volume
 
 ```bash
 # Live volume
-vshadow-info list -f evidence.E01 --live -p "Windows/System32/winevt/Logs"
+vshadow-rs list -f evidence.E01 --live -p "Windows/System32/winevt/Logs"
 
 # VSS store 0
-vshadow-info list -f evidence.E01 -s 0 -p "Windows/System32/winevt/Logs"
+vshadow-rs list -f evidence.E01 -s 0 -p "Windows/System32/winevt/Logs"
 ```
+
+### List-delta: find what changed between VSS and live volume
+
+This is what makes vshadow-rs unique. It compares the snapshot filesystem against the live volume and shows only the files that were **deleted** or **changed**.
+
+```bash
+# Show delta for all VSS stores
+vshadow-rs list-delta -f evidence.E01
+
+# Focus on event logs only
+vshadow-rs list-delta -f evidence.E01 -p "Windows/System32/winevt/Logs"
+
+# Export delta to CSV
+vshadow-rs list-delta -f evidence.E01 -o delta.csv
+```
+
+<img src="/assets/images/vshadow-rs-list-delta.png" alt="vshadow-rs list-delta output" width="700">
+
+The output shows each changed file with its size on the live volume vs. the VSS store, making it immediately obvious when logs have been cleared.
 
 ### Extract: recover files from VSS stores
 
 ```bash
-# Extract from VSS store 0 (recover cleared event logs)
-vshadow-info extract -f evidence.E01 -s 0 -p "Windows/System32/winevt/Logs" -o ./recovered/
+vshadow-rs extract -f evidence.E01 -s 0 -p "Windows/System32/winevt/Logs" -o ./recovered/
+```
 
-# Extract from live volume
-vshadow-info extract -f evidence.E01 --live -p "Windows/System32/winevt/Logs" -o ./evtx_live/
+### Timeline: generate MACB timeline from VSS delta
+
+Generates a full MACB (Modified, Accessed, Changed, Born) timeline CSV from the delta — only files that exist in VSS but not on the live volume, or that changed.
+
+```bash
+# Expanded format: 8 rows per file (SI + FN timestamps)
+vshadow-rs timeline -f evidence.E01 -o timeline.csv
+
+# MACB format: 1 row per file with MACB flags
+vshadow-rs timeline -f evidence.E01 --format macb -o timeline.csv
+
+# Include live volume in the timeline
+vshadow-rs timeline -f evidence.E01 --include-live -o timeline.csv
 ```
 
 ### Typical forensic workflow
 
 ```bash
 # 1. Check for VSS stores
-vshadow-info info -f suspect.E01
+vshadow-rs info -f suspect.E01
 
-# 2. Compare file sizes between live and snapshot (cleared = smaller)
-vshadow-info list -f suspect.E01 --live -p "Windows/System32/winevt/Logs"
-vshadow-info list -f suspect.E01 -s 0 -p "Windows/System32/winevt/Logs"
+# 2. Find what changed between VSS and live volume
+vshadow-rs list-delta -f suspect.E01 -p "Windows/System32/winevt/Logs"
 
 # 3. Extract pre-deletion logs from VSS
-vshadow-info extract -f suspect.E01 -s 0 -p "Windows/System32/winevt/Logs" -o ./recovered/
+vshadow-rs extract -f suspect.E01 -s 0 -p "Windows/System32/winevt/Logs" -o ./recovered/
 
-# 4. Parse recovered logs with masstin
-masstin -a parse-windows -d ./recovered/ -o timeline.csv
+# 4. Generate a timeline of deleted/modified files
+vshadow-rs timeline -f suspect.E01 -o timeline.csv
+
+# 5. Parse recovered logs with masstin
+masstin -a parse-windows -d ./recovered/ -o lateral.csv
 ```
+
+---
+
+## What makes vshadow-rs unique
+
+1. **Delta detection** (`list-delta`): no other tool compares VSS snapshots against the live volume to show exactly what changed. This is the fastest way to find cleared logs, deleted files, and tampered evidence.
+
+2. **MACB timelines from shadows** (`timeline`): generate forensic timelines from the delta — only the relevant changes, not the entire filesystem.
+
+3. **Direct E01 support**: read forensic images without mounting, converting, or extracting.
+
+4. **Pure Rust, cross-platform**: no FUSE, no Windows APIs, no C libraries. Works on any OS.
+
+5. **Library + CLI**: use the `vshadow` crate in your own Rust tools, or use the `vshadow-rs` binary from the command line.
 
 ---
 
 ## Comparison with existing tools
 
-| Feature | vshadowmount | vshadowinfo | **vshadow-info** |
+| Feature | vshadowmount | vshadowinfo | **vshadow-rs** |
 |---------|-------------|-------------|-----------------|
 | List VSS stores | No | Yes | **Yes** |
 | Show GUIDs, dates | No | Yes | **Yes** |
+| Show delta size | No | No | **Yes** |
 | Mount as FUSE filesystem | Yes | No | No |
 | **List files in VSS store** | Via mount | No | **Yes** |
 | **Extract files from VSS** | Via mount | No | **Yes** |
+| **Compare VSS vs live (delta)** | No | No | **Yes** |
+| **MACB timeline from delta** | No | No | **Yes** |
 | **List files in live volume** | No | No | **Yes** |
 | **Read E01 directly** | No | No | **Yes** |
 | **Auto-detect GPT/MBR** | No | No | **Yes** |
