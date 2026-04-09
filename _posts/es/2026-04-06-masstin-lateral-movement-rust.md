@@ -41,6 +41,7 @@ Masstin parsea **todas** estas fuentes y las fusiona en una **unica timeline cro
 | Analisis de imagenes forenses | Abre imagenes E01/dd directamente, encuentra particiones NTFS (GPT/MBR), extrae EVTX — sin necesidad de montar | [Recuperacion VSS](/es/tools/masstin-vss-recovery/) |
 | Recuperacion de snapshots VSS | Detecta y extrae EVTX de Volume Shadow Copies — recupera logs borrados por atacantes | [Recuperacion VSS](/es/tools/masstin-vss-recovery/) |
 | Soporte de volumenes montados | Apunta `-d D:` a un volumen montado o usa `--all-volumes` — EVTX live + recuperacion VSS desde discos conectados, sin necesidad de crear imagen | |
+| Parsing UAL | Detecta automaticamente bases de datos UAL (User Access Logging) — 3 anos de historial de acceso a servidor que sobreviven al borrado de logs | [UAL](/es/tools/masstin-ual/) |
 | Reporte transparente | La CLI muestra descubrimiento de artefactos, progreso de procesamiento, inferencias de hostname/ano y recuento de eventos por artefacto | [Parsear evidencia](#parsear-evidencia) |
 
 ---
@@ -131,6 +132,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 |------|----------|
 | Columnas CSV, event_type, mapeo Event ID, logon_id, detail | [Formato CSV y Clasificacion de Eventos](/es/tools/masstin-csv-format/) |
 | Analisis de imagenes forenses y recuperacion VSS | [Recuperando logs borrados desde VSS](/es/tools/masstin-vss-recovery/) |
+| User Access Logging (UAL) | [Historial de acceso a servidor desde bases de datos ESE](/es/tools/masstin-ual/) |
 | vshadow-rs — parser VSS en Rust puro | [vshadow-rs](/es/tools/vshadow-rs/) |
 
 ### Bases de datos graficas
