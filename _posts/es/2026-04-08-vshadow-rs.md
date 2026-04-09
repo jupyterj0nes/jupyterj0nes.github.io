@@ -48,6 +48,20 @@ Una libreria y herramienta CLI en **Rust puro** que lee el formato VSS directame
 
 ## Instalar
 
+### Descargar binario pre-compilado (recomendado)
+
+> **No necesitas Rust.** Solo descarga y ejecuta.
+
+| Plataforma | Descarga |
+|------------|----------|
+| Windows | [`vshadow-rs-windows.exe`](https://github.com/jupyterj0nes/vshadow-rs/releases/latest) |
+| Linux | [`vshadow-rs-linux`](https://github.com/jupyterj0nes/vshadow-rs/releases/latest) |
+| macOS | [`vshadow-rs-macos`](https://github.com/jupyterj0nes/vshadow-rs/releases/latest) |
+
+Ve a [**Releases**](https://github.com/jupyterj0nes/vshadow-rs/releases) y descarga el binario para tu plataforma. Nada mas.
+
+### Compilar desde el codigo fuente (alternativa)
+
 ```bash
 cargo install vshadow
 ```
@@ -149,20 +163,25 @@ masstin -a parse-windows -d ./recuperados/ -o lateral.csv
 
 ## Comparacion con herramientas existentes
 
-| Funcionalidad | vshadowmount | vshadowinfo | **vshadow-rs** |
-|---------------|-------------|-------------|-----------------|
-| Listar stores VSS | No | Si | **Si** |
-| Mostrar GUIDs, fechas | No | Si | **Si** |
-| Mostrar tamano del delta | No | No | **Si** |
-| Montar como filesystem FUSE | Si | No | No |
-| **Listar ficheros en store VSS** | Via mount | No | **Si** |
-| **Extraer ficheros de VSS** | Via mount | No | **Si** |
-| **Comparar VSS vs live (delta)** | No | No | **Si** |
-| **Timeline MACB del delta** | No | No | **Si** |
-| **Listar ficheros en volumen activo** | No | No | **Si** |
-| **Leer E01 directamente** | No | No | **Si** |
-| **Detectar particiones GPT/MBR** | No | No | **Si** |
-| Multiplataforma | Solo Linux | Linux/Mac/Win | **Win/Linux/Mac** |
+| Funcionalidad | libvshadow (C) | vshadowmount | vshadowinfo | **vshadow-rs** |
+|---------------|:---:|:---:|:---:|:---:|
+| Lenguaje | C | C (libvshadow) | C (libvshadow) | **Rust** |
+| Listar stores VSS | Si | No | Si | **Si** |
+| Mostrar GUIDs, fechas | Si | No | Si | **Si** |
+| Mostrar tamano del delta | No | No | No | **Si** |
+| Montar como filesystem FUSE | No | Si | No | No |
+| **Listar ficheros en store VSS** | No | Via mount | No | **Si** |
+| **Extraer ficheros de VSS** | No | Via mount | No | **Si** |
+| **Comparar VSS vs live (delta)** | No | No | No | **Si** |
+| **Timeline MACB del delta** | No | No | No | **Si** |
+| **Listar ficheros en volumen activo** | No | No | No | **Si** |
+| **Leer E01 directamente** | No | No | No | **Si** |
+| **Detectar particiones GPT/MBR** | No | No | No | **Si** |
+| Sin dependencias en C | No | No | No | **Si** |
+| Sin FUSE | Si | No | Si | **Si** |
+| Multiplataforma | Linux/Mac | Solo Linux | Linux/Mac/Win | **Win/Linux/Mac** |
+
+> **libvshadow** es la libreria de referencia en C de Joachim Metz. vshadowmount y vshadowinfo son sus herramientas CLI. vshadow-rs es una implementacion completamente independiente en Rust — no utiliza libvshadow.
 
 ---
 
@@ -203,3 +222,13 @@ masstin -a parse-image-windows -f evidence.E01 -o timeline.csv
 ```
 
 Esto extrae EVTX tanto del volumen activo como de todos los snapshots VSS, generando una timeline unificada de movimiento lateral que incluye eventos que el atacante borro.
+
+---
+
+## Trabajo futuro
+
+- **Soporte VMDK / VHD / VHDX**: leer VSS desde imagenes de disco de maquinas virtuales directamente
+- **Delta multi-store**: comparar entre multiples snapshots VSS para construir un historial completo de cambios
+- **Recuperacion de ficheros borrados**: detectar y recuperar ficheros eliminados entre snapshots usando analisis de MFT
+- **Integracion con Plaso/log2timeline**: exportar timelines en formatos compatibles con toolchains DFIR existentes
+- **Soporte AFF4**: leer desde imagenes forenses AFF4
