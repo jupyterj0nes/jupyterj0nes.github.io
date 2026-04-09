@@ -10,6 +10,8 @@ description: "Pure Rust parser for Windows Volume Shadow Copy (VSS) snapshots. I
 comments: true
 ---
 
+![vshadow-rs logo](/assets/images/vshadow-rs-logo.png){: style="display:block; margin: 0 auto 2rem; max-width: 100%; width: 400px;" }
+
 ## The problem
 
 Attackers clear Windows event logs. But if Volume Shadow Copies exist on the disk, the old logs are still there — frozen in time. The challenge: existing tools can't access them easily.
