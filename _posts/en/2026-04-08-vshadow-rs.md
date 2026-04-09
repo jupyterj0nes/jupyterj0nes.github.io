@@ -40,6 +40,7 @@ A **pure Rust** library and CLI tool that reads the VSS on-disk format directly 
 | **MACB timelines** | Generate forensic timelines from the delta with full NTFS timestamp precision |
 | Extract files | Extract files from VSS stores to disk — recover deleted event logs |
 | E01 support | Read directly from Expert Witness Format images, no ewfmount needed |
+| **Mounted volumes** | Read directly from drive letters (`C:`), block devices (`/dev/sda2`) or mount points (`/mnt/evidence`) — no need to image the disk first |
 | Auto partition detection | Finds NTFS partitions automatically via GPT and MBR partition tables |
 | Cross-platform | Windows, Linux and macOS — single binary, zero dependencies |
 | Library + CLI | Use as a Rust crate or as a standalone command-line tool |
@@ -70,11 +71,23 @@ cargo install vshadow
 
 ## CLI Usage
 
+All commands accept forensic images (E01, dd/raw) **and mounted volumes/disks** (drive letters on Windows, `/dev/` devices or mount points on Linux/macOS).
+
 ### Inspect: find VSS stores
 
 ```bash
+# From forensic image
 vshadow-rs info -f evidence.E01
+
+# From mounted volume (Windows — requires Administrator)
+vshadow-rs info -f C:
+
+# From block device (Linux — requires root)
+sudo vshadow-rs info -f /dev/sda2
+sudo vshadow-rs info -f /mnt/evidence
 ```
+
+<img src="/assets/images/vshadow-rs-volume.png" alt="vshadow-rs reading from mounted volume C:" width="700">
 
 ### List: browse files in a VSS store or live volume
 
@@ -155,9 +168,11 @@ masstin -a parse-windows -d ./recovered/ -o lateral.csv
 
 3. **Direct E01 support**: read forensic images without mounting, converting, or extracting.
 
-4. **Pure Rust, cross-platform**: no FUSE, no Windows APIs, no C libraries. Works on any OS.
+4. **Mounted volume / live disk support**: point vshadow-rs at a drive letter (`C:`, `D:`), a block device (`/dev/sda2`), or a mount point (`/mnt/evidence`) and it reads the raw volume directly. No need to image the disk first — ideal for triage or when working with a write-blocker.
 
-5. **Library + CLI**: use the `vshadow` crate in your own Rust tools, or use the `vshadow-rs` binary from the command line.
+5. **Pure Rust, cross-platform**: no FUSE, no Windows APIs, no C libraries. Works on any OS.
+
+6. **Library + CLI**: use the `vshadow` crate in your own Rust tools, or use the `vshadow-rs` binary from the command line.
 
 ---
 
@@ -176,6 +191,7 @@ masstin -a parse-windows -d ./recovered/ -o lateral.csv
 | **MACB timeline from delta** | No | No | No | **Yes** |
 | **List files in live volume** | No | No | No | **Yes** |
 | **Read E01 directly** | No | No | No | **Yes** |
+| **Read mounted volumes / live disks** | No | No | No | **Yes** |
 | **Auto-detect GPT/MBR** | No | No | No | **Yes** |
 | No C dependencies | No | No | No | **Yes** |
 | No FUSE required | Yes | No | Yes | **Yes** |
