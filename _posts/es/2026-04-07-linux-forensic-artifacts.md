@@ -246,17 +246,17 @@ masstin -a parse-linux -d /evidence/triage_package/ -o timeline.csv
 
 ![Salida CLI de masstin parse-linux](/assets/images/masstin_cli_linux.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
 
-Masstin reporta de forma transparente todas las inferencias: identificacion del hostname (desde `/etc/hostname`, `dmesg` o la cabecera syslog), inferencia del ano (desde `dpkg.log`, `wtmp` o fecha de modificacion del fichero) y extraccion de ZIPs protegidos con contrasena.
+Masstin reporta de forma transparente todas las inferencias: identificación del hostname (desde `/etc/hostname`, `dmesg` o la cabecera syslog), inferencia del año (desde `dpkg.log`, `wtmp` o fecha de modificación del fichero) y extracción de ZIPs protegidos con contraseña.
 
-Esto permite crear timelines de movimiento lateral que cruzan las fronteras de sistema operativo: un atacante que se mueve de una workstation Windows a un servidor Linux via SSH aparecera en la misma timeline que sus movimientos RDP o SMB.
+Esto permite crear timelines de movimiento lateral que cruzan las fronteras de sistema operativo: un atacante que se mueve de una workstation Windows a un servidor Linux vía SSH aparecerá en la misma timeline que sus movimientos RDP o SMB.
 
 ---
 
 ## Compatibilidad entre distribuciones
 
-Los logs de Linux difieren segun la distribucion, pero masstin los maneja de forma transparente:
+Los logs de Linux difieren según la distribución, pero masstin los maneja de forma transparente:
 
-| Distribucion | Fichero de log | Formato |
+| Distribución | Fichero de log | Formato |
 |-------------|----------------|---------|
 | **Debian, Ubuntu** | `/var/log/auth.log` | RFC3164 (syslog legacy) |
 | **RHEL, CentOS, Fedora, Rocky** | `/var/log/secure` | RFC3164 (syslog legacy) |
@@ -264,15 +264,15 @@ Los logs de Linux difieren segun la distribucion, pero masstin los maneja de for
 
 ### Formatos de timestamp
 
-**RFC3164** (el mas comun en la practica) usa timestamps sin ano:
+**RFC3164** (el más común en la práctica) usa timestamps sin año:
 
 ```
 Mar 16 08:25:22 app-1 sshd[4894]: Accepted password for user3 from 192.168.126.1 port 61474 ssh2
 ```
 
-Dado que RFC3164 no incluye el ano, masstin lo infiere automaticamente de ficheros vecinos en el mismo directorio. El orden de prioridad es: `dpkg.log` (contiene fechas completas `YYYY-MM-DD`), `wtmp` (timestamps epoch con ano), fecha de modificacion del fichero, y ano actual como ultimo recurso. Masstin reporta que infiere y de que fuente lo obtiene, para que el analista siempre conozca la base de los timestamps.
+Dado que RFC3164 no incluye el año, masstin lo infiere automáticamente de ficheros vecinos en el mismo directorio. El orden de prioridad es: `dpkg.log` (contiene fechas completas `YYYY-MM-DD`), `wtmp` (timestamps epoch con año), fecha de modificación del fichero, y año actual como último recurso. Masstin reporta qué infiere y de qué fuente lo obtiene, para que el analista siempre conozca la base de los timestamps.
 
-Lo mismo aplica a la identificacion del hostname: masstin comprueba `/etc/hostname`, `dmesg`, `/etc/hosts`, y como fallback extrae el hostname de la propia cabecera syslog. Todas las inferencias se reportan de forma transparente en la salida.
+Lo mismo aplica a la identificación del hostname: masstin comprueba `/etc/hostname`, `dmesg`, `/etc/hosts`, y como fallback extrae el hostname de la propia cabecera syslog. Todas las inferencias se reportan de forma transparente en la salida.
 
 **RFC5424** (syslog estructurado) incluye timestamps completos con zona horaria:
 
@@ -280,16 +280,16 @@ Lo mismo aplica a la identificacion del hostname: masstin comprueba `/etc/hostna
 <38>1 2024-03-16T08:25:22+00:00 app-1 sshd 4894 - - Accepted password for user3 from 192.168.126.1 port 61474 ssh2
 ```
 
-Este formato se utiliza cuando se exporta el journal de systemd o cuando rsyslog esta configurado con salida estructurada.
+Este formato se utiliza cuando se exporta el journal de systemd o cuando rsyslog está configurado con salida estructurada.
 
 ### Soporte de triage comprimido
 
-Al igual que `parse-windows`, `parse-linux` puede procesar paquetes de triage comprimidos directamente. Descomprime archivos ZIP de forma recursiva — incluyendo archivos **protegidos con contrasena** utilizando contrasenas forenses comunes (`cyberdefenders.org`, `infected`, `malware`, `password`). Cuando se detecta y desbloquea un archivo protegido, masstin notifica al usuario.
+Al igual que `parse-windows`, `parse-linux` puede procesar paquetes de triage comprimidos directamente. Descomprime archivos ZIP de forma recursiva — incluyendo archivos **protegidos con contraseña** utilizando contraseñas forenses comunes (`cyberdefenders.org`, `infected`, `malware`, `password`). Cuando se detecta y desbloquea un archivo protegido, masstin notifica al usuario.
 
 ---
 
-## Conclusion
+## Conclusión
 
-En entornos hibridos, ignorar los artefactos Linux deja puntos ciegos criticos en la investigacion. Los logs de autenticacion SSH, los registros binarios utmp/wtmp/btmp y audit.log proporcionan la misma riqueza forense que los EVTX de Windows — solo hay que saber donde buscar.
+En entornos híbridos, ignorar los artefactos Linux deja puntos ciegos críticos en la investigación. Los logs de autenticación SSH, los registros binarios utmp/wtmp/btmp y audit.log proporcionan la misma riqueza forense que los EVTX de Windows — solo hay que saber dónde buscar.
 
-[Masstin](/es/tools/masstin-lateral-movement-rust/) unifica estos artefactos con los de Windows para darte una vision completa del movimiento lateral a traves de toda la infraestructura.
+[Masstin](/es/tools/masstin-lateral-movement-rust/) unifica estos artefactos con los de Windows para darte una visión completa del movimiento lateral a través de toda la infraestructura.

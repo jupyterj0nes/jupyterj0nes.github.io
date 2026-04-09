@@ -12,18 +12,18 @@ comments: true
 
 ## Cortex XDR como fuente forense
 
-Palo Alto Cortex XDR es una plataforma EDR/XDR que proporciona visibilidad sobre la actividad de los endpoints. Para el analisis de movimiento lateral, Cortex XDR ofrece dos fuentes de datos complementarias que [masstin](/es/tools/masstin-lateral-movement-rust/) puede aprovechar:
+Palo Alto Cortex XDR es una plataforma EDR/XDR que proporciona visibilidad sobre la actividad de los endpoints. Para el análisis de movimiento lateral, Cortex XDR ofrece dos fuentes de datos complementarias que [masstin](/es/tools/masstin-lateral-movement-rust/) puede aprovechar:
 
 1. **Modo de conexiones de red:** datos de conexiones de red capturados por los agentes de Cortex XDR en cada endpoint.
-2. **Modo EVTX Forensics:** logs de eventos de Windows recopilados por agentes de recoleccion forense desplegados en los endpoints.
+2. **Modo EVTX Forensics:** logs de eventos de Windows recopilados por agentes de recolección forense desplegados en los endpoints.
 
 ---
 
 ## Modo 1: Conexiones de red
 
-### Que captura
+### Qué captura
 
-Los agentes de Cortex XDR registran las conexiones de red establecidas por los procesos de cada endpoint. Para movimiento lateral, los puertos mas relevantes son:
+Los agentes de Cortex XDR registran las conexiones de red establecidas por los procesos de cada endpoint. Para movimiento lateral, los puertos más relevantes son:
 
 | Puerto | Protocolo | Relevancia |
 |:------:|-----------|-----------|
@@ -31,21 +31,21 @@ Los agentes de Cortex XDR registran las conexiones de red establecidas por los p
 | 445 | SMB | Acceso a shares, PsExec, WMI |
 | 22 | SSH | Acceso remoto a servidores |
 
-Masstin consulta la API de Cortex XDR para obtener datos de conexiones de red en estos puertos, extrayendo informacion sobre que maquinas se conectaron entre si, cuando y a traves de que protocolos.
+Masstin consulta la API de Cortex XDR para obtener datos de conexiones de red en estos puertos, extrayendo información sobre qué máquinas se conectaron entre sí, cuándo y a través de qué protocolos.
 
-### Que informacion se obtiene
+### Qué información se obtiene
 
 Los eventos de red de Cortex XDR proporcionan la perspectiva del **endpoint**, complementando los logs de red (firewalls, proxies) y los EVTX. Incluyen datos como:
 
-- Timestamp de la conexion
+- Timestamp de la conexión
 - IP y puerto de origen y destino
-- Proceso que establecio la conexion
+- Proceso que estableció la conexión
 - Usuario bajo el que se ejecuta el proceso
-- Direccion de la conexion (entrante o saliente)
+- Dirección de la conexión (entrante o saliente)
 
-> **Valor forense:** Los eventos de red de Cortex XDR te muestran no solo que hubo una conexion en un puerto de movimiento lateral, sino **que proceso** la inicio. Esto permite distinguir entre una conexion RDP legitima via `mstsc.exe` y una conexion sospechosa desde un proceso inesperado.
+> **Valor forense:** Los eventos de red de Cortex XDR te muestran no solo que hubo una conexión en un puerto de movimiento lateral, sino **qué proceso** la inició. Esto permite distinguir entre una conexión RDP legítima vía `mstsc.exe` y una conexión sospechosa desde un proceso inesperado.
 
-### Como masstin obtiene estos datos
+### Cómo masstin obtiene estos datos
 
 ```bash
 masstin -a parse-cortex --cortex-url api-xxxx.xdr.xx.paloaltonetworks.com \
@@ -57,31 +57,31 @@ Masstin consulta la API de Cortex XDR directamente, filtra las conexiones a puer
 
 ---
 
-## Modo 2: EVTX Forensics (Recoleccion forense)
+## Modo 2: EVTX Forensics (Recolección forense)
 
-### Que son los agentes de recoleccion forense de Cortex XDR
+### Qué son los agentes de recolección forense de Cortex XDR
 
-Cortex XDR permite desplegar **agentes de recoleccion forense** en los endpoints durante una investigacion. Estos son agentes ligeros que se instalan temporalmente en las maquinas objetivo para recopilar artefactos forenses -- incluyendo archivos de Windows Event Logs (EVTX) -- y enviarlos a la nube de Cortex XDR para su analisis.
+Cortex XDR permite desplegar **agentes de recolección forense** en los endpoints durante una investigación. Estos son agentes ligeros que se instalan temporalmente en las máquinas objetivo para recopilar artefactos forenses -- incluyendo archivos de Windows Event Logs (EVTX) -- y enviarlos a la nube de Cortex XDR para su análisis.
 
-Los agentes de recoleccion forense son especialmente utiles cuando:
+Los agentes de recolección forense son especialmente útiles cuando:
 
-- No tienes acceso directo a las maquinas comprometidas
-- Necesitas recopilar evidencia de multiples endpoints de forma centralizada
+- No tienes acceso directo a las máquinas comprometidas
+- Necesitas recopilar evidencia de múltiples endpoints de forma centralizada
 - Los logs locales pueden haber sido manipulados y necesitas una copia en la nube
-- La organizacion ya tiene Cortex XDR desplegado y no quiere instalar herramientas adicionales
+- La organización ya tiene Cortex XDR desplegado y no quiere instalar herramientas adicionales
 
-### Que logs recopilan
+### Qué logs recopilan
 
-Los agentes de recoleccion forense capturan los Windows Event Logs de los endpoints, incluyendo los logs mas relevantes para movimiento lateral:
+Los agentes de recolección forense capturan los Windows Event Logs de los endpoints, incluyendo los logs más relevantes para movimiento lateral:
 
 - **Security.evtx** -- logons, autenticaciones, Kerberos, NTLM
 - **TerminalServices-LocalSessionManager** -- sesiones RDP
 - **SMBServer/Security** y **SMBClient/Security** -- conexiones SMB
-- **System.evtx** -- instalacion de servicios remotos
+- **System.evtx** -- instalación de servicios remotos
 
 Una vez recopilados, estos logs quedan disponibles en la plataforma de Cortex XDR y pueden ser consultados.
 
-### Como masstin obtiene estos datos
+### Cómo masstin obtiene estos datos
 
 ```bash
 masstin -a parse-cortex-evtx-forensics --cortex-url api-xxxx.xdr.xx.paloaltonetworks.com \
@@ -89,21 +89,21 @@ masstin -a parse-cortex-evtx-forensics --cortex-url api-xxxx.xdr.xx.paloaltonetw
   -o cortex-evtx.csv
 ```
 
-Masstin consulta los logs recopilados por los agentes forenses y extrae los eventos de movimiento lateral, generandolos en el mismo formato CSV normalizado.
+Masstin consulta los logs recopilados por los agentes forenses y extrae los eventos de movimiento lateral, generándolos en el mismo formato CSV normalizado.
 
-> **Ventaja practica:** En lugar de tener que acceder fisicamente a cada maquina o desplegar herramientas de triage como KAPE, puedes aprovechar la infraestructura de Cortex XDR existente para recopilar los EVTX de forma remota y centralizada, y luego analizarlos con masstin.
+> **Ventaja práctica:** En lugar de tener que acceder físicamente a cada máquina o desplegar herramientas de triage como KAPE, puedes aprovechar la infraestructura de Cortex XDR existente para recopilar los EVTX de forma remota y centralizada, y luego analizarlos con masstin.
 
 ---
 
-## Comparacion de modos
+## Comparación de modos
 
 | Aspecto | Conexiones de red | EVTX Forensics |
 |---------|------------------|----------------|
 | **Fuente de datos** | Eventos de red capturados por agentes Cortex | Logs EVTX recopilados por agentes forenses |
-| **Que aporta** | Conexiones por proceso a puertos clave | Eventos completos de Windows Event Logs |
+| **Qué aporta** | Conexiones por proceso a puertos clave | Eventos completos de Windows Event Logs |
 | **Puertos/Event IDs** | 3389, 445, 22 | 4624, 4625, 4648, 21, 22, 7045, etc. |
-| **Accion masstin** | `parse-cortex` | `parse-cortex-evtx-forensics` |
-| **Cuando usarlo** | Complementar EVTX con datos de red del endpoint | Cuando no tienes acceso directo a los EVTX |
+| **Acción masstin** | `parse-cortex` | `parse-cortex-evtx-forensics` |
+| **Cuándo usarlo** | Complementar EVTX con datos de red del endpoint | Cuando no tienes acceso directo a los EVTX |
 
 ---
 
@@ -111,21 +111,21 @@ Masstin consulta los logs recopilados por los agentes forenses y extrae los even
 
 El flujo de trabajo recomendado cuando tienes Cortex XDR disponible:
 
-| Paso | Accion | Fuente |
+| Paso | Acción | Fuente |
 |:----:|--------|--------|
-| 1 | Desplegar agentes de recoleccion forense en endpoints clave | Cortex XDR |
-| 2 | Obtener conexiones de red via API | `parse-cortex` |
+| 1 | Desplegar agentes de recolección forense en endpoints clave | Cortex XDR |
+| 2 | Obtener conexiones de red vía API | `parse-cortex` |
 | 3 | Obtener EVTX forenses recopilados | `parse-cortex-evtx-forensics` |
-| 4 | Complementar con EVTX nativos si estan disponibles | `parse` |
+| 4 | Complementar con EVTX nativos si están disponibles | `parse` |
 | 5 | Unificar todo en una sola timeline | `merge` |
 | 6 | Visualizar en Neo4j | `load` |
 
-Los datos de ambos modos de Cortex XDR se integran en la timeline con los mismos campos normalizados que los EVTX nativos, permitiendo correlacionar una conexion de red vista por Cortex con un logon registrado en Security.evtx.
+Los datos de ambos modos de Cortex XDR se integran en la timeline con los mismos campos normalizados que los EVTX nativos, permitiendo correlacionar una conexión de red vista por Cortex con un logon registrado en Security.evtx.
 
 ---
 
-## Conclusion
+## Conclusión
 
-Cortex XDR proporciona dos fuentes complementarias de datos forenses para movimiento lateral. Las conexiones de red te dan la perspectiva de que procesos estan comunicandose por puertos sospechosos, mientras que la recoleccion forense de EVTX te da acceso a los Windows Event Logs completos sin necesidad de acceder fisicamente a cada maquina.
+Cortex XDR proporciona dos fuentes complementarias de datos forenses para movimiento lateral. Las conexiones de red te dan la perspectiva de qué procesos están comunicándose por puertos sospechosos, mientras que la recolección forense de EVTX te da acceso a los Windows Event Logs completos sin necesidad de acceder físicamente a cada máquina.
 
-[Masstin](/es/tools/masstin-lateral-movement-rust/) integra ambas fuentes en una sola timeline, permitiendo combinarlas con EVTX nativos, datos de Winlogbeat y logs de Linux para obtener una vision completa del movimiento lateral.
+[Masstin](/es/tools/masstin-lateral-movement-rust/) integra ambas fuentes en una sola timeline, permitiendo combinarlas con EVTX nativos, datos de Winlogbeat y logs de Linux para obtener una visión completa del movimiento lateral.

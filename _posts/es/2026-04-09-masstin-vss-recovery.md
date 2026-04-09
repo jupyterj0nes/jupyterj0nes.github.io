@@ -12,24 +12,24 @@ comments: true
 
 ## El escenario
 
-Un atacante compromete un servidor Windows, se mueve lateralmente por la red, y antes de irse — borra el log de eventos de Security. Cuando el analista forense recibe la imagen de disco, el Security.evtx del volumen activo esta casi vacio.
+Un atacante compromete un servidor Windows, se mueve lateralmente por la red, y antes de irse — borra el log de eventos de Security. Cuando el analista forense recibe la imagen de disco, el Security.evtx del volumen activo está casi vacío.
 
 Pero las Volume Shadow Copies preservan los datos antiguos. Si System Protection estaba habilitado, los logs de eventos previos al borrado siguen en disco, congelados dentro de un snapshot VSS.
 
-El reto siempre ha sido acceder a ellos: montar imagenes, ejecutar vshadowmount en Linux, extraer ficheros manualmente, luego parsearlos. Multiples herramientas, multiples pasos, facil de pasar por alto.
+El reto siempre ha sido acceder a ellos: montar imágenes, ejecutar vshadowmount en Linux, extraer ficheros manualmente, luego parsearlos. Múltiples herramientas, múltiples pasos, fácil de pasar por alto.
 
 **Masstin lo hace todo en un solo comando.**
 
-## Un comando, recuperacion completa
+## Un comando, recuperación completa
 
 ```bash
 masstin -a parse-image-windows -f HRServer_Disk0.e01 -o timeline.csv
 ```
 
-Este unico comando:
+Este único comando:
 
 1. **Abre la imagen forense** (E01 o dd/raw)
-2. **Encuentra particiones NTFS** automaticamente (GPT y MBR)
+2. **Encuentra particiones NTFS** automáticamente (GPT y MBR)
 3. **Extrae EVTX** del volumen activo
 4. **Detecta snapshots VSS** usando el crate [vshadow-rs](/es/tools/vshadow-rs/)
 5. **Extrae EVTX de cada store VSS** — recuperando logs borrados
@@ -40,27 +40,27 @@ Este unico comando:
 
 ## Ejemplo
 
-Procesando una imagen E01 de 50 GB de un Windows Server donde el atacante habia borrado los logs de eventos:
+Procesando una imagen E01 de 50 GB de un Windows Server donde el atacante había borrado los logs de eventos:
 
-| Metrica | Resultado |
+| Métrica | Resultado |
 |---------|-----------|
-| Tamano de imagen | 50.00 GB |
-| Particion NTFS | 1 (offset 0x1F500000) |
+| Tamaño de imagen | 50.00 GB |
+| Partición NTFS | 1 (offset 0x1F500000) |
 | Snapshots VSS | 1 (creado 2018-08-07, 149.9 MB delta) |
 | EVTX del volumen activo | 296 ficheros |
 | EVTX del store VSS | 128 ficheros |
-| Total tras dedup | 424 EVTX unicos |
+| Total tras dedup | 424 EVTX únicos |
 | Eventos del live | 6,947 |
 | Eventos recuperados del VSS | 34,586 |
-| **Total eventos unicos** | **41,533** |
+| **Total eventos únicos** | **41,533** |
 | Duplicados eliminados | 1,406 |
 | **Tiempo de procesamiento** | **~5 segundos** |
 
-El snapshot VSS contenia **34,586 eventos que ya no estaban en el volumen activo** — incluyendo el Security.evtx con el historial completo de autenticacion que el atacante habia borrado.
+El snapshot VSS contenía **34,586 eventos que ya no estaban en el volumen activo** — incluyendo el Security.evtx con el historial completo de autenticación que el atacante había borrado.
 
 ## Trazabilidad del origen
 
-Cada evento en el CSV de salida incluye un `log_filename` descriptivo que indica exactamente de donde viene:
+Cada evento en el CSV de salida incluye un `log_filename` descriptivo que indica exactamente de dónde viene:
 
 ```
 HRServer_Disk0.e01:live:Security.evtx          <- del volumen activo actual
@@ -69,9 +69,9 @@ HRServer_Disk0.e01:vss_0:Security.evtx         <- recuperado del snapshot VSS 0
 
 Esto permite al analista distinguir inmediatamente entre evidencia actual y evidencia recuperada, y saber exactamente que store VSS proporciono cada evento.
 
-## Multiples imagenes a la vez
+## Múltiples imágenes a la vez
 
-Para incidentes a gran escala o investigaciones de ransomware, apunta masstin a multiples imagenes forenses:
+Para incidentes a gran escala o investigaciones de ransomware, apunta masstin a múltiples imágenes forenses:
 
 ```bash
 masstin -a parse-image-windows \
@@ -81,41 +81,41 @@ masstin -a parse-image-windows \
   -o full-incident-timeline.csv
 ```
 
-Cada imagen se procesa independientemente: particiones detectadas, snapshots VSS enumerados, EVTX extraidos y deduplicados. El resultado es una unica timeline que abarca todas las maquinas — incluyendo eventos recuperados de shadow copies de cada servidor.
+Cada imagen se procesa independientemente: particiones detectadas, snapshots VSS enumerados, EVTX extraídos y deduplicados. El resultado es una única timeline que abarca todas las máquinas — incluyendo eventos recuperados de shadow copies de cada servidor.
 
 ## Detalle de logons fallidos
 
-Cuando masstin encuentra un logon fallido (Event 4625), la columna `detail` muestra una descripcion legible:
+Cuando masstin encuentra un logon fallido (Event 4625), la columna `detail` muestra una descripción legible:
 
 | detail | Significado |
 |--------|-------------|
-| `Wrong password (0xC000006A)` | Contrasena incorrecta |
+| `Wrong password (0xC000006A)` | Contraseña incorrecta |
 | `User does not exist (0xC0000064)` | Cuenta no encontrada |
 | `Account locked out (0xC0000234)` | Demasiados intentos fallidos |
 | `Account disabled (0xC0000072)` | Cuenta deshabilitada |
-| `Expired password (0xC0000071)` | Contrasena expirada |
+| `Expired password (0xC0000071)` | Contraseña expirada |
 
-## Como funciona
+## Cómo funciona
 
-Masstin utiliza el crate [vshadow-rs](https://github.com/jupyterj0nes/vshadow-rs) (Rust puro, multiplataforma) para acceder a snapshots VSS directamente desde imagenes forenses:
+Masstin utiliza el crate [vshadow-rs](https://github.com/jupyterj0nes/vshadow-rs) (Rust puro, multiplataforma) para acceder a snapshots VSS directamente desde imágenes forenses:
 
-1. **E01/dd -> Read+Seek**: el crate `ewf` proporciona acceso transparente a imagenes E01
-2. **Deteccion de particiones**: tablas GPT y MBR parseadas para encontrar volumenes NTFS
-3. **Deteccion VSS**: lee la cabecera VSS en offset `0x1E00` de la particion
+1. **E01/dd -> Read+Seek**: el crate `ewf` proporciona acceso transparente a imágenes E01
+2. **Detección de particiones**: tablas GPT y MBR parseadas para encontrar volúmenes NTFS
+3. **Detección VSS**: lee la cabecera VSS en offset `0x1E00` de la partición
 4. **Mapeo de block descriptors**: identifica que bloques de 16 KiB cambiaron desde el snapshot
-5. **Reconstruccion del snapshot**: superpone bloques almacenados sobre el volumen activo
+5. **Reconstrucción del snapshot**: superpone bloques almacenados sobre el volumen activo
 6. **Recorrido NTFS**: navega `Windows\System32\winevt\Logs\` tanto en live como en snapshot
-7. **Deduplicacion**: elimina eventos duplicados, prefiriendo el volumen activo
+7. **Deduplicación**: elimina eventos duplicados, prefiriendo el volumen activo
 
 Sin montar. Sin FUSE. Sin APIs de Windows. Funciona en Windows, Linux y macOS.
 
 ---
 
-## Documentacion relacionada
+## Documentación relacionada
 
 | Tema | Enlace |
 |------|--------|
-| Masstin — pagina principal | [masstin](/es/tools/masstin-lateral-movement-rust/) |
+| Masstin — página principal | [masstin](/es/tools/masstin-lateral-movement-rust/) |
 | vshadow-rs — parser VSS | [vshadow-rs](/es/tools/vshadow-rs/) |
-| Formato CSV y clasificacion de eventos | [Formato CSV](/es/tools/masstin-csv-format/) |
+| Formato CSV y clasificación de eventos | [Formato CSV](/es/tools/masstin-csv-format/) |
 | Artefactos Security.evtx | [Security.evtx](/es/artifacts/security-evtx-lateral-movement/) |
