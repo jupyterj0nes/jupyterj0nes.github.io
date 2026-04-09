@@ -47,9 +47,21 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 
 ---
 
-## Quick Start
+## Install
 
-Download the latest binary from the [Releases page](https://github.com/jupyterj0nes/masstin/releases) — no installation needed. Or build from source:
+### Download pre-built binary (recommended)
+
+> **No Rust toolchain needed.** Just download and run.
+
+| Platform | Download |
+|----------|----------|
+| Windows | [`masstin-windows.exe`](https://github.com/jupyterj0nes/masstin/releases/latest) |
+| Linux | [`masstin-linux`](https://github.com/jupyterj0nes/masstin/releases/latest) |
+| macOS | [`masstin-macos`](https://github.com/jupyterj0nes/masstin/releases/latest) |
+
+Go to [**Releases**](https://github.com/jupyterj0nes/masstin/releases) and download the binary for your platform. That's it.
+
+### Build from source (alternative)
 
 ```bash
 git clone https://github.com/jupyterj0nes/masstin.git

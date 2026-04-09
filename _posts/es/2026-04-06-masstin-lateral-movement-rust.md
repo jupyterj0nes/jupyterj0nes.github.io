@@ -47,9 +47,21 @@ Masstin parsea **todas** estas fuentes y las fusiona en una **única timeline cr
 
 ---
 
-## Inicio rápido
+## Instalar
 
-Descarga el último binario desde la [página de Releases](https://github.com/jupyterj0nes/masstin/releases) — no necesita instalación. O compila desde el código fuente:
+### Descargar binario pre-compilado (recomendado)
+
+> **No necesitas Rust.** Solo descarga y ejecuta.
+
+| Plataforma | Descarga |
+|------------|----------|
+| Windows | [`masstin-windows.exe`](https://github.com/jupyterj0nes/masstin/releases/latest) |
+| Linux | [`masstin-linux`](https://github.com/jupyterj0nes/masstin/releases/latest) |
+| macOS | [`masstin-macos`](https://github.com/jupyterj0nes/masstin/releases/latest) |
+
+Ve a [**Releases**](https://github.com/jupyterj0nes/masstin/releases) y descarga el binario para tu plataforma. Nada más.
+
+### Compilar desde el código fuente (alternativa)
 
 ```bash
 git clone https://github.com/jupyterj0nes/masstin.git
