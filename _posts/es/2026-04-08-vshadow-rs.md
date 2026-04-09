@@ -40,6 +40,7 @@ Una libreria y herramienta CLI en **Rust puro** que lee el formato VSS directame
 | **Timelines MACB** | Generar timelines forenses del delta con precision completa de timestamps NTFS |
 | Extraer ficheros | Extraer ficheros de stores VSS a disco — recuperar logs de eventos borrados |
 | Soporte E01 | Lee directamente de imagenes Expert Witness Format, sin ewfmount |
+| **Volumenes montados** | Lee directamente desde letras de unidad (`C:`), dispositivos de bloque (`/dev/sda2`) o puntos de montaje (`/mnt/evidence`) — sin necesidad de crear una imagen primero |
 | Deteccion automatica de particiones | Encuentra particiones NTFS automaticamente via GPT y MBR |
 | Multiplataforma | Windows, Linux y macOS — binario unico, cero dependencias |
 | Libreria + CLI | Usable como crate Rust o como herramienta de linea de comandos |
@@ -70,11 +71,23 @@ cargo install vshadow
 
 ## Uso CLI
 
+Todos los comandos aceptan imagenes forenses (E01, dd/raw) **y volumenes montados/discos** (letras de unidad en Windows, dispositivos `/dev/` o puntos de montaje en Linux/macOS).
+
 ### Inspeccionar: encontrar stores VSS
 
 ```bash
+# Desde imagen forense
 vshadow-rs info -f evidence.E01
+
+# Desde volumen montado (Windows — requiere Administrador)
+vshadow-rs info -f C:
+
+# Desde dispositivo de bloque (Linux — requiere root)
+sudo vshadow-rs info -f /dev/sda2
+sudo vshadow-rs info -f /mnt/evidence
 ```
+
+<img src="/assets/images/vshadow-rs-volume.png" alt="vshadow-rs leyendo desde volumen montado C:" width="700">
 
 ### Listar: navegar ficheros en un store VSS o volumen activo
 
@@ -155,9 +168,11 @@ masstin -a parse-windows -d ./recuperados/ -o lateral.csv
 
 3. **Soporte E01 directo**: lee imagenes forenses sin montar, convertir ni extraer.
 
-4. **Rust puro, multiplataforma**: sin FUSE, sin APIs de Windows, sin librerias C. Funciona en cualquier SO.
+4. **Soporte de volumenes montados / discos en vivo**: apunta vshadow-rs a una letra de unidad (`C:`, `D:`), un dispositivo de bloque (`/dev/sda2`) o un punto de montaje (`/mnt/evidence`) y lee el volumen raw directamente. Sin necesidad de crear una imagen primero — ideal para triage o cuando se trabaja con un bloqueador de escritura.
 
-5. **Libreria + CLI**: usa el crate `vshadow` en tus propias herramientas Rust, o usa el binario `vshadow-rs` desde la linea de comandos.
+5. **Rust puro, multiplataforma**: sin FUSE, sin APIs de Windows, sin librerias C. Funciona en cualquier SO.
+
+6. **Libreria + CLI**: usa el crate `vshadow` en tus propias herramientas Rust, o usa el binario `vshadow-rs` desde la linea de comandos.
 
 ---
 
@@ -176,6 +191,7 @@ masstin -a parse-windows -d ./recuperados/ -o lateral.csv
 | **Timeline MACB del delta** | No | No | No | **Si** |
 | **Listar ficheros en volumen activo** | No | No | No | **Si** |
 | **Leer E01 directamente** | No | No | No | **Si** |
+| **Leer volumenes montados / discos en vivo** | No | No | No | **Si** |
 | **Detectar particiones GPT/MBR** | No | No | No | **Si** |
 | Sin dependencias en C | No | No | No | **Si** |
 | Sin FUSE | Si | No | Si | **Si** |
