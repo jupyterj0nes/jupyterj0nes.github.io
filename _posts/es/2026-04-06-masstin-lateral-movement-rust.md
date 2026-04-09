@@ -14,41 +14,41 @@ comments: true
 
 ## El problema
 
-Un atacante ha comprometido tu red. Se ha movido lateralmente entre servidores Windows, maquinas Linux e infraestructura cloud. La evidencia esta dispersa: EVTX de 50 maquinas, logs de auth de una docena de servidores Linux, datos de red de tu EDR. Necesitas reconstruir el camino del atacante — cada salto, cada credencial, cada intento fallido — y lo necesitas **ya**.
+Un atacante ha comprometido tu red. Se ha movido lateralmente entre servidores Windows, máquinas Linux e infraestructura cloud. La evidencia está dispersa: EVTX de 50 máquinas, logs de auth de una docena de servidores Linux, datos de red de tu EDR. Necesitas reconstruir el camino del atacante — cada salto, cada credencial, cada intento fallido — y lo necesitas **ya**.
 
-Masstin parsea **todas** estas fuentes y las fusiona en una **unica timeline cronologica** donde un logon RDP de Windows, un brute-force SSH de Linux y una conexion de red del EDR aparecen lado a lado, en el mismo formato, listos para analisis o visualizacion en grafos.
+Masstin parsea **todas** estas fuentes y las fusiona en una **única timeline cronológica** donde un logon RDP de Windows, un brute-force SSH de Linux y una conexión de red del EDR aparecen lado a lado, en el mismo formato, listos para análisis o visualización en grafos.
 
 - **Repositorio:** [github.com/jupyterj0nes/masstin](https://github.com/jupyterj0nes/masstin)
 - **Licencia:** AGPL-3.0
-- **Plataformas:** Windows, Linux y macOS — sin dependencias, binario unico
+- **Plataformas:** Windows, Linux y macOS — sin dependencias, binario único
 
 ---
 
-## Caracteristicas clave
+## Características clave
 
-| Caracteristica | Descripcion | Articulo |
+| Característica | Descripción | Artículo |
 |----------------|-------------|----------|
-| Analisis multi-directorio | Analiza docenas de maquinas a la vez con multiples flags `-d`, critico para investigaciones de ransomware | [Parsear evidencia](#parsear-evidencia) |
+| Análisis multi-directorio | Analiza docenas de máquinas a la vez con múltiples flags `-d`, crítico para investigaciones de ransomware | [Parsear evidencia](#parsear-evidencia) |
 | Timeline multiplataforma | Windows EVTX + Linux SSH + datos EDR fusionados en un CSV con `merge` | [Windows](/es/artifacts/security-evtx-lateral-movement/) / [Linux](/es/artifacts/linux-forensic-artifacts/) / [Cortex](/es/artifacts/cortex-xdr-artifacts/) |
 | 30+ Event IDs de 9 fuentes Windows | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS — cubriendo RDP, SMB, Kerberos, NTLM y acceso a shares | [Security.evtx](/es/artifacts/security-evtx-lateral-movement/) / [RDP](/es/artifacts/terminal-services-evtx/) / [SMB](/es/artifacts/smb-evtx-events/) |
-| Clasificacion de eventos | Cada evento clasificado como `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF` o `CONNECT` | [Formato CSV — event_type](/es/tools/masstin-csv-format/) |
-| Descompresion recursiva | Extrae automaticamente paquetes ZIP/triage de forma recursiva, gestiona logs archivados con nombres duplicados, detecta contrasenas forenses comunes | [Artefactos Linux — soporte triage](/es/artifacts/linux-forensic-artifacts/) |
-| Linux: inferencia inteligente | Auto-detecta hostname, infiere ano desde `dpkg.log`, soporta Debian (`auth.log`) y RHEL (`secure`), formatos RFC3164 y RFC5424 | [Artefactos Linux — inferencia](/es/artifacts/linux-forensic-artifacts/) |
-| Visualizacion en grafos con reduccion de ruido | Carga directa a Neo4j o Memgraph con agrupacion de conexiones (fecha mas temprana + recuento) y resolucion automatica IP-a-hostname | [Neo4j](/es/tools/neo4j-cypher-visualization/) / [Memgraph](/es/tools/memgraph-visualization/) |
-| Reconstruccion de camino temporal | Query Cypher para encontrar la ruta cronologicamente coherente del atacante entre dos nodos | [Neo4j — camino temporal](/es/tools/neo4j-cypher-visualization/) / [Memgraph — camino temporal](/es/tools/memgraph-visualization/) |
-| Correlacion de sesiones | Campo `logon_id` permite vincular eventos de logon/logoff para determinar duracion de sesion | [Formato CSV — logon_id](/es/tools/masstin-csv-format/) |
-| Modo silencioso | Flag `--silent` suprime toda la salida para integracion con Velociraptor, plataformas SOAR y pipelines de automatizacion | [Tabla de acciones](#acciones-disponibles) |
-| Analisis de imagenes forenses | Abre imagenes E01/dd directamente, encuentra particiones NTFS (GPT/MBR), extrae EVTX — sin necesidad de montar | [Recuperacion VSS](/es/tools/masstin-vss-recovery/) |
-| Recuperacion de snapshots VSS | Detecta y extrae EVTX de Volume Shadow Copies — recupera logs borrados por atacantes | [Recuperacion VSS](/es/tools/masstin-vss-recovery/) |
-| Soporte de volumenes montados | Apunta `-d D:` a un volumen montado o usa `--all-volumes` — EVTX live + recuperacion VSS desde discos conectados, sin necesidad de crear imagen | |
-| Parsing UAL | Detecta automaticamente bases de datos UAL (User Access Logging) — 3 anos de historial de acceso a servidor que sobreviven al borrado de logs | [UAL](/es/tools/masstin-ual/) |
-| Reporte transparente | La CLI muestra descubrimiento de artefactos, progreso de procesamiento, inferencias de hostname/ano y recuento de eventos por artefacto | [Parsear evidencia](#parsear-evidencia) |
+| Clasificación de eventos | Cada evento clasificado como `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF` o `CONNECT` | [Formato CSV — event_type](/es/tools/masstin-csv-format/) |
+| Descompresión recursiva | Extrae automáticamente paquetes ZIP/triage de forma recursiva, gestiona logs archivados con nombres duplicados, detecta contraseñas forenses comunes | [Artefactos Linux — soporte triage](/es/artifacts/linux-forensic-artifacts/) |
+| Linux: inferencia inteligente | Auto-detecta hostname, infiere año desde `dpkg.log`, soporta Debian (`auth.log`) y RHEL (`secure`), formatos RFC3164 y RFC5424 | [Artefactos Linux — inferencia](/es/artifacts/linux-forensic-artifacts/) |
+| Visualización en grafos con reducción de ruido | Carga directa a Neo4j o Memgraph con agrupación de conexiones (fecha más temprana + recuento) y resolución automática IP-a-hostname | [Neo4j](/es/tools/neo4j-cypher-visualization/) / [Memgraph](/es/tools/memgraph-visualization/) |
+| Reconstrucción de camino temporal | Query Cypher para encontrar la ruta cronológicamente coherente del atacante entre dos nodos | [Neo4j — camino temporal](/es/tools/neo4j-cypher-visualization/) / [Memgraph — camino temporal](/es/tools/memgraph-visualization/) |
+| Correlación de sesiones | Campo `logon_id` permite vincular eventos de logon/logoff para determinar duración de sesión | [Formato CSV — logon_id](/es/tools/masstin-csv-format/) |
+| Modo silencioso | Flag `--silent` suprime toda la salida para integración con Velociraptor, plataformas SOAR y pipelines de automatización | [Tabla de acciones](#acciones-disponibles) |
+| Análisis de imágenes forenses | Abre imágenes E01/dd directamente, encuentra particiones NTFS (GPT/MBR), extrae EVTX — sin necesidad de montar | [Recuperación VSS](/es/tools/masstin-vss-recovery/) |
+| Recuperación de snapshots VSS | Detecta y extrae EVTX de Volume Shadow Copies — recupera logs borrados por atacantes | [Recuperación VSS](/es/tools/masstin-vss-recovery/) |
+| Soporte de volúmenes montados | Apunta `-d D:` a un volumen montado o usa `--all-volumes` — EVTX live + recuperación VSS desde discos conectados, sin necesidad de crear imagen | |
+| Parsing UAL | Detecta automáticamente bases de datos UAL (User Access Logging) — 3 años de historial de acceso a servidor que sobreviven al borrado de logs | [UAL](/es/tools/masstin-ual/) |
+| Reporte transparente | La CLI muestra descubrimiento de artefactos, progreso de procesamiento, inferencias de hostname/año y recuento de eventos por artefacto | [Parsear evidencia](#parsear-evidencia) |
 
 ---
 
-## Inicio rapido
+## Inicio rápido
 
-Descarga el ultimo binario desde la [pagina de Releases](https://github.com/jupyterj0nes/masstin/releases) — no necesita instalacion. O compila desde el codigo fuente:
+Descarga el último binario desde la [página de Releases](https://github.com/jupyterj0nes/masstin/releases) — no necesita instalación. O compila desde el código fuente:
 
 ```bash
 git clone https://github.com/jupyterj0nes/masstin.git
@@ -84,7 +84,7 @@ masstin -a load-neo4j -f full-timeline.csv --database localhost:7687 --user neo4
 
 ### Reconstruir el camino del atacante
 
-La query de camino temporal encuentra la ruta cronologicamente coherente entre dos nodos:
+La query de camino temporal encuentra la ruta cronológicamente coherente entre dos nodos:
 
 ```cypher
 MATCH path = (start:host {name:'10.10.1.50'})-[*]->(end:host {name:'SRV-BACKUP'})
@@ -99,25 +99,25 @@ RETURN path ORDER BY length(path) LIMIT 5
 
 ## Acciones disponibles
 
-| Accion | Descripcion |
+| Acción | Descripción |
 |--------|-------------|
 | `parse-windows` | Parsea EVTX de Windows desde directorios o ficheros (soporta triage comprimido) |
 | `parse-linux` | Parsea logs de Linux: auth.log, secure, messages, audit.log, utmp, wtmp, btmp, lastlog |
 | `parser-elastic` | Parsea logs de Winlogbeat en JSON exportados desde Elasticsearch |
 | `parse-cortex` | Consulta la API de Cortex XDR para conexiones de red (RDP/SMB/SSH) |
-| `parse-image-windows` | Abre imagenes E01/dd o volumenes montados (`-d D:`), extrae EVTX del live + todos los stores VSS. Usa `--all-volumes` para escanear todos los discos NTFS |
-| `parse-cortex-evtx-forensics` | Consulta la API de Cortex XDR para colecciones EVTX forenses de multiples maquinas |
-| `merge` | Combina multiples CSVs en una unica timeline cronologica |
-| `load-neo4j` | Sube la timeline a Neo4j para visualizacion en grafos |
-| `load-memgraph` | Sube la timeline a Memgraph para visualizacion en grafos en memoria |
+| `parse-image-windows` | Abre imágenes E01/dd o volúmenes montados (`-d D:`), extrae EVTX del live + todos los stores VSS. Usa `--all-volumes` para escanear todos los discos NTFS |
+| `parse-cortex-evtx-forensics` | Consulta la API de Cortex XDR para colecciones EVTX forenses de múltiples máquinas |
+| `merge` | Combina múltiples CSVs en una única timeline cronológica |
+| `load-neo4j` | Sube la timeline a Neo4j para visualización en grafos |
+| `load-memgraph` | Sube la timeline a Memgraph para visualización en grafos en memoria |
 
 ---
 
-## Documentacion
+## Documentación
 
 ### Artefactos
 
-| Artefacto | Articulo |
+| Artefacto | Artículo |
 |-----------|----------|
 | Security.evtx (30+ Event IDs) | [Security.evtx y movimiento lateral](/es/artifacts/security-evtx-lateral-movement/) |
 | Terminal Services EVTX | [Terminal Services EVTX](/es/artifacts/terminal-services-evtx/) |
@@ -128,16 +128,16 @@ RETURN path ORDER BY length(path) LIMIT 5
 
 ### Formato de salida y funcionalidades avanzadas
 
-| Tema | Articulo |
+| Tema | Artículo |
 |------|----------|
-| Columnas CSV, event_type, mapeo Event ID, logon_id, detail | [Formato CSV y Clasificacion de Eventos](/es/tools/masstin-csv-format/) |
-| Analisis de imagenes forenses y recuperacion VSS | [Recuperando logs borrados desde VSS](/es/tools/masstin-vss-recovery/) |
+| Columnas CSV, event_type, mapeo Event ID, logon_id, detail | [Formato CSV y Clasificación de Eventos](/es/tools/masstin-csv-format/) |
+| Análisis de imágenes forenses y recuperación VSS | [Recuperando logs borrados desde VSS](/es/tools/masstin-vss-recovery/) |
 | User Access Logging (UAL) | [Historial de acceso a servidor desde bases de datos ESE](/es/tools/masstin-ual/) |
 | vshadow-rs — parser VSS en Rust puro | [vshadow-rs](/es/tools/vshadow-rs/) |
 
 ### Bases de datos graficas
 
-| Base de datos | Articulo |
+| Base de datos | Artículo |
 |---------------|----------|
-| Neo4j | [Neo4j y Cypher: visualizacion y queries](/es/tools/neo4j-cypher-visualization/) |
-| Memgraph | [Memgraph: visualizacion en memoria](/es/tools/memgraph-visualization/) |
+| Neo4j | [Neo4j y Cypher: visualización y queries](/es/tools/neo4j-cypher-visualization/) |
+| Memgraph | [Memgraph: visualización en memoria](/es/tools/memgraph-visualization/) |

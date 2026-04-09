@@ -10,7 +10,7 @@ description: "Guía para visualizar movimiento lateral con Memgraph y masstin: b
 comments: true
 ---
 
-## Qué es Memgraph
+## ¿Qué es Memgraph?
 
 Memgraph es una base de datos de grafos **en memoria** y de código abierto. Utiliza openCypher como lenguaje de consultas y es compatible con el protocolo Bolt, lo que significa que cualquier herramienta que funcione con Neo4j puede conectarse a Memgraph sin cambios.
 
@@ -24,34 +24,34 @@ La diferencia principal: Memgraph ejecuta todo en RAM. Esto lo hace significativ
 - **Ligero**: no requiere JVM — el consumo de recursos es mínimo comparado con Neo4j
 - **Despliegue inmediato**: un solo comando de Docker y tienes el entorno completo funcionando
 - **Open source**: sin licencias, sin restricciones de nodos, sin sorpresas
-- **Compatible con Bolt**: las mismas librerías y conectores que usas con Neo4j funcionan directamente
+- **Compatible con Bolt**: las mismas bibliotecas y conectores que usas con Neo4j funcionan directamente
 
 Cuando estás en medio de un incidente y necesitas levantar un entorno de visualización rápido, Memgraph elimina toda la fricción.
 
 ---
 
-## Instalacion de Memgraph
+## Instalación de Memgraph
 
-| Plataforma | Instalacion |
+| Plataforma | Instalación |
 |------------|-------------|
-| **Windows** | Via Docker (ver [Requisitos previos en Windows](#requisitos-previos-en-windows-wsl-2--docker) mas abajo) |
+| **Windows** | Vía Docker (ver [Requisitos previos en Windows](#requisitos-previos-en-windows-wsl-2--docker) más abajo) |
 | **Linux** | `sudo apt install memgraph` o descarga el paquete `.deb`/`.rpm` desde [memgraph.com/download](https://memgraph.com/download). Inicia con `sudo systemctl start memgraph` |
 | **macOS** | `docker compose` (mismo enfoque que Windows/Docker) |
 
-Una vez que Docker esta corriendo, instala Memgraph con:
+Una vez que Docker está corriendo, instala Memgraph con:
 
 ```powershell
 iwr https://windows.memgraph.com | iex
 ```
 
-Esto descarga un `docker-compose.yml` e inicia dos contenedores automaticamente:
+Esto descarga un `docker-compose.yml` e inicia dos contenedores automáticamente:
 
-| Contenedor | Imagen | Puerto | Funcion |
+| Contenedor | Imagen | Puerto | Función |
 |------------|--------|--------|---------|
 | `memgraph` | `memgraph/memgraph-mage` | 7687 (Bolt), 7444 (logs) | Motor de grafos + algoritmos MAGE |
 | `lab` | `memgraph/lab` | 3000 | Interfaz web (Memgraph Lab) |
 
-Abre [http://localhost:3000](http://localhost:3000) en tu navegador, haz click en **"Connect now"**, y Memgraph Lab estara listo. No hace falta crear bases de datos ni proyectos — Memgraph no tiene esquema y acepta datos inmediatamente.
+Abre [http://localhost:3000](http://localhost:3000) en tu navegador, haz click en **"Connect now"**, y Memgraph Lab estará listo. No hace falta crear bases de datos ni proyectos — Memgraph no tiene esquema y acepta datos inmediatamente.
 
 ---
 
@@ -72,7 +72,7 @@ dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux 
 dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
 ```
 
-**Reinicia tu PC** despues de que ambos comandos se completen.
+**Reinicia tu PC** después de que ambos comandos se completen.
 
 Tras reiniciar, abre PowerShell como Administrador de nuevo:
 
@@ -82,12 +82,12 @@ wsl --set-default-version 2
 wsl --install
 ```
 
-Esto instala Ubuntu por defecto. Se te pedira crear un nombre de usuario y contrasena Unix.
+Esto instala Ubuntu por defecto. Se te pedirá crear un nombre de usuario y contraseña Unix.
 
 ### Paso 2: Instalar Docker Desktop
 
 1. Descarga Docker Desktop desde [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/)
-2. Ejecuta el instalador — asegurate de que **"Use WSL 2 instead of Hyper-V"** esta seleccionado
+2. Ejecuta el instalador — asegúrate de que **"Use WSL 2 instead of Hyper-V"** está seleccionado
 3. Reinicia tu PC si se te solicita
 4. Abre Docker Desktop — confirma que "Engine running" aparece en verde en la parte inferior izquierda
 
@@ -101,12 +101,12 @@ iwr https://windows.memgraph.com | iex
 
 Esto descarga un `docker-compose.yml` e inicia dos contenedores: la base de datos Memgraph (`memgraph/memgraph-mage`) y la interfaz web (`memgraph/lab`).
 
-Abre [http://localhost:3000](http://localhost:3000), haz click en **"Connect now"**, y Memgraph Lab estara listo.
+Abre [http://localhost:3000](http://localhost:3000), haz click en **"Connect now"**, y Memgraph Lab estará listo.
 
 <details>
-<summary><strong>Solucion de problemas WSL / Docker</strong></summary>
+<summary><strong>Solución de problemas WSL / Docker</strong></summary>
 
-**Servicio WSL no encontrado** (`ERROR_SERVICE_DOES_NOT_EXIST` al ejecutar `wsl --status`): asegurate de que las features de Windows del Paso 1 estan habilitadas y de que has reiniciado tu PC. Si el error persiste, registra el servicio manualmente:
+**Servicio WSL no encontrado** (`ERROR_SERVICE_DOES_NOT_EXIST` al ejecutar `wsl --status`): asegúrate de que las features de Windows del Paso 1 están habilitadas y de que has reiniciado tu PC. Si el error persiste, registra el servicio manualmente:
 
 ```powershell
 sc.exe create WslService binPath= 'C:\Program Files\WSL\wslservice.exe' start= auto
@@ -114,7 +114,7 @@ sc.exe start WslService
 wsl --install
 ```
 
-**wsl --update falla** ("The older version cannot be removed"): una instalacion previa de WSL dejo una entrada corrupta. Eliminala primero y luego reinstala:
+**wsl --update falla** ("The older version cannot be removed"): una instalación previa de WSL dejó una entrada corrupta. Elimínala primero y luego reinstala:
 
 ```powershell
 winget uninstall "Windows Subsystem for Linux"
@@ -125,9 +125,9 @@ wsl --install
 
 ```powershell
 wsl --status              # WSL funciona
-docker --version          # Docker esta instalado
-docker run hello-world    # El motor de Docker esta corriendo
-docker ps                 # El contenedor de Memgraph esta activo
+docker --version          # Docker está instalado
+docker run hello-world    # El motor de Docker está corriendo
+docker ps                 # El contenedor de Memgraph está activo
 ```
 
 </details>
@@ -144,7 +144,7 @@ masstin -a load-memgraph -f timeline.csv --database localhost:7687
 
 Por defecto, Memgraph no tiene autenticación habilitada. Si has configurado credenciales en tu instancia, usa los parámetros correspondientes. Pero para un despliegue rápido de análisis, la configuración por defecto es todo lo que necesitas.
 
-Masstin preserva los valores originales de la evidencia. Los nombres de nodos y propiedades se almacenan sin transformacion. Solo los tipos de relacion (cuentas de usuario) se normalizan a identificadores Cypher validos (mayusculas, guiones bajos, eliminar `@dominio`). Consulta el [articulo de Neo4j](/es/tools/2026-04-07-neo4j-cypher-visualization/) para mas detalles.
+Masstin preserva los valores originales de la evidencia. Los nombres de nodos y propiedades se almacenan sin transformación. Solo los tipos de relación (cuentas de usuario) se normalizan a identificadores Cypher válidos (mayúsculas, guiones bajos, eliminar `@dominio`). Consulta el [artículo de Neo4j](/es/tools/2026-04-07-neo4j-cypher-visualization/) para más detalles.
 
 ---
 
@@ -232,22 +232,22 @@ ORDER BY length(path)
 LIMIT 5
 ```
 
-![Reconstruccion de camino temporal en Memgraph Lab](/assets/images/memgraph_temporal_path.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+![Reconstrucción de camino temporal en Memgraph Lab](/assets/images/memgraph_temporal_path.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
 
-Para el catalogo completo de queries (filtrado por tipo de logon, cuentas de servicio, usuarios especificos, nodos mas conectados), consulta el [articulo de Neo4j y Cypher](/es/tools/2026-04-07-neo4j-cypher-visualization/). Todas funcionan en Memgraph sustituyendo `datetime()` por `localDateTime()`.
+Para el catálogo completo de queries (filtrado por tipo de logon, cuentas de servicio, usuarios específicos, nodos más conectados), consulta el [artículo de Neo4j y Cypher](/es/tools/2026-04-07-neo4j-cypher-visualization/). Todas funcionan en Memgraph sustituyendo `datetime()` por `localDateTime()`.
 
 ---
 
 ## Estilo del grafo
 
-Por defecto, Memgraph Lab muestra todo el texto en el mismo color, lo que dificulta distinguir los nombres de maquinas (nodos) de los nombres de usuario (relaciones). El repositorio de masstin incluye un estilo GSS personalizado en [`memgraph-resources/style.gss`](https://github.com/jupyterj0nes/masstin/blob/main/memgraph-resources/style.gss) que soluciona esto:
+Por defecto, Memgraph Lab muestra todo el texto en el mismo color, lo que dificulta distinguir los nombres de máquinas (nodos) de los nombres de usuario (relaciones). El repositorio de masstin incluye un estilo GSS personalizado en [`memgraph-resources/style.gss`](https://github.com/jupyterj0nes/masstin/blob/main/memgraph-resources/style.gss) que soluciona esto:
 
-- **Etiquetas de nodos** (nombres de maquinas): negro, fuente mas grande
-- **Etiquetas de relaciones** (nombres de usuario): azul, fuente mas pequena
+- **Etiquetas de nodos** (nombres de máquinas): negro, fuente más grande
+- **Etiquetas de relaciones** (nombres de usuario): azul, fuente más pequeña
 
 Para aplicarlo:
 
-1. Abre la pestana **Graph Style editor** en Memgraph Lab (junto al Cypher editor)
+1. Abre la pestaña **Graph Style editor** en Memgraph Lab (junto al Cypher editor)
 2. Selecciona todo el contenido existente (Ctrl+A)
 3. Pega el contenido de [`style.gss`](https://github.com/jupyterj0nes/masstin/blob/main/memgraph-resources/style.gss)
 4. Haz click en **Apply**
@@ -257,7 +257,7 @@ Para guardarlo permanentemente y que sea el estilo por defecto en todas las quer
 1. Haz click en **Save style**
 2. Introduce el nombre `masstin`
 3. Selecciona **Save locally**
-4. Activa **Default Graph Style** — esto aplicara el estilo automaticamente a todos los nuevos resultados de queries
+4. Activa **Default Graph Style** — esto aplicará el estilo automáticamente a todos los nuevos resultados de queries
 
 ![Guardar estilo como defecto](/assets/images/memgraph_save_style.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
 

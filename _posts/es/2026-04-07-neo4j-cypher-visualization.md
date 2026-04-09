@@ -20,18 +20,18 @@ Neo4j convierte la timeline de [masstin](/es/tools/masstin-lateral-movement-rust
 
 ## Transformaciones de datos
 
-Masstin preserva los valores originales de la evidencia en la medida de lo posible. Los nombres de nodos (hostnames, IPs) y propiedades se almacenan **sin transformacion** — `SRV-FILE01` se mantiene como `SRV-FILE01`, `10.10.1.50` se mantiene como `10.10.1.50`.
+Masstin preserva los valores originales de la evidencia en la medida de lo posible. Los nombres de nodos (hostnames, IPs) y propiedades se almacenan **sin transformación** — `SRV-FILE01` se mantiene como `SRV-FILE01`, `10.10.1.50` se mantiene como `10.10.1.50`.
 
-La unica transformacion se aplica a los **tipos de relacion** (la etiqueta del edge, que representa la cuenta de usuario). Es una restriccion del lenguaje Cypher — los tipos de relacion deben ser identificadores validos y no pueden contener puntos, guiones ni empezar por un numero:
+La única transformación se aplica a los **tipos de relación** (la etiqueta del edge, que representa la cuenta de usuario). Es una restricción del lenguaje Cypher — los tipos de relación deben ser identificadores válidos y no pueden contener puntos, guiones ni empezar por un número:
 
-| Que | Transformacion | Ejemplo |
+| Qué | Transformación | Ejemplo |
 |-----|----------------|---------|
-| Tipo de relacion (usuario) | Puntos, guiones, espacios → `_`, MAYUSCULAS, eliminar `@dominio` | `j.garcia@ACME.LOCAL` → `J_GARCIA` |
-| Nombres de nodo (hostnames, IPs) | **Sin transformacion** — valor original | `SRV-FILE01` se mantiene `SRV-FILE01` |
-| Propiedades (src_ip, etc.) | **Sin transformacion** — valor original | `10.10.1.50` se mantiene `10.10.1.50` |
+| Tipo de relación (usuario) | Puntos, guiones, espacios → `_`, MAYÚSCULAS, eliminar `@dominio` | `j.garcia@ACME.LOCAL` → `J_GARCIA` |
+| Nombres de nodo (hostnames, IPs) | **Sin transformación** — valor original | `SRV-FILE01` se mantiene `SRV-FILE01` |
+| Propiedades (src_ip, etc.) | **Sin transformación** — valor original | `10.10.1.50` se mantiene `10.10.1.50` |
 | Usuarios en propiedades | Solo se elimina el sufijo `@dominio` | `j.garcia@ACME.LOCAL` → `j.garcia` |
 
-Al escribir queries, usa los valores originales para nombres de nodos y propiedades, y la forma normalizada solo para los tipos de relacion.
+Al escribir queries, usa los valores originales para nombres de nodos y propiedades, y la forma normalizada solo para los tipos de relación.
 
 ---
 
