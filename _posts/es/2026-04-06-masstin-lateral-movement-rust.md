@@ -106,7 +106,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 | `parse-linux` | Parsea logs de Linux: auth.log, secure, messages, audit.log, utmp, wtmp, btmp, lastlog |
 | `parser-elastic` | Parsea logs de Winlogbeat en JSON exportados desde Elasticsearch |
 | `parse-cortex` | Consulta la API de Cortex XDR para conexiones de red (RDP/SMB/SSH) |
-| `parse-image-windows` | Abre imágenes E01/dd/VMDK o volúmenes montados (`-d D:`), extrae EVTX + UAL del live + todos los stores VSS. Usa `--all-volumes` para escanear todos los discos NTFS |
+| `parse-image-windows` | Abre imágenes E01/dd/VMDK, escanea carpetas de evidencia (`-d /evidence/`), volúmenes montados (`-d D:`) o `--all-volumes`. Extrae EVTX + UAL del live + VSS |
 | `parse-cortex-evtx-forensics` | Consulta la API de Cortex XDR para colecciones EVTX forenses de múltiples máquinas |
 | `merge` | Combina múltiples CSVs en una única timeline cronológica |
 | `load-neo4j` | Sube la timeline a Neo4j para visualización en grafos |
