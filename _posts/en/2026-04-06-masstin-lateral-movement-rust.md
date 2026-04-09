@@ -41,6 +41,7 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 | Forensic image analysis | Open E01/dd images directly, find NTFS partitions (GPT/MBR), extract EVTX — no mounting needed | [VSS recovery](/en/tools/masstin-vss-recovery/) |
 | VSS snapshot recovery | Detect and extract EVTX from Volume Shadow Copies — recover event logs deleted by attackers | [VSS recovery](/en/tools/masstin-vss-recovery/) |
 | Mounted volume support | Point `-d D:` at a mounted volume or use `--all-volumes` — live EVTX + VSS recovery from connected disks, no imaging needed | |
+| UAL parsing | Auto-detect User Access Logging ESE databases — 3-year server logon history surviving event log clearing | [UAL](/en/tools/masstin-ual/) |
 | Transparent reporting | CLI shows artifact discovery, processing progress, hostname/year inferences and per-artifact event counts | [Parse evidence](#parse-evidence) |
 
 ---
@@ -131,6 +132,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 |-------|---------|
 | CSV columns, event_type, Event ID mapping, logon_id, detail | [CSV Format and Event Classification](/en/tools/masstin-csv-format/) |
 | Forensic image analysis and VSS recovery | [Recovering deleted logs from VSS](/en/tools/masstin-vss-recovery/) |
+| User Access Logging (UAL) | [Server access history from ESE databases](/en/tools/masstin-ual/) |
 | vshadow-rs — pure Rust VSS parser | [vshadow-rs](/en/tools/vshadow-rs/) |
 
 ### Graph Databases
