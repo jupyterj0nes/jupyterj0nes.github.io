@@ -22,7 +22,9 @@ Attackers clear Windows event logs. But if Volume Shadow Copies exist on the dis
 
 ## What is vshadow-rs?
 
-A **pure Rust** library and CLI tool that reads the VSS on-disk format directly from E01, raw/dd, or partition images. No Windows APIs, no C dependencies, works on Windows, Linux, and macOS.
+A **pure Rust** library and CLI tool that reads the VSS on-disk format directly from E01, raw/dd, partition images, or mounted volumes. No Windows APIs, no C dependencies, works on Windows, Linux, and macOS.
+
+Its logo is [Ferris](https://rustacean.net/) (the Rust crab) wearing a miner's helmet — a nod to the coal miners of [Leon, Spain](https://en.wikipedia.org/wiki/Province_of_Le%C3%B3n), who dug through layers of darkness to bring what was hidden to the surface.
 
 - **Repository:** [github.com/jupyterj0nes/vshadow-rs](https://github.com/jupyterj0nes/vshadow-rs)
 - **Crate:** [crates.io/crates/vshadow](https://crates.io/crates/vshadow)
