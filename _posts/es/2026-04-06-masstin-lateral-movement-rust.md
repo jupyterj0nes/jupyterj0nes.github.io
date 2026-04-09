@@ -39,7 +39,7 @@ Masstin parsea **todas** estas fuentes y las fusiona en una **única timeline cr
 | Correlación de sesiones | Campo `logon_id` permite vincular eventos de logon/logoff para determinar duración de sesión | [Formato CSV — logon_id](/es/tools/masstin-csv-format/) |
 | Modo silencioso | Flag `--silent` suprime toda la salida para integración con Velociraptor, plataformas SOAR y pipelines de automatización | [Tabla de acciones](#acciones-disponibles) |
 | **Procesamiento masivo de evidencia** | Apunta `-d` a una carpeta de evidencia — masstin encuentra recursivamente todas las imágenes E01/VMDK/dd, extrae EVTX + UAL del live + VSS de cada una, un solo comando para un incidente completo | |
-| Análisis de imágenes forenses | Abre imágenes E01, dd/raw y VMDK (sparse, flat, split) directamente — Rust puro, sin herramientas externas, sin montar | [Recuperación VSS](/es/tools/masstin-vss-recovery/) |
+| Análisis de imágenes forenses | Abre imágenes E01, dd/raw y VMDK directamente — Windows (NTFS + VSS + UAL) y Linux (ext4) — Rust puro, sin montar | [Recuperación VSS](/es/tools/masstin-vss-recovery/) |
 | Recuperación de snapshots VSS | Detecta y extrae EVTX de Volume Shadow Copies — recupera logs borrados por atacantes | [Recuperación VSS](/es/tools/masstin-vss-recovery/) |
 | Soporte de volúmenes montados | Apunta `-d D:` a un volumen montado o usa `--all-volumes` — EVTX live + recuperación VSS desde discos conectados, sin necesidad de crear imagen | |
 | Parsing UAL | Detecta automáticamente bases de datos UAL (User Access Logging) — 3 años de historial de acceso a servidor que sobreviven al borrado de logs | [UAL](/es/tools/masstin-ual/) |
@@ -119,6 +119,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 | `parser-elastic` | Parsea logs de Winlogbeat en JSON exportados desde Elasticsearch |
 | `parse-cortex` | Consulta la API de Cortex XDR para conexiones de red (RDP/SMB/SSH) |
 | `parse-image-windows` | Abre imágenes E01/dd/VMDK, escanea carpetas de evidencia (`-d /evidence/`), volúmenes montados (`-d D:`) o `--all-volumes`. Extrae EVTX + UAL del live + VSS |
+| `parse-image-linux` | Abre imágenes E01/dd/VMDK con particiones ext4. Extrae auth.log, secure, messages, wtmp y otros logs Linux |
 | `parse-cortex-evtx-forensics` | Consulta la API de Cortex XDR para colecciones EVTX forenses de múltiples máquinas |
 | `merge` | Combina múltiples CSVs en una única timeline cronológica |
 | `load-neo4j` | Sube la timeline a Neo4j para visualización en grafos |
