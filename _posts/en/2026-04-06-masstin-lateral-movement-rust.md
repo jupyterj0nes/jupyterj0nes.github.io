@@ -38,7 +38,8 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 | Temporal path reconstruction | Cypher query to find the chronologically coherent attacker route between two nodes | [Neo4j — temporal path](/en/tools/neo4j-cypher-visualization/) / [Memgraph — temporal path](/en/tools/memgraph-visualization/) |
 | Session correlation | `logon_id` field enables matching logon/logoff events to determine session duration | [CSV Format — logon_id](/en/tools/masstin-csv-format/) |
 | Silent mode | `--silent` flag suppresses all output for integration with Velociraptor, SOAR platforms and automation pipelines | [Actions table](#available-actions) |
-| Forensic image analysis | Open E01/dd/VMDK images directly (pure Rust, no external tools), find NTFS partitions (GPT/MBR), extract EVTX | [VSS recovery](/en/tools/masstin-vss-recovery/) |
+| **Bulk evidence processing** | Point `-d` at an evidence folder — masstin recursively finds all E01/VMDK/dd images, extracts EVTX + UAL from live + VSS of each, one command for an entire incident | |
+| Forensic image analysis | Open E01, dd/raw, and VMDK (sparse, flat, split) images directly — pure Rust, no external tools, no mounting | [VSS recovery](/en/tools/masstin-vss-recovery/) |
 | VSS snapshot recovery | Detect and extract EVTX from Volume Shadow Copies — recover event logs deleted by attackers | [VSS recovery](/en/tools/masstin-vss-recovery/) |
 | Mounted volume support | Point `-d D:` at a mounted volume or use `--all-volumes` — live EVTX + VSS recovery from connected disks, no imaging needed | |
 | UAL parsing | Auto-detect User Access Logging ESE databases — 3-year server logon history surviving event log clearing | [UAL](/en/tools/masstin-ual/) |
