@@ -31,7 +31,7 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 | **Unified cross-OS image parsing** | **Single `parse-image` command auto-detects OS per partition** — NTFS gets Windows parsing (EVTX + UAL + VSS), ext4 gets Linux parsing (auth.log, wtmp, etc.) — all merged into one timeline. Point at a folder of mixed images and get a single CSV. Zero manual steps.  | [Forensic images](/en/tools/masstin-vss-recovery/) |
 | Multi-directory incident analysis | Analyze dozens of machines at once with multiple `-d` flags, critical for ransomware investigations | [Parse evidence](#parse-evidence) |
 | Cross-platform timeline | Windows EVTX + Linux SSH + EDR data in one timeline — `parse-image` auto-merges across OS boundaries | [Windows](/en/artifacts/security-evtx-lateral-movement/) / [Linux](/en/artifacts/linux-forensic-artifacts/) / [Cortex](/en/artifacts/cortex-xdr-artifacts/) |
-| 32+ Event IDs from 11 Windows sources | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS, WinRM, WMI-Activity — covering RDP, SMB, Kerberos, NTLM, share access, PowerShell Remoting and WMI | [Security.evtx](/en/artifacts/security-evtx-lateral-movement/) / [RDP](/en/artifacts/terminal-services-evtx/) / [SMB](/en/artifacts/smb-evtx-events/) |
+| 32+ Event IDs from 11 EVTX sources + Scheduled Tasks XML | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS, WinRM, WMI-Activity + remote task detection — covering RDP, SMB, Kerberos, NTLM, share access, PowerShell Remoting, WMI and Scheduled Tasks | [Security.evtx](/en/artifacts/security-evtx-lateral-movement/) / [RDP](/en/artifacts/terminal-services-evtx/) / [SMB](/en/artifacts/smb-evtx-events/) |
 | Event classification | Every event classified as `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF` or `CONNECT` | [CSV Format — event_type](/en/tools/masstin-csv-format/) |
 | Recursive decompression | Auto-extracts ZIP/triage packages recursively, handles archived logs with duplicate filenames, auto-detects common forensic passwords | [Linux artifacts — triage support](/en/artifacts/linux-forensic-artifacts/) |
 | Linux smart inference | Auto-detects hostname, infers year from `dpkg.log`, supports Debian (`auth.log`) and RHEL (`secure`), RFC3164 and RFC5424 formats | [Linux artifacts — inference](/en/artifacts/linux-forensic-artifacts/) |
@@ -39,9 +39,9 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 | Temporal path reconstruction | Cypher query to find the chronologically coherent attacker route between two nodes | [Neo4j — temporal path](/en/tools/neo4j-cypher-visualization/) / [Memgraph — temporal path](/en/tools/memgraph-visualization/) |
 | Session correlation | `logon_id` field enables matching logon/logoff events to determine session duration | [CSV Format — logon_id](/en/tools/masstin-csv-format/) |
 | Silent mode | `--silent` flag suppresses all output for integration with Velociraptor, SOAR platforms and automation pipelines | [Actions table](#available-actions) |
-| **Bulk evidence processing** | Point `-d` at an evidence folder — masstin recursively finds all E01/VMDK/dd images, auto-detects OS per partition, extracts all artifacts from live + VSS, one command for an entire incident | |
+| **Bulk evidence processing** | Point `-d` at an evidence folder — masstin recursively finds all E01/VMDK/dd images, auto-detects OS per partition, extracts all artifacts from live + VSS, one command for an entire incident | [Forensic images](/en/tools/masstin-vss-recovery/) |
 | VSS snapshot recovery | Detect and extract EVTX from Volume Shadow Copies — recover event logs deleted by attackers | [VSS recovery](/en/tools/masstin-vss-recovery/) |
-| Mounted volume support | Point `-d D:` at a mounted volume or use `--all-volumes` — live EVTX + VSS recovery from connected disks, no imaging needed | |
+| Mounted volume support | Point `-d D:` at a mounted volume or use `--all-volumes` — live EVTX + VSS recovery from connected disks, no imaging needed | [Forensic images](/en/tools/masstin-vss-recovery/) |
 | UAL parsing | Auto-detect User Access Logging ESE databases — 3-year server logon history surviving event log clearing | [UAL](/en/tools/masstin-ual/) |
 | Transparent reporting | CLI shows artifact discovery, processing progress, hostname/year inferences and per-artifact event counts | [Parse evidence](#parse-evidence) |
 
@@ -136,7 +136,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 | Security.evtx (14 Event IDs) | [Security.evtx and lateral movement](/en/artifacts/security-evtx-lateral-movement/) |
 | Terminal Services EVTX | [Terminal Services EVTX](/en/artifacts/terminal-services-evtx/) |
 | SMB EVTX | [SMB EVTX events](/en/artifacts/smb-evtx-events/) |
-| WinRM/Operational + WMI-Activity | PowerShell Remoting (Event 6) and remote WMI execution (Event 5858) |
+| WinRM, WMI-Activity + Scheduled Tasks | PowerShell Remoting (Event 6), remote WMI (Event 5858) and remotely created tasks (Author field) | [WinRM, WMI & Tasks](/en/artifacts/winrm-wmi-schtasks-lateral-movement/) |
 | Linux logs | [Linux forensic artifacts](/en/artifacts/linux-forensic-artifacts/) |
 | Winlogbeat JSON | [Winlogbeat artifacts](/en/artifacts/winlogbeat-elastic-artifacts/) |
 | Cortex XDR | [Cortex XDR artifacts](/en/artifacts/cortex-xdr-artifacts/) |

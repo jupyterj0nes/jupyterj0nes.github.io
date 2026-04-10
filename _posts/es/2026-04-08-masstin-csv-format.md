@@ -98,6 +98,12 @@ Masstin clasifica cada evento en una de cuatro categorías:
 | 6 | WinRM/Operational | `CONNECT` | Sesión PowerShell Remoting iniciada (sistema origen) | `WinRM: <conexión>` |
 | 5858 | WMI-Activity/Operational | `CONNECT` | Ejecución WMI remota (sistema destino, solo cuando ClientMachine difiere de Computer) | `WMI: <operación>` |
 
+### Scheduled Tasks
+
+| Event ID | Origen | event_type | Descripción | columna detail |
+|---|---|---|---|---|
+| `SCHTASK` | XML de tarea (Windows\System32\Tasks) | `CONNECT` | Tarea programada remotamente (máquina del Author diferente del hostname local) | `Task: <nombre> -> <comando>` |
+
 ### Linux
 
 | Event ID | event_type | Descripción | Columna detail |
