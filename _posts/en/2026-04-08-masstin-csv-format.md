@@ -91,6 +91,13 @@ Masstin classifies every event into one of four categories:
 | 5145 | Security.evtx | `SUCCESSFUL_LOGON` | Network share object checked | ShareName\FileName |
 | 30803-30808 | SMBClient/Connectivity | `CONNECT` | SMB connectivity events | |
 
+### WinRM and WMI
+
+| Event ID | Source | event_type | Description | detail column |
+|---|---|---|---|---|
+| 6 | WinRM/Operational | `CONNECT` | PowerShell Remoting session initiated (source system) | `WinRM: <connection>` |
+| 5858 | WMI-Activity/Operational | `CONNECT` | Remote WMI execution (destination system, only when ClientMachine differs from Computer) | `WMI: <operation>` |
+
 ### Linux
 
 | Event ID | event_type | Description | detail column |

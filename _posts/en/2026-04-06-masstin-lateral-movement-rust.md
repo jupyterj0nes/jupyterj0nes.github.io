@@ -31,7 +31,7 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 | **Unified cross-OS image parsing** | **Single `parse-image` command auto-detects OS per partition** — NTFS gets Windows parsing (EVTX + UAL + VSS), ext4 gets Linux parsing (auth.log, wtmp, etc.) — all merged into one timeline. Point at a folder of mixed images and get a single CSV. Zero manual steps.  | [Forensic images](/en/tools/masstin-vss-recovery/) |
 | Multi-directory incident analysis | Analyze dozens of machines at once with multiple `-d` flags, critical for ransomware investigations | [Parse evidence](#parse-evidence) |
 | Cross-platform timeline | Windows EVTX + Linux SSH + EDR data in one timeline — `parse-image` auto-merges across OS boundaries | [Windows](/en/artifacts/security-evtx-lateral-movement/) / [Linux](/en/artifacts/linux-forensic-artifacts/) / [Cortex](/en/artifacts/cortex-xdr-artifacts/) |
-| 30+ Event IDs from 9 Windows sources | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS — covering RDP, SMB, Kerberos, NTLM and share access | [Security.evtx](/en/artifacts/security-evtx-lateral-movement/) / [RDP](/en/artifacts/terminal-services-evtx/) / [SMB](/en/artifacts/smb-evtx-events/) |
+| 32+ Event IDs from 11 Windows sources | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS, WinRM, WMI-Activity — covering RDP, SMB, Kerberos, NTLM, share access, PowerShell Remoting and WMI | [Security.evtx](/en/artifacts/security-evtx-lateral-movement/) / [RDP](/en/artifacts/terminal-services-evtx/) / [SMB](/en/artifacts/smb-evtx-events/) |
 | Event classification | Every event classified as `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF` or `CONNECT` | [CSV Format — event_type](/en/tools/masstin-csv-format/) |
 | Recursive decompression | Auto-extracts ZIP/triage packages recursively, handles archived logs with duplicate filenames, auto-detects common forensic passwords | [Linux artifacts — triage support](/en/artifacts/linux-forensic-artifacts/) |
 | Linux smart inference | Auto-detects hostname, infers year from `dpkg.log`, supports Debian (`auth.log`) and RHEL (`secure`), RFC3164 and RFC5424 formats | [Linux artifacts — inference](/en/artifacts/linux-forensic-artifacts/) |
@@ -133,9 +133,10 @@ RETURN path ORDER BY length(path) LIMIT 5
 
 | Artifact | Article |
 |----------|---------|
-| Security.evtx (30+ Event IDs) | [Security.evtx and lateral movement](/en/artifacts/security-evtx-lateral-movement/) |
+| Security.evtx (14 Event IDs) | [Security.evtx and lateral movement](/en/artifacts/security-evtx-lateral-movement/) |
 | Terminal Services EVTX | [Terminal Services EVTX](/en/artifacts/terminal-services-evtx/) |
 | SMB EVTX | [SMB EVTX events](/en/artifacts/smb-evtx-events/) |
+| WinRM/Operational + WMI-Activity | PowerShell Remoting (Event 6) and remote WMI execution (Event 5858) |
 | Linux logs | [Linux forensic artifacts](/en/artifacts/linux-forensic-artifacts/) |
 | Winlogbeat JSON | [Winlogbeat artifacts](/en/artifacts/winlogbeat-elastic-artifacts/) |
 | Cortex XDR | [Cortex XDR artifacts](/en/artifacts/cortex-xdr-artifacts/) |
