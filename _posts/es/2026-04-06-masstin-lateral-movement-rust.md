@@ -28,8 +28,9 @@ Masstin parsea **todas** estas fuentes y las fusiona en una **única timeline cr
 
 | Característica | Descripción | Artículo |
 |----------------|-------------|----------|
+| **Parsing unificado cross-OS** | **Un solo comando `parse-image` auto-detecta el SO por partición** — NTFS recibe parsing Windows (EVTX + UAL + VSS), ext4 recibe parsing Linux (auth.log, wtmp, etc.) — todo fusionado en una timeline. Apunta a una carpeta con imágenes mixtas y obtén un único CSV. Cero pasos manuales. | [Imágenes forenses](/es/tools/masstin-vss-recovery/) |
 | Análisis multi-directorio | Analiza docenas de máquinas a la vez con múltiples flags `-d`, crítico para investigaciones de ransomware | [Parsear evidencia](#parsear-evidencia) |
-| Timeline multiplataforma | Windows EVTX + Linux SSH + datos EDR fusionados en un CSV con `merge` | [Windows](/es/artifacts/security-evtx-lateral-movement/) / [Linux](/es/artifacts/linux-forensic-artifacts/) / [Cortex](/es/artifacts/cortex-xdr-artifacts/) |
+| Timeline multiplataforma | Windows EVTX + Linux SSH + datos EDR en una timeline — `parse-image` auto-fusiona entre sistemas operativos | [Windows](/es/artifacts/security-evtx-lateral-movement/) / [Linux](/es/artifacts/linux-forensic-artifacts/) / [Cortex](/es/artifacts/cortex-xdr-artifacts/) |
 | 30+ Event IDs de 9 fuentes Windows | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS — cubriendo RDP, SMB, Kerberos, NTLM y acceso a shares | [Security.evtx](/es/artifacts/security-evtx-lateral-movement/) / [RDP](/es/artifacts/terminal-services-evtx/) / [SMB](/es/artifacts/smb-evtx-events/) |
 | Clasificación de eventos | Cada evento clasificado como `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF` o `CONNECT` | [Formato CSV — event_type](/es/tools/masstin-csv-format/) |
 | Descompresión recursiva | Extrae automáticamente paquetes ZIP/triage de forma recursiva, gestiona logs archivados con nombres duplicados, detecta contraseñas forenses comunes | [Artefactos Linux — soporte triage](/es/artifacts/linux-forensic-artifacts/) |
@@ -38,8 +39,7 @@ Masstin parsea **todas** estas fuentes y las fusiona en una **única timeline cr
 | Reconstrucción de camino temporal | Query Cypher para encontrar la ruta cronológicamente coherente del atacante entre dos nodos | [Neo4j — camino temporal](/es/tools/neo4j-cypher-visualization/) / [Memgraph — camino temporal](/es/tools/memgraph-visualization/) |
 | Correlación de sesiones | Campo `logon_id` permite vincular eventos de logon/logoff para determinar duración de sesión | [Formato CSV — logon_id](/es/tools/masstin-csv-format/) |
 | Modo silencioso | Flag `--silent` suprime toda la salida para integración con Velociraptor, plataformas SOAR y pipelines de automatización | [Tabla de acciones](#acciones-disponibles) |
-| **Procesamiento masivo de evidencia** | Apunta `-d` a una carpeta de evidencia — masstin encuentra recursivamente todas las imágenes E01/VMDK/dd, extrae EVTX + UAL del live + VSS de cada una, un solo comando para un incidente completo | |
-| Análisis de imágenes forenses | Abre imágenes E01, dd/raw y VMDK directamente — Windows (NTFS + VSS + UAL) y Linux (ext4) — Rust puro, sin montar | [Recuperación VSS](/es/tools/masstin-vss-recovery/) |
+| **Procesamiento masivo de evidencia** | Apunta `-d` a una carpeta de evidencia — masstin encuentra recursivamente todas las imágenes E01/VMDK/dd, auto-detecta el SO por partición, extrae todos los artefactos del live + VSS, un solo comando para un incidente completo | |
 | Recuperación de snapshots VSS | Detecta y extrae EVTX de Volume Shadow Copies — recupera logs borrados por atacantes | [Recuperación VSS](/es/tools/masstin-vss-recovery/) |
 | Soporte de volúmenes montados | Apunta `-d D:` a un volumen montado o usa `--all-volumes` — EVTX live + recuperación VSS desde discos conectados, sin necesidad de crear imagen | |
 | Parsing UAL | Detecta automáticamente bases de datos UAL (User Access Logging) — 3 años de historial de acceso a servidor que sobreviven al borrado de logs | [UAL](/es/tools/masstin-ual/) |
@@ -71,14 +71,15 @@ cd masstin && cargo build --release
 ### Parsear evidencia
 
 ```bash
-# Analizar un incidente completo: multiples maquinas, una timeline
-masstin -a parse-windows -d /evidence/DC01 -d /evidence/SRV-FILE -d /evidence/WS-ADMIN -o timeline.csv
+# Imágenes forenses — auto-detecta Windows y Linux, timeline única
+masstin -a parse-image -f DC01.e01 -f ubuntu-server.vmdk -o timeline.csv
 
-# Parsear logs de Linux (extrae ZIPs automaticamente, detecta contrasenas)
+# Escanear carpeta de evidencia — cualquier mezcla de imágenes Windows/Linux
+masstin -a parse-image -d /evidence/all_machines/ -o full_timeline.csv
+
+# Parsear logs extraídos desde directorios
+masstin -a parse-windows -d /evidence/DC01 -d /evidence/SRV-FILE -o windows.csv
 masstin -a parse-linux -d /evidence/linux-triage/ -o linux.csv
-
-# Fusionar Windows + Linux en una unica vista multiplataforma
-masstin -a merge -f timeline.csv -f linux.csv -o full-timeline.csv
 ```
 
 ![Salida CLI de Masstin](/assets/images/masstin_cli_output.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
@@ -118,8 +119,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 | `parse-linux` | Parsea logs de Linux: auth.log, secure, messages, audit.log, utmp, wtmp, btmp, lastlog |
 | `parser-elastic` | Parsea logs de Winlogbeat en JSON exportados desde Elasticsearch |
 | `parse-cortex` | Consulta la API de Cortex XDR para conexiones de red (RDP/SMB/SSH) |
-| `parse-image-windows` | Abre imágenes E01/dd/VMDK, escanea carpetas de evidencia (`-d /evidence/`), volúmenes montados (`-d D:`) o `--all-volumes`. Extrae EVTX + UAL del live + VSS |
-| `parse-image-linux` | Abre imágenes E01/dd/VMDK con particiones ext4. Extrae auth.log, secure, messages, wtmp y otros logs Linux |
+| `parse-image` | **Auto-detecta el SO por partición.** Abre imágenes E01/dd/VMDK, escanea carpetas de evidencia (`-d /evidence/`), volúmenes montados (`-d D:`) o `--all-volumes`. NTFS → EVTX + UAL + VSS. ext4 → logs Linux. Todo fusionado en un CSV |
 | `parse-cortex-evtx-forensics` | Consulta la API de Cortex XDR para colecciones EVTX forenses de múltiples máquinas |
 | `merge` | Combina múltiples CSVs en una única timeline cronológica |
 | `load-neo4j` | Sube la timeline a Neo4j para visualización en grafos |

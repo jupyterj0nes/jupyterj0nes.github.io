@@ -28,8 +28,9 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 
 | Feature | Description | Article |
 |---------|-------------|---------|
+| **Unified cross-OS image parsing** | **Single `parse-image` command auto-detects OS per partition** — NTFS gets Windows parsing (EVTX + UAL + VSS), ext4 gets Linux parsing (auth.log, wtmp, etc.) — all merged into one timeline. Point at a folder of mixed images and get a single CSV. Zero manual steps.  | [Forensic images](/en/tools/masstin-vss-recovery/) |
 | Multi-directory incident analysis | Analyze dozens of machines at once with multiple `-d` flags, critical for ransomware investigations | [Parse evidence](#parse-evidence) |
-| Cross-platform timeline | Windows EVTX + Linux SSH + EDR data merged into one CSV with `merge` | [Windows](/en/artifacts/security-evtx-lateral-movement/) / [Linux](/en/artifacts/linux-forensic-artifacts/) / [Cortex](/en/artifacts/cortex-xdr-artifacts/) |
+| Cross-platform timeline | Windows EVTX + Linux SSH + EDR data in one timeline — `parse-image` auto-merges across OS boundaries | [Windows](/en/artifacts/security-evtx-lateral-movement/) / [Linux](/en/artifacts/linux-forensic-artifacts/) / [Cortex](/en/artifacts/cortex-xdr-artifacts/) |
 | 30+ Event IDs from 9 Windows sources | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS — covering RDP, SMB, Kerberos, NTLM and share access | [Security.evtx](/en/artifacts/security-evtx-lateral-movement/) / [RDP](/en/artifacts/terminal-services-evtx/) / [SMB](/en/artifacts/smb-evtx-events/) |
 | Event classification | Every event classified as `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF` or `CONNECT` | [CSV Format — event_type](/en/tools/masstin-csv-format/) |
 | Recursive decompression | Auto-extracts ZIP/triage packages recursively, handles archived logs with duplicate filenames, auto-detects common forensic passwords | [Linux artifacts — triage support](/en/artifacts/linux-forensic-artifacts/) |
@@ -38,8 +39,7 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 | Temporal path reconstruction | Cypher query to find the chronologically coherent attacker route between two nodes | [Neo4j — temporal path](/en/tools/neo4j-cypher-visualization/) / [Memgraph — temporal path](/en/tools/memgraph-visualization/) |
 | Session correlation | `logon_id` field enables matching logon/logoff events to determine session duration | [CSV Format — logon_id](/en/tools/masstin-csv-format/) |
 | Silent mode | `--silent` flag suppresses all output for integration with Velociraptor, SOAR platforms and automation pipelines | [Actions table](#available-actions) |
-| **Bulk evidence processing** | Point `-d` at an evidence folder — masstin recursively finds all E01/VMDK/dd images, extracts EVTX + UAL from live + VSS of each, one command for an entire incident | |
-| Forensic image analysis | Open E01, dd/raw, and VMDK images directly — Windows (NTFS + VSS + UAL) and Linux (ext4) — pure Rust, no mounting | [VSS recovery](/en/tools/masstin-vss-recovery/) |
+| **Bulk evidence processing** | Point `-d` at an evidence folder — masstin recursively finds all E01/VMDK/dd images, auto-detects OS per partition, extracts all artifacts from live + VSS, one command for an entire incident | |
 | VSS snapshot recovery | Detect and extract EVTX from Volume Shadow Copies — recover event logs deleted by attackers | [VSS recovery](/en/tools/masstin-vss-recovery/) |
 | Mounted volume support | Point `-d D:` at a mounted volume or use `--all-volumes` — live EVTX + VSS recovery from connected disks, no imaging needed | |
 | UAL parsing | Auto-detect User Access Logging ESE databases — 3-year server logon history surviving event log clearing | [UAL](/en/tools/masstin-ual/) |
@@ -71,14 +71,15 @@ cd masstin && cargo build --release
 ### Parse evidence
 
 ```bash
-# Analyze an entire incident: multiple machines, one timeline
-masstin -a parse-windows -d /evidence/DC01 -d /evidence/SRV-FILE -d /evidence/WS-ADMIN -o timeline.csv
+# Forensic images — auto-detects Windows and Linux, single merged timeline
+masstin -a parse-image -f DC01.e01 -f ubuntu-server.vmdk -o timeline.csv
 
-# Parse Linux logs (auto-extracts ZIPs, detects passwords)
+# Scan entire evidence folder — any mix of Windows/Linux images
+masstin -a parse-image -d /evidence/all_machines/ -o full_timeline.csv
+
+# Parse extracted logs from directories
+masstin -a parse-windows -d /evidence/DC01 -d /evidence/SRV-FILE -o windows.csv
 masstin -a parse-linux -d /evidence/linux-triage/ -o linux.csv
-
-# Merge Windows + Linux into a single cross-platform view
-masstin -a merge -f timeline.csv -f linux.csv -o full-timeline.csv
 ```
 
 ![Masstin CLI output](/assets/images/masstin_cli_output.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
@@ -118,8 +119,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 | `parse-linux` | Parse Linux logs: auth.log, secure, messages, audit.log, utmp, wtmp, btmp, lastlog |
 | `parser-elastic` | Parse Winlogbeat JSON logs exported from Elasticsearch |
 | `parse-cortex` | Query Cortex XDR API for network connections (RDP/SMB/SSH) |
-| `parse-image-windows` | Open E01/dd/VMDK images, scan evidence folders (`-d /evidence/`), mounted volumes (`-d D:`), or `--all-volumes`. Extracts EVTX + UAL from live + VSS |
-| `parse-image-linux` | Open E01/dd/VMDK images with ext4 partitions. Extracts auth.log, secure, messages, wtmp and other Linux logs |
+| `parse-image` | **Auto-detects OS per partition.** Open E01/dd/VMDK images, scan evidence folders (`-d /evidence/`), mounted volumes (`-d D:`), or `--all-volumes`. NTFS → EVTX + UAL + VSS. ext4 → Linux logs. All merged into one CSV |
 | `parse-cortex-evtx-forensics` | Query Cortex XDR API for forensic EVTX collections across multiple machines |
 | `merge` | Combine multiple CSVs into a single chronological timeline |
 | `load-neo4j` | Upload timeline to Neo4j for graph visualization |
