@@ -1,40 +1,47 @@
 ---
 layout: post
-title: "Recovering Deleted Event Logs from Volume Shadow Copies with Masstin"
+title: "Forensic Image Analysis: Cross-OS Auto-Detection and VSS Recovery with Masstin"
 date: 2026-04-09 01:00:00 +0100
 category: tools
 lang: en
 ref: tool-masstin-vss-recovery
 tags: [masstin, vss, shadow-copy, forensics, dfir, evtx, tools]
-description: "How masstin extracts EVTX files from both live volumes and Volume Shadow Copy snapshots inside forensic disk images, recovering event logs deleted by attackers."
+description: "Masstin's parse-image auto-detects OS per partition (NTFS/ext4), extracts Windows EVTX+UAL+VSS and Linux logs from forensic images, and merges everything into a single timeline."
 comments: true
 ---
 
-## The scenario
+## One command, any OS, any image
 
-An attacker compromises a Windows server, moves laterally across the network, and before leaving — clears the Security event log. When the forensic analyst receives the disk image, the live Security.evtx is nearly empty.
+A ransomware incident hits your network. You receive a folder full of forensic images — Windows domain controllers, Linux web servers, file servers — all mixed together. Traditionally, you'd need to identify each OS, mount each image, run separate tools for Windows and Linux, then manually merge the results.
 
-But Windows Volume Shadow Copies preserve the old data. If System Protection was enabled, the event logs from before the clearing are still on disk, frozen inside a VSS snapshot.
+**Masstin's `parse-image` does it all in one command.** It auto-detects the operating system of every partition inside every image and applies the right parser automatically:
 
-The challenge has always been accessing them: mounting images, running vshadowmount on Linux, extracting files manually, then parsing them. Multiple tools, multiple steps, easy to miss.
+- **NTFS partition detected?** → Extracts EVTX + UAL from the live volume, recovers deleted logs from VSS snapshots, deduplicates
+- **ext4 partition detected?** → Extracts auth.log, secure, messages, audit.log, wtmp, btmp, lastlog, infers hostname and year
 
-**Masstin does it all in one command.**
-
-## One command, full recovery
+All results are merged into a **single chronological CSV** — Windows RDP logons and Linux SSH sessions side by side.
 
 ```bash
-masstin -a parse-image-windows -f HRServer_Disk0.e01 -o timeline.csv
+# Single image — OS auto-detected
+masstin -a parse-image -f HRServer_Disk0.e01 -o timeline.csv
+
+# Mixed Windows + Linux images — single merged timeline
+masstin -a parse-image -f DC01.e01 -f ubuntu-web.vmdk -o incident.csv
+
+# Point at evidence folder — finds all images, any OS
+masstin -a parse-image -d /evidence/all_machines/ -o full_timeline.csv
 ```
 
-This single command:
+For each image, masstin:
 
-1. **Opens the forensic image** (E01 or dd/raw)
-2. **Finds NTFS partitions** automatically (GPT and MBR)
-3. **Extracts EVTX** from the live volume
-4. **Detects VSS snapshots** using the [vshadow-rs](/en/tools/vshadow-rs/) crate
-5. **Extracts EVTX from each VSS store** — recovering deleted logs
-6. **Deduplicates** events that exist in both live and VSS
-7. **Generates a unified timeline** with all events classified
+1. **Opens the forensic image** (E01, dd/raw, or VMDK)
+2. **Finds all partitions** automatically (GPT and MBR)
+3. **Identifies the OS** per partition (NTFS signature or ext4 superblock)
+4. **Extracts Windows artifacts** from NTFS: EVTX + UAL from live volume
+5. **Recovers deleted logs** from VSS snapshots using [vshadow-rs](/en/tools/vshadow-rs/)
+6. **Extracts Linux logs** from ext4: auth.log, wtmp, audit.log, etc.
+7. **Parses each source** with its native parser
+8. **Merges and deduplicates** into a single timeline
 
 ![Masstin parse-image-windows output](/assets/images/masstin_cli_parse_image.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
 
@@ -60,28 +67,40 @@ The VSS snapshot contained **34,586 events that were no longer on the live volum
 
 ## Descriptive source tracking
 
-Every event in the output CSV includes a descriptive `log_filename` that tells you exactly where it came from:
+Every event in the output CSV includes a descriptive `log_filename` that tells you exactly where it came from — for both Windows and Linux sources:
 
 ```
-HRServer_Disk0.e01:live:Security.evtx          ← from the current live volume
-HRServer_Disk0.e01:vss_0:Security.evtx         ← recovered from VSS snapshot 0
+HRServer_Disk0.e01:live:Security.evtx                    ← Windows: live volume
+HRServer_Disk0.e01:vss_0:Security.evtx                   ← Windows: recovered from VSS snapshot 0
+HRServer_Disk0.e01:UAL:Current.mdb                       ← Windows: UAL database
+kali-linux.vmdk:partition_0:/var/log/auth.log             ← Linux: auth.log from ext4
+ubuntu-server.e01:partition_0:/var/log/wtmp               ← Linux: wtmp login records
 ```
 
-This allows the analyst to immediately distinguish between current evidence and recovered evidence, and to know exactly which VSS store provided each event.
+This allows the analyst to immediately distinguish between current evidence, recovered evidence, and the operating system of origin.
 
-## Multiple images at once
+## Multiple images, mixed operating systems
 
-For large-scale incidents or ransomware investigations, point masstin at multiple forensic images:
+For large-scale incidents, point masstin at any combination of Windows and Linux forensic images:
 
 ```bash
-masstin -a parse-image-windows \
+masstin -a parse-image \
   -f DC01.e01 \
   -f SRV-FILE.e01 \
-  -f WS-ADMIN.e01 \
+  -f linux-web.vmdk \
+  -f ubuntu-db.e01 \
   -o full-incident-timeline.csv
 ```
 
-Each image is processed independently: partitions detected, VSS snapshots enumerated, EVTX extracted and deduplicated. The result is a single timeline spanning all machines — including events recovered from shadow copies on every server.
+Each image is processed independently: partitions detected, OS identified per partition, appropriate artifacts extracted (EVTX + UAL + VSS for Windows, auth.log + wtmp for Linux), and everything merged into a single timeline spanning all machines and operating systems.
+
+Or simply point at an evidence folder:
+
+```bash
+masstin -a parse-image -d /evidence/ -o timeline.csv
+```
+
+Masstin recursively finds all E01, VMDK, and dd/raw images in the folder, auto-detects the OS of each, and produces one unified CSV.
 
 ## Failed logon details
 
@@ -97,17 +116,23 @@ When masstin encounters a failed logon (Event 4625), the `detail` column now sho
 
 ## How it works
 
-Masstin uses the [vshadow-rs](https://github.com/jupyterj0nes/vshadow-rs) crate (pure Rust, cross-platform) to access VSS snapshots directly from forensic images:
+Masstin uses pure Rust parsers for everything — no external tools, no mounting, no FUSE:
 
-1. **E01/dd → Read+Seek**: the `ewf` crate provides transparent access to E01 images
-2. **Partition detection**: GPT and MBR tables parsed to find all NTFS volumes
-3. **VSS detection**: reads the VSS header at partition offset `0x1E00`
-4. **Block descriptor mapping**: identifies which 16 KiB blocks changed since the snapshot
-5. **Snapshot reconstruction**: overlays stored blocks on the live volume to recreate the snapshot-time filesystem
-6. **NTFS traversal**: navigates `Windows\System32\winevt\Logs\` in both live and snapshot
-7. **Deduplication**: removes events that appear in both sources, preferring live volume
+1. **Image access**: E01 via `ewf` crate, VMDK via custom parser, dd/raw via direct file I/O
+2. **Partition detection**: GPT and MBR tables parsed to find all partitions
+3. **OS identification**: NTFS boot sector signature (`NTFS    `) or ext4 superblock magic (`0xEF53`) — each partition is classified independently
+4. **Windows extraction** (NTFS partitions):
+   - EVTX from `Windows\System32\winevt\Logs\`
+   - UAL databases from `Windows\System32\LogFiles\Sum\`
+   - VSS detection at offset `0x1E00`, block descriptor mapping, snapshot reconstruction via [vshadow-rs](https://github.com/jupyterj0nes/vshadow-rs)
+5. **Linux extraction** (ext4 partitions):
+   - auth.log, secure, messages, audit.log from `/var/log/`
+   - wtmp, btmp, utmp, lastlog, hostname
+   - Year inference from `dpkg.log`, hostname from `/etc/hostname`
+6. **Dual parsing**: Windows artifacts → `parse_events`, Linux artifacts → `parse_linux`
+7. **Merge and deduplication**: both timelines merged chronologically, duplicates removed
 
-No mounting. No FUSE. No Windows APIs. Works on Windows, Linux, and macOS.
+Works on Windows, Linux, and macOS. Single binary, zero dependencies.
 
 ---
 
