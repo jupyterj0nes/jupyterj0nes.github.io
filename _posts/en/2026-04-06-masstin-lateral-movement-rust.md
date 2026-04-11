@@ -39,7 +39,9 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 | Temporal path reconstruction | Cypher query to find the chronologically coherent attacker route between two nodes | [Neo4j — temporal path](/en/tools/neo4j-cypher-visualization/) / [Memgraph — temporal path](/en/tools/memgraph-visualization/) |
 | Session correlation | `logon_id` field enables matching logon/logoff events to determine session duration | [CSV Format — logon_id](/en/tools/masstin-csv-format/) |
 | Silent mode | `--silent` flag suppresses all output for integration with Velociraptor, SOAR platforms and automation pipelines | [Actions table](#available-actions) |
-| **Bulk evidence processing** | Point `-d` at an evidence folder — masstin recursively finds all E01/VMDK/dd images, auto-detects OS per partition, extracts all artifacts from live + VSS, one command for an entire incident | [Forensic images](/en/tools/masstin-vss-recovery/) |
+| **Bulk evidence processing** | Point `-d` at an evidence folder — masstin recursively finds all E01/VMDK/dd images, auto-detects OS per partition, extracts all artifacts from live + VSS, per-image artifact grouping in summary. One command for an entire incident | [Forensic images](/en/tools/masstin-vss-recovery/) |
+| BitLocker detection | Detects BitLocker-encrypted partitions (`-FVE-FS-` signature) and warns the analyst — no wasted time on unreadable data | [Forensic images](/en/tools/masstin-vss-recovery/) |
+| streamOptimized VMDK | Full support for compressed VMDKs (OVA exports, cloud templates). Also handles incomplete SFTP uploads (`.filepart` fallback) | [Forensic images](/en/tools/masstin-vss-recovery/) |
 | VSS snapshot recovery | Detect and extract EVTX from Volume Shadow Copies — recover event logs deleted by attackers | [VSS recovery](/en/tools/masstin-vss-recovery/) |
 | Mounted volume support | Point `-d D:` at a mounted volume or use `--all-volumes` — live EVTX + VSS recovery from connected disks, no imaging needed | [Forensic images](/en/tools/masstin-vss-recovery/) |
 | UAL parsing | Auto-detect User Access Logging ESE databases — 3-year server logon history surviving event log clearing | [UAL](/en/tools/masstin-ual/) |
@@ -119,7 +121,8 @@ RETURN path ORDER BY length(path) LIMIT 5
 | `parse-linux` | Parse Linux logs: auth.log, secure, messages, audit.log, utmp, wtmp, btmp, lastlog |
 | `parser-elastic` | Parse Winlogbeat JSON logs exported from Elasticsearch |
 | `parse-cortex` | Query Cortex XDR API for network connections (RDP/SMB/SSH) |
-| `parse-image` | **Auto-detects OS per partition.** Open E01/dd/VMDK images, scan evidence folders (`-d /evidence/`), mounted volumes (`-d D:`), or `--all-volumes`. NTFS → EVTX + UAL + VSS. ext4 → Linux logs. All merged into one CSV |
+| `parse-image` | **Auto-detects OS per partition.** Open E01/dd/VMDK images (including streamOptimized), scan evidence folders (`-d /evidence/`), mounted volumes (`-d D:`), or `--all-volumes`. Detects BitLocker. NTFS → EVTX + UAL + VSS + Tasks. ext4 → Linux logs. All merged into one CSV |
+| `parse-massive` | Like `parse-image` but also includes loose EVTX and log files from `-d` directories — use when evidence is a mix of disk images and extracted triage packages |
 | `parse-cortex-evtx-forensics` | Query Cortex XDR API for forensic EVTX collections across multiple machines |
 | `merge` | Combine multiple CSVs into a single chronological timeline |
 | `load-neo4j` | Upload timeline to Neo4j for graph visualization |
