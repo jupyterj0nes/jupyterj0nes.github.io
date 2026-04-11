@@ -114,23 +114,71 @@ When masstin encounters a failed logon (Event 4625), the `detail` column now sho
 | `Account disabled (0xC0000072)` | Account is disabled |
 | `Expired password (0xC0000071)` | Password has expired |
 
+## BitLocker detection
+
+Masstin automatically detects BitLocker-encrypted partitions by reading the Volume Boot Record signature. BitLocker replaces the standard `NTFS    ` signature at VBR offset 3 with `-FVE-FS-`. When detected, masstin:
+
+- Shows a **yellow warning** with the exact partition offset
+- **Skips** the encrypted partition (artifacts cannot be read without the recovery key)
+- Reports the **BitLocker count** in the partition summary (e.g., `Partitions: 1 NTFS, 1 BitLocker`)
+- If **all** partitions are encrypted, shows a clear error: `All NTFS partitions are BitLocker-encrypted — recovery key required`
+
+This prevents the confusing scenario where thousands of EVTX files are extracted with correct sizes but zero events — the analyst immediately knows why.
+
+## VMDK format support
+
+Masstin's custom VMDK parser handles all common formats found in forensic evidence:
+
+| Format | Source | How it works |
+|--------|--------|-------------|
+| **Monolithic sparse** | VMware Workstation default | Single `.vmdk` with sparse grain tables |
+| **Split sparse** | VMware Workstation (split) | Descriptor `.vmdk` + `-s001.vmdk`, `-s002.vmdk` extents — auto-assembled |
+| **Flat (monolithic)** | VMware ESXi / vSphere | Descriptor `.vmdk` + `-flat.vmdk` data file |
+| **streamOptimized** | OVA exports, cloud templates, vSphere backups | Compressed grains with zlib — decompressed on-the-fly with grain caching |
+
+**Incomplete SFTP uploads:** When a flat VMDK's data file is missing (e.g., `server-flat.vmdk`), masstin automatically tries the `.filepart` extension (`server-flat.vmdk.filepart`) — common when SFTP transfers were interrupted during evidence collection.
+
+## LVM2 support
+
+For Linux forensic images using Logical Volume Management (LVM2), masstin detects LVM partitions (GPT type GUID or MBR type `0x8E`), reads the LVM metadata, and extracts log files from each logical volume. This covers enterprise Linux servers that commonly use LVM for disk management.
+
+## Per-image artifact grouping
+
+When processing multiple images, the summary groups artifacts by image name — showing exactly which image produced lateral movement events:
+
+```
+[+] Artifacts with lateral movement events (9 of 10 images):
+    => Windows Server 2019.vmdk (428 events total)
+       - Security.evtx (406)
+       - Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx (10)
+       - Current.mdb (12)
+    => HRServer_Disk0.e01 (42943 events total)
+       - Security.evtx (34454)
+       - Microsoft-Windows-SMBServer%4Security.evtx (5395)
+       ...
+    => kali-linux.vmdk (5 events total)
+       - wtmp (5)
+```
+
 ## How it works
 
 Masstin uses pure Rust parsers for everything — no external tools, no mounting, no FUSE:
 
-1. **Image access**: E01 via `ewf` crate, VMDK via custom parser, dd/raw via direct file I/O
-2. **Partition detection**: GPT and MBR tables parsed to find all partitions
-3. **OS identification**: NTFS boot sector signature (`NTFS    `) or ext4 superblock magic (`0xEF53`) — each partition is classified independently
-4. **Windows extraction** (NTFS partitions):
+1. **Image access**: E01 via `ewf` crate, VMDK via custom parser (sparse, split, flat, streamOptimized), dd/raw via direct file I/O
+2. **Partition detection**: GPT and MBR tables parsed to find all partitions, including LVM2
+3. **Encryption detection**: BitLocker signature check (`-FVE-FS-`) at VBR offset 3 — encrypted partitions are reported and skipped
+4. **OS identification**: NTFS boot sector signature (`NTFS    `) or ext4 superblock magic (`0xEF53`) — each partition is classified independently
+5. **Windows extraction** (NTFS partitions):
    - EVTX from `Windows\System32\winevt\Logs\`
    - UAL databases from `Windows\System32\LogFiles\Sum\`
+   - Scheduled Tasks XML from `Windows\System32\Tasks\`
    - VSS detection at offset `0x1E00`, block descriptor mapping, snapshot reconstruction via [vshadow-rs](https://github.com/jupyterj0nes/vshadow-rs)
-5. **Linux extraction** (ext4 partitions):
+6. **Linux extraction** (ext4 partitions):
    - auth.log, secure, messages, audit.log from `/var/log/`
    - wtmp, btmp, utmp, lastlog, hostname
    - Year inference from `dpkg.log`, hostname from `/etc/hostname`
-6. **Dual parsing**: Windows artifacts → `parse_events`, Linux artifacts → `parse_linux`
-7. **Merge and deduplication**: both timelines merged chronologically, duplicates removed
+7. **Dual parsing**: Windows artifacts → `parse_events`, Linux artifacts → `parse_linux`
+8. **Merge and deduplication**: both timelines merged chronologically, duplicates removed
 
 Works on Windows, Linux, and macOS. Single binary, zero dependencies.
 
