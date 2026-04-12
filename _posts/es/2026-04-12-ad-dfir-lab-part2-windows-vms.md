@@ -159,6 +159,14 @@ En `FirstLogonCommands` configuramos todo lo que necesitamos después de instala
 
 El guest agent permite a Proxmox comunicarse con la VM: ejecutar comandos, obtener IPs, hacer shutdown limpio.
 
+Tras unos minutos, el instalador arranca y empieza a copiar archivos sin intervención:
+
+![Windows Server 2019 installing files](/assets/img/posts/ad-dfir-lab/win-installing-files.png)
+
+Y ~15 minutos después, la VM aparece con el escritorio listo, Server Manager abierto, y firewall deshabilitado:
+
+![Windows Server 2019 desktop ready](/assets/img/posts/ad-dfir-lab/win-server-manager.png)
+
 ### El ISO truco
 
 ¿Cómo metemos el `autounattend.xml` en un CD-ROM? Creamos una ISO mínima:
@@ -196,6 +204,12 @@ qm set 107 --boot order=scsi0
 
 La VM arranca en ~30 segundos con SSH habilitado. Sin ISO, sin instalador, sin prompts.
 
+El servidor ISO de Ubuntu, en cambio, necesita confirmar `autoinstall` con un prompt manual aunque tengas el seed configurado:
+
+![Ubuntu autoinstall prompt blocking install](/assets/img/posts/ad-dfir-lab/ubuntu-autoinstall-prompt.png)
+
+Por eso descartamos la ISO y usamos directamente la cloud image.
+
 **Gotcha**: la cloud image de Ubuntu es minimal y **no incluye `qemu-guest-agent`**. Proxmox cloud-init tampoco instala paquetes — solo configura usuarios, red y SSH. Después del primer boot hay que conectarse por SSH e instalarlo:
 
 ```bash
@@ -208,7 +222,16 @@ Kali fue el más complejo de automatizar. Tres problemas:
 
 1. **La ISO oficial usa `simple-cdd`** con profiles que sobreescriben cualquier preseed externo
 2. **El preseed debe estar disponible antes de que el installer pregunte el idioma** — no basta con montarlo como CD
-3. **Los paquetes de `kali-linux-default` hacen preguntas de debconf** (macchanger, kismet, wireshark, sslh)
+
+![Kali language prompt blocking install](/assets/img/posts/ad-dfir-lab/kali-language-prompt.png)
+
+3. **Los paquetes de `kali-linux-default` hacen preguntas de debconf** (macchanger, kismet, wireshark, sslh):
+
+![Kali macchanger debconf prompt](/assets/img/posts/ad-dfir-lab/kali-macchanger-prompt.png)
+
+Y como bonus, sin DHCP en la VLAN 20, el installer falla en la configuración de red:
+
+![Kali network autoconfiguration failed](/assets/img/posts/ad-dfir-lab/kali-network-failed.png)
 
 ### La solución: inyectar el preseed en el initrd
 
@@ -320,6 +343,8 @@ El dispositivo VirtIO Serial queda con `Status: Error` — sin driver vinculado.
 
 Después de múltiples intentos, la conclusión: **el instalador VirtIO requiere una sesión interactiva** para bindear kernel-mode drivers al hardware. No hay workaround automático.
 
+![virtio-win-guest-tools installer running interactively](/assets/img/posts/ad-dfir-lab/win-virtio-installer.png)
+
 El procedimiento manual por VM:
 1. Abrir la consola VNC en el web UI de Proxmox
 2. Login como `vagrant`/`vagrant`
@@ -391,6 +416,10 @@ qm guest exec 101 -- powershell -Command '
     Rename-Computer -NewName kingslanding -Force
 '
 ```
+
+Verificación rápida desde dentro de la VM via VNC:
+
+![Windows ipconfig showing the assigned IP](/assets/img/posts/ad-dfir-lab/win-ipconfig.png)
 
 Después de aplicar la configuración a las 6 VMs Windows, un reboot via guest exec:
 
