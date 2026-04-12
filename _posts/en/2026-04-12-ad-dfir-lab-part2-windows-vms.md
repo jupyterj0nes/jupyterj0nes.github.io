@@ -148,6 +148,12 @@ qm set 107 --boot order=scsi0
 
 The VM boots in ~30 seconds with SSH enabled. No ISO, no installer, no prompts.
 
+**Gotcha**: the Ubuntu cloud image is minimal and **does not include `qemu-guest-agent`**. Proxmox cloud-init doesn't install packages either — it only configures users, network and SSH. After first boot you need to SSH in and install it:
+
+```bash
+ssh ubuntu@VM_IP 'sudo apt install -y qemu-guest-agent && sudo systemctl enable --now qemu-guest-agent'
+```
+
 ## Kali: Preseed injected into the initrd
 
 Kali was the most complex to automate. Three problems:
@@ -189,6 +195,18 @@ macchanger macchanger/automatically_run boolean false
 kismet-capture-common kismet-capture-common/install-setuid boolean true
 wireshark-common wireshark-common/install-setuid boolean true
 sslh sslh/inetd_or_standalone select standalone
+```
+
+### Gotcha: install loop
+
+After Kali finishes installing and reboots, it boots from the CD-ROM again and **re-runs the installer**. It asks whether to wipe the existing LVM. The problem is the VM's boot order — it prioritizes IDE over SCSI.
+
+Fix: after the first complete install, remove the ISO and change boot order:
+
+```bash
+qm set 108 --delete ide2
+qm set 108 --boot order=scsi0
+qm reboot 108
 ```
 
 ## QEMU Guest Agent: the last hurdle (and why it needs manual intervention)
