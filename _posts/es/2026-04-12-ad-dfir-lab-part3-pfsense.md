@@ -181,6 +181,90 @@ Esto reproduce el escenario realista: un atacante en Kali ha conseguido acceso, 
 
 Para escenarios de ataque más complejos (callbacks de meterpreter, conexiones reverse), añadiremos reglas específicas en pfSense más adelante.
 
+## WireGuard: acceso al lab desde fuera
+
+Hasta ahora todo el acceso al lab es via SSH al host Proxmox (`qm guest exec`, consolas VNC). Para trabajar realmente con las VMs (RDP a los servidores Windows, abrir el web UI de pfSense, hacer SMB) necesitamos un VPN.
+
+El plan original era WireGuard sobre pfSense, pero acabamos poniéndolo **directamente en el host Proxmox** porque:
+
+1. `wireguard-tools` ya está instalado desde Phase 2
+2. El host tiene la IP pública de Hetzner — pfSense no
+3. El host ya tiene rutas a `vmbr0.10` y `vmbr0.20`
+4. Setup en 5 minutos vs 30+ via la web UI de pfSense
+
+### Server config
+
+```bash
+mkdir -p /etc/wireguard && cd /etc/wireguard
+umask 077
+
+# Generar claves
+wg genkey | tee server-private.key | wg pubkey > server-public.key
+wg genkey | tee client-private.key | wg pubkey > client-public.key
+
+cat > /etc/wireguard/wg0.conf <<EOF
+[Interface]
+Address = 10.99.99.1/24
+ListenPort = 51820
+PrivateKey = $(cat server-private.key)
+
+PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o vmbr0 -j MASQUERADE
+PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -D FORWARD -o wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o vmbr0 -j MASQUERADE
+
+[Peer]
+PublicKey = $(cat client-public.key)
+AllowedIPs = 10.99.99.2/32
+EOF
+
+sysctl -w net.ipv4.ip_forward=1
+systemctl enable --now wg-quick@wg0
+```
+
+### Client config (PC del operador)
+
+```ini
+[Interface]
+PrivateKey = <client-private-key>
+Address = 10.99.99.2/24
+DNS = 192.168.10.10
+
+[Peer]
+PublicKey = <server-public-key>
+Endpoint = 95.217.226.229:51820
+AllowedIPs = 10.99.99.0/24, 192.168.10.0/24, 192.168.20.0/24
+PersistentKeepalive = 25
+```
+
+`AllowedIPs` incluye **las dos VLANs del lab**, así puedes RDP a los Windows (192.168.10.x) y SSH a Kali (192.168.20.100) desde tu PC.
+
+### Gotcha: error 0x38 al activar el túnel en Windows
+
+La primera vez que activas el túnel en WireGuard for Windows puede fallar con:
+
+```
+Failed to setup adapter (problem code: 0x38)
+Unable to create network adapter: The device is not ready for use.
+```
+
+Es un problema del driver WinTun cuando había una versión anterior instalada. Solución: **reiniciar el PC**. Después de reboot, abre WireGuard como administrador y el túnel activa sin problemas.
+
+### Verificación
+
+Una vez conectado:
+
+```bash
+# Desde tu PC
+ping 192.168.10.10              # DC01-kingslanding
+ping 192.168.20.100             # KALI-nightking
+mstsc /v:192.168.10.10          # RDP a DC01 (vagrant/vagrant)
+```
+
+El certificado RDP confirma el hostname `kingslanding`:
+
+![RDP connection showing kingslanding hostname](/assets/img/posts/ad-dfir-lab/wg-rdp-success.png)
+
+A partir de aquí ya tienes una conexión "como si estuvieras dentro" de la red corporativa del lab.
+
 ## Acceso desde internet
 
 ¿Está pfSense expuesto a internet? **No.** Capas de protección:
