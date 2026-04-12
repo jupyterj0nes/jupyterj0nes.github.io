@@ -6,29 +6,41 @@ category: tools
 lang: en
 ref: tool-masstin-evtx-carving
 tags: [masstin, carving, evtx, forensics, dfir, unallocated, recovery, tools]
-description: "Masstin's carve-image action scans forensic disk images for EVTX chunks in unallocated space, recovering lateral movement events after attackers delete logs."
+description: "Masstin's carve-image action scans forensic disk images for EVTX chunks in unallocated space, recovering lateral movement events after attackers delete logs. A deep dive into the three tiers of EVTX carving and how masstin hardens itself against upstream parser bugs."
 comments: true
 ---
 
 ## The last resort: when even VSS is gone
 
-The attacker was thorough. They cleared every event log. They deleted the Volume Shadow Copies with `vssadmin delete shadows /all`. They even wiped the UAL databases. Your Security.evtx is empty, your VSS stores are gone, and there's nothing left to parse.
+The attacker was thorough. They cleared every event log. They deleted the Volume Shadow Copies with `vssadmin delete shadows /all`. They even wiped the UAL databases. Your `Security.evtx` is empty, your VSS stores are gone, and there's nothing left to parse.
 
 Or is there?
 
-When Windows deletes a file, the data doesn't disappear from disk — the space is simply marked as "available" in the filesystem. The actual bytes — including complete EVTX chunks — remain on disk until they're overwritten by new data. **Masstin's `carve-image` scans the raw disk for these remnants and recovers them.**
+When Windows deletes a file, the data doesn't disappear from disk — the space is simply marked as "available" in the filesystem. The actual bytes — including complete EVTX chunks — remain on disk until they're overwritten by new data. **Masstin's `carve-image` scans the raw disk for these remnants and recovers them, feeds them through the normal parsing pipeline, and hands you a timeline indistinguishable from one built from live logs.**
+
+This article is a deep dive into how that works: how EVTX files are laid out, the three theoretical tiers of EVTX carving, what masstin implements today, what we're leaving as future work, and the surprisingly painful real-world hurdles we hit along the way — including three new bugs we found and reported upstream in the `evtx` crate.
+
+---
 
 ## How EVTX files are structured on disk
 
-An EVTX file consists of:
+An EVTX file has a simple, regular layout:
 
 ```
-[File Header - 4KB] [Chunk 0 - 64KB] [Chunk 1 - 64KB] [Chunk 2 - 64KB] ...
+[File Header - 4 KB] [Chunk 0 - 64 KB] [Chunk 1 - 64 KB] [Chunk 2 - 64 KB] ...
 ```
 
-Each 64KB chunk starts with the magic signature `ElfChnk\x00` and contains dozens to hundreds of event records. Each chunk is self-contained — it has its own string table, template table, and records. This means a single chunk found in unallocated space can be parsed independently, even without the rest of the EVTX file.
+The **file header** identifies the file (`ElfFile\x00` magic), tracks the chunk count, and stores global metadata. The header is useful for reading an intact file, but crucially it is **not required to parse individual chunks**.
 
-Each individual record within a chunk starts with the magic `\x2a\x2a\x00\x00` and contains:
+Each 64 KB chunk is self-contained and starts with the magic signature `ElfChnk\x00`. A chunk carries:
+
+- Its own string table
+- Its own template table (BinXML templates referenced by the records inside)
+- One or more event records
+
+This self-containment is what makes EVTX carving feasible. **A single chunk recovered from unallocated space can be parsed on its own**, even without the original file header, even without the other chunks, even if the sectors around it have been reused.
+
+Each event record inside a chunk starts with the magic `\x2a\x2a\x00\x00` and follows this layout:
 
 | Offset | Size | Field |
 |--------|------|-------|
@@ -39,24 +51,143 @@ Each individual record within a chunk starts with the magic `\x2a\x2a\x00\x00` a
 | 24 | var | BinXML event data |
 | size-4 | 4 | Size copy (validation) |
 
-## What masstin carves
+This matters because three different strategies exist for recovering events, each operating at a different granularity.
 
-### Tier 1: Complete chunk recovery (full fidelity)
+---
 
-Masstin scans the entire disk image sector by sector (512-byte alignment) looking for the 8-byte `ElfChnk\x00` signature. When found, it reads the full 64KB chunk and validates it by attempting to parse it with the evtx crate. Valid chunks are grouped by provider (e.g., `Microsoft-Windows-Security-Auditing`, `Microsoft-Windows-TerminalServices-LocalSessionManager`) and assembled into synthetic EVTX files.
+## The three tiers of EVTX carving
 
-These synthetic EVTX files are then parsed through masstin's existing pipeline — the same 32+ Event IDs, the same CSV format, the same graph loading. **Carved events are indistinguishable from live events in the output.**
+Before looking at what masstin does, it's worth understanding the theoretical landscape. EVTX carving is usually described in three tiers, in increasing order of power and complexity.
 
-### Tier 2: Orphan record detection (metadata)
+### Tier 1 — Chunk carving
 
-Records that exist outside valid chunks (partially overwritten chunks) are detected by scanning for the `\x2a\x2a\x00\x00` magic. These are validated with:
+**What it recovers:** complete 64 KB EVTX chunks that survived intact on disk.
 
-- Size field in range (28-65024 bytes)
-- Trailing size copy matches
-- BinXML preamble byte (`0x0F`)
-- Timestamp in reasonable range (2000-2030)
+**How it works:** scan the disk (sequentially or only the unallocated extents) looking for the 8-byte `ElfChnk\x00` magic on a known alignment boundary. When a hit is found, read the full 64 KB, validate it as a parseable chunk, and hand it to a standard EVTX parser.
 
-Orphan records are counted and reported. Full XML recovery from orphan records requires template matching (Tier 3, planned for a future release).
+**Fidelity:** perfect. The recovered chunk contains its own string and template tables, so every record inside parses to full XML with all its substituted values. The events you get are identical to what `wevtutil` would have shown on a live system.
+
+**What it misses:** any chunk that has been partially overwritten. Even a single damaged byte inside the 64 KB breaks validation, and Tier 1 discards it entirely.
+
+**Cost:** very cheap. A single linear scan of the disk.
+
+### Tier 2 — Orphan record scanning
+
+**What it recovers:** individual event records that survived even when their parent chunk did not.
+
+**How it works:** scan the disk looking for the `\x2a\x2a\x00\x00` record magic. For each hit, validate the header (size field sane, trailing size matches, BinXML preamble byte, timestamp plausible) to filter out coincidental matches. The records that pass validation are "orphans" — real EVTX records floating outside any recoverable chunk.
+
+**Fidelity:** partial. The record header parses and gives you record ID, size, and timestamp. The **body** is BinXML — a compact binary encoding that substitutes values into templates stored in the chunk's template table. Without the parent chunk's template table, you can recover the record header and you can see that an event *existed*, but turning the BinXML body into a readable event (with its Event ID, provider, substituted fields, etc.) requires more work.
+
+**What it provides today:** a count and the metadata you can extract from the header alone. This is enough to say "there were N extra events in unallocated space at these timestamps", which is itself useful evidence for timeline reconstruction.
+
+**Cost:** cheap. Same single linear scan as Tier 1, with one extra magic pattern to match.
+
+### Tier 3 — Template matching (the holy grail)
+
+**What it recovers:** full XML from orphan records whose parent chunks are gone forever.
+
+**How it works:** build a corpus of known BinXML templates — either from the chunks that did survive in the same image, from a library of common Windows templates collected from other systems, or from both. For each orphan record, walk its BinXML body, and for every template reference try to match it against templates in the corpus. When a match works, substitute the record's inline values into the template and render the XML just like the normal parser would.
+
+**Fidelity:** variable. An orphan record for a Security 4624 logon on a Windows Server 2019 system is very likely to find a matching template in the corpus — those templates are stable across installs. A record for a niche provider or an unusual OS build may not find a match, leaving it partially decoded.
+
+**Why it's hard:** BinXML is designed to be parsed *with its template table at hand*, not backwards from a partial record. You have to reimplement enough of the BinXML state machine to walk a record without blowing up on the first unknown token, you have to decide how to handle template hash collisions, and you have to build and maintain the template corpus.
+
+**Cost:** not in the scan — one extra pass — but in the code and the template database.
+
+---
+
+## What masstin implements today
+
+| Tier | Status in masstin |
+|------|-------------------|
+| **Tier 1** — chunk carving | **Implemented.** Full 64 KB chunks recovered, grouped by provider, parsed through the normal masstin pipeline into the unified CSV timeline. |
+| **Tier 2** — orphan record detection | **Implemented (detection only).** Orphan records are found, validated, and counted. Header metadata is reported. Full XML reconstruction from the BinXML body is not done. |
+| **Tier 3** — template matching | **Future work.** The design is clear and the corpus could be bootstrapped from Tier 1's output on the same image (use the recovered chunks' template tables to decode the orphan records), but this is not in the current release. |
+
+The rationale for this ordering is simple: **Tier 1 gives you the overwhelming majority of the value for a fraction of the engineering cost.** In practice, on the images we tested, Tier 1 alone recovers tens of thousands of complete events. Tier 2's count is useful as corroborating evidence ("there were N more events than what Tier 1 could recover"). Tier 3 is where you go when you need every last byte, and on a real incident it is rarely the difference between catching the attacker and missing them.
+
+---
+
+## Tier 1 in masstin — from signature to timeline
+
+The full pipeline is:
+
+1. **Open the image.** For E01, masstin uses the `ewf` crate to read the logical disk view (decompressed bytes). For VMDK it uses its own reader that handles both `monolithicFlat` and `streamOptimized`. For raw `dd`/`001` it just opens the file.
+2. **Scan in 4 MB blocks.** Each block is read sequentially into memory; no seeks, so spinning disks and network shares stay at read-ahead speed.
+3. **Look for `ElfChnk\x00`.** The 8-byte magic is scanned for on 512-byte alignment inside each block.
+4. **Validate the chunk.** When a signature is found, masstin reads the full 64 KB starting at the match and passes it to the `evtx` crate. A chunk that parses is kept; a chunk that fails is silently discarded.
+5. **Extract the provider name.** Masstin parses the first record and reads its `Provider Name="..."` attribute. This determines which "synthetic EVTX file" the chunk will be written into.
+6. **Group by provider.** All chunks with the same provider go into the same in-memory bucket — e.g., all Security-Auditing chunks together, all TerminalServices-LocalSessionManager chunks together, and so on.
+7. **Build synthetic EVTX files.** For each bucket, masstin writes a file header (`ElfFile\x00` magic, chunk count, CRC32) followed by the concatenated 64 KB chunks. The result is a real, parseable `.evtx` file named after the provider it contains.
+8. **Validate synthetic files.** Each synthetic file is opened in an isolated thread and walked end-to-end to detect crashes/hangs/OOMs before it reaches the main pipeline. More on this below — it turned out to be essential.
+9. **Parse through the normal masstin pipeline.** The validated files are handed to `parse_events_ex` exactly as if they had been extracted from an NTFS filesystem. The same 32+ Event IDs, the same classification, the same CSV columns, the same graph loading.
+
+The key consequence: **carved events are indistinguishable from live events in masstin's output.** They show up in the same timeline, in the same columns, ready for `load-memgraph` or `load-neo4j` like any other source.
+
+---
+
+## Tier 2 in masstin — orphan record scanning
+
+During the same 4 MB block sweep, masstin also scans for `\x2a\x2a\x00\x00` record magic in bytes that are *not* inside a recovered Tier 1 chunk. Each candidate is validated:
+
+- Size field is between 28 and 65024 bytes
+- The trailing size copy (at `size-4`) matches the header size
+- The BinXML preamble byte at offset 24 is `0x0F`
+- The timestamp at offset 16 is a FILETIME inside the range 2000–2030
+
+Records that pass all four checks are counted and reported in the final summary. Their header metadata (record ID, timestamp) is available for investigation. Their BinXML body is not yet rendered to XML — that's Tier 3.
+
+On the images we tested, Tier 2 typically finds several times more orphan records than Tier 1 finds complete chunks. Most of those are records whose parent chunk has been partially overwritten — the first few kilobytes of the chunk are gone, the string/template tables are lost, but individual records later in the chunk are still intact. Tier 3 is exactly the tool for turning those counts into events.
+
+---
+
+## Tier 3 — future work
+
+Template matching is the next milestone for masstin's carving. The plan:
+
+1. On the same image, Tier 1 recovers complete chunks. Each surviving chunk contributes its template table to a local corpus.
+2. Augment the corpus with a pre-built library of common Windows templates (Security, SMB, TerminalServices, WinRM, etc.) collected from known clean installs — these templates are stable across Windows versions.
+3. For each Tier 2 orphan record, walk its BinXML body referring to the corpus. When every template referenced by the record has a match, render the full XML.
+4. Feed the rendered XML back into masstin's normal event classification, so Tier 3 events land in the same timeline as Tier 1.
+
+This is design work, not pure coding — the main questions are how aggressively to match against the corpus (strict hash equality vs. structural matching), how to report partially-decoded records, and how to version the template library. It is not in the current release, but the architecture is compatible with it.
+
+---
+
+## Surviving a hostile ecosystem: hardening against upstream bugs
+
+Here is the part that surprised us. The `evtx` crate (omerbenamram/evtx, the de-facto Rust EVTX parser) is excellent for parsing well-formed logs from a live Windows system. It was never designed to deal with **arbitrary corrupted 64 KB buffers that claim to be chunks**, which is exactly what carving produces.
+
+During development, we hit three distinct classes of bugs in the upstream parser:
+
+### Bug 1 — Infinite loop on malformed BinXML
+
+A carved chunk with a valid-looking `ElfChnk\x00` header and a sane record count would hang the parser indefinitely when we iterated its records. Not a crash, not a panic — just a silent infinite loop. Because it was a loop and not a panic, `std::panic::catch_unwind` was useless against it.
+
+### Bug 2 — Multi-gigabyte allocation (≈14 GB) on corrupted template
+
+A second chunk caused the parser to read a size field from a corrupted BinXML template and attempt to allocate a `Vec` of ~14 GB. On a 64 GB RAM machine this still aborted the whole process with `memory allocation of 14136377380 bytes failed`. Because an allocation abort in Rust is an abort, not a panic, again `catch_unwind` could not recover.
+
+### Bug 3 — Second unbounded allocation (≈2.3 GB)
+
+A different chunk, different provider, same failure mode — a 2.3 GB allocation attempt that aborted the process.
+
+All three bugs were **reproducible**, **triggered by real data recovered from unallocated space**, and **would have made Tier 1 carving unusable in practice**. We filed them upstream with minimal repros and attached the offending chunks.
+
+### How masstin defends itself
+
+The fix ladder inside masstin is:
+
+1. **Thread isolation for every chunk parse.** When extracting the provider name during carving, the `peek_chunk_provider` call runs in a dedicated worker thread with a 3-second `recv_timeout`. If the thread hangs, masstin prints `[evtx hang] chunk at 0xOFFSET — skipping corrupt BinXML`, abandons the worker with `std::mem::forget` (it will die with the process), and continues scanning. **Bug 1 mitigated.**
+2. **`alloc_error_hook` for every validation parse.** Before validating synthetic EVTX files, masstin installs `std::alloc::set_alloc_error_hook` to convert allocation failures into panics. Now a runaway `Vec::with_capacity(14_000_000_000)` becomes a catchable panic instead of a process abort. **Bugs 2 and 3 partially mitigated.**
+3. **Validation phase with timeout + `catch_unwind`.** Every synthetic EVTX file goes through an isolated validation thread that walks all its records with a 15-second timeout, with `catch_unwind` wrapping the walk. Files that hang, panic, or trigger the alloc-error hook are **rejected** and never reach the main parsing pipeline. The rest of the timeline is unaffected. **Bugs 2 and 3 fully mitigated.**
+4. **`--skip-offsets` escape hatch.** For pathological images where even the thread isolation isn't enough (for example, a read call inside the E01 decompressor that doesn't return), the analyst can pass `--skip-offsets 0x6478b6000,0x7a0000000` to tell masstin to skip a 32 MB window around each specified offset on the next run. Offsets of stalled reads are printed with a copy-paste-ready hint.
+5. **Rejected-file preservation in debug mode.** When running with `--debug`, masstin copies every rejected synthetic EVTX to `<output_dir>/masstin_rejected_evtx/` with a prefix indicating the failure mode (`panic_oom__`, `hang__`, `open_fail__`). This lets the analyst examine them with other tools and gives you the artifacts you need to file an upstream bug report.
+
+The result: even when the upstream parser would happily abort your whole process on a single malformed chunk, masstin finishes the scan, builds the timeline from the good data, and tells you exactly what it had to discard.
+
+---
 
 ## Usage
 
@@ -67,8 +198,14 @@ masstin -a carve-image -f server.e01 -o carved-timeline.csv
 # Carve multiple images
 masstin -a carve-image -f DC01.e01 -f SRV-FILE.vmdk -o carved.csv
 
-# Future: scan only unallocated space (faster)
+# Scan only unallocated space (faster, planned)
 masstin -a carve-image -f server.e01 -o carved.csv --carve-unalloc
+
+# Skip known bad offsets (for pathological E01s)
+masstin -a carve-image -f broken.e01 --skip-offsets 0x6478b6000 -o carved.csv
+
+# Keep rejected synthetic files for post-mortem (useful for bug reports)
+masstin -a carve-image -f image.e01 -o carved.csv --debug
 ```
 
 The output is the same 14-column CSV as `parse-image`, with `log_filename` showing the carved origin:
@@ -77,48 +214,69 @@ The output is the same 14-column CSV as `parse-image`, with `log_filename` showi
 HRServer_Disk0.e01_carved_Microsoft-Windows-Security-Auditing.evtx
 ```
 
+---
+
 ## Real-world results
 
-Carving the DEFCON DFIR CTF 2018 HRServer image (12.6 GB E01):
+### HRServer (DEFCON DFIR CTF 2018, 12.6 GB E01)
 
 | Metric | Result |
 |--------|--------|
 | Image size | 12.6 GB (compressed E01) |
 | Disk size | ~50 GB (expanded) |
-| Chunks found | 1,092 |
-| Orphan records | 8,451 |
+| Chunks found (Tier 1) | 1,092 |
+| Orphan records (Tier 2) | 8,451 |
 | Synthetic EVTX files | 94 (grouped by provider) |
 | **Lateral movement events recovered** | **37,772** |
 | Scan time | ~3 minutes |
 
-The carved events include Security.evtx (32,195 events), SMBServer (5,374), TerminalServices (90), and RdpCoreTS (136) — complete lateral movement timeline recovered from raw disk.
+Tier 1 alone recovered Security.evtx (32,195 events), SMBServer (5,374), TerminalServices (90), and RdpCoreTS (136). A complete lateral movement timeline, built entirely from raw disk bytes, with no need for NTFS or VSS.
+
+### Desktop (DEFCON DFIR CTF 2018, 29.2 GB E01 / 50 GB logical)
+
+| Metric | Result |
+|--------|--------|
+| Chunks found (Tier 1) | 2,219 |
+| Orphan records (Tier 2) | 28,503 |
+| Synthetic EVTX files | 103 |
+| Synthetic files rejected | 2 (Bug 2 and Bug 3 from above) |
+| **Lateral movement events recovered** | **34,916** |
+| Scan time | ~8 minutes |
+
+This was the image that surfaced all three upstream bugs. Notice that **103 synthetic files were built, 2 were rejected, and 101 were successfully parsed** — without the hardening layers, the first rejection would have taken the whole process down with it, leaving you with nothing.
+
+---
 
 ## Performance
 
-Carving speed depends on I/O:
+Carving speed is purely I/O bound: one sequential pass, no seeks, almost no CPU.
 
-| Storage | Speed | Time for 100 GB |
-|---------|-------|----------------|
+| Storage | Throughput | Time for 100 GB |
+|---------|-----------|-----------------|
 | NVMe local | ~3 GB/s | ~35 seconds |
 | SSD SATA | ~500 MB/s | ~3.5 minutes |
 | E01 on SSD | ~200-400 MB/s | ~5-8 minutes |
 | E01 on HDD | ~100-150 MB/s | ~12-17 minutes |
 | Network share | ~50-100 MB/s | ~17-33 minutes |
 
-The scan is sequential (one pass, no seeks) — the bottleneck is always disk read speed, not CPU.
+The validation phase adds a few seconds per synthetic file, dominated by the 15-second timeout when a file has to be rejected.
+
+---
 
 ## Comparison with other carving tools
 
-| Tool | Language | Tier 1 (chunks) | Tier 2 (records) | Tier 3 (template match) | Lateral movement parsing |
-|------|----------|-----------------|-----------------|------------------------|-------------------------|
-| **masstin carve-image** | Rust | Yes | Detection only | Planned | **Yes — full pipeline** |
+| Tool | Language | Tier 1 | Tier 2 | Tier 3 | Lateral movement parsing |
+|------|----------|--------|--------|--------|--------------------------|
+| **masstin `carve-image`** | Rust | Yes | Detection | Planned | **Yes — full pipeline** |
 | EVTXtract (Ballenthin) | Python | Yes | Yes | Yes | No — outputs raw XML |
 | bulk_extractor-rec | C++ | Yes | Yes | No | No — outputs raw files |
 | EvtxCarv | Python | Yes | Yes | Fragment reassembly | No — outputs raw files |
 
-Masstin is the only tool that carves EVTX chunks **and** immediately parses them for lateral movement, producing a ready-to-use timeline and graph database input.
+Masstin is the only tool that carves EVTX chunks **and** immediately parses them for lateral movement, producing a ready-to-use timeline and graph database input — and the only one hardened against the upstream parser's own bugs.
 
-## When to use carve-image vs parse-image
+---
+
+## When to use `carve-image` vs `parse-image`
 
 | Scenario | Use |
 |----------|-----|
@@ -126,7 +284,7 @@ Masstin is the only tool that carves EVTX chunks **and** immediately parses them
 | Logs deleted, VSS intact | `parse-image` — VSS recovery handles it |
 | Logs deleted, VSS deleted, UAL intact | `parse-image` — UAL provides 3-year history |
 | **Everything deleted** | **`carve-image` — recovers from unallocated space** |
-| Maximum recovery | Both: `parse-image` first, then `carve-image` on same image |
+| Maximum recovery | Both: `parse-image` first, then `carve-image` on the same image |
 
 ---
 
