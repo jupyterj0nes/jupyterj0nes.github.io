@@ -46,6 +46,7 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 | Mounted volume support | Point `-d D:` at a mounted volume or use `--all-volumes` — live EVTX + VSS recovery from connected disks, no imaging needed | [Forensic images](/en/tools/masstin-vss-recovery/) |
 | UAL parsing | Auto-detect User Access Logging ESE databases — 3-year server logon history surviving event log clearing | [UAL](/en/tools/masstin-ual/) |
 | MountPoints2 registry | Extract NTUSER.DAT from each user profile and parse MountPoints2 — reveals user→server share connections with timestamps, survives log clearing. Dirty hive + transaction log support | [MountPoints2](/en/artifacts/mountpoints2-lateral-movement/) |
+| EVTX carving | `carve-image` scans raw disk for EVTX chunks in unallocated space — recovers events after logs AND VSS are deleted. Builds synthetic EVTX files and parses through the full pipeline | [EVTX carving](/en/tools/evtx-carving-unallocated/) |
 | Transparent reporting | CLI shows artifact discovery, processing progress, hostname/year inferences and per-artifact event counts | [Parse evidence](#parse-evidence) |
 
 ---
@@ -124,6 +125,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 | `parse-cortex` | Query Cortex XDR API for network connections (RDP/SMB/SSH) |
 | `parse-image` | **Auto-detects OS per partition.** Open E01/dd/VMDK images (including streamOptimized), scan evidence folders (`-d /evidence/`), mounted volumes (`-d D:`), or `--all-volumes`. Detects BitLocker. NTFS → EVTX + UAL + VSS + Tasks. ext4 → Linux logs. All merged into one CSV |
 | `parse-massive` | Like `parse-image` but also includes loose EVTX and log files from `-d` directories — use when evidence is a mix of disk images and extracted triage packages |
+| `carve-image` | **Last resort recovery.** Scans raw disk for EVTX chunks in unallocated space. Recovers lateral movement events after logs + VSS are deleted. Use `--carve-unalloc` for unallocated-only scan |
 | `parse-cortex-evtx-forensics` | Query Cortex XDR API for forensic EVTX collections across multiple machines |
 | `merge` | Combine multiple CSVs into a single chronological timeline |
 | `load-neo4j` | Upload timeline to Neo4j for graph visualization |
