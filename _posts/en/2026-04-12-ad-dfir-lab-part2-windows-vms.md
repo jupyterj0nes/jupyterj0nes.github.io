@@ -283,6 +283,59 @@ After ~20 minutes of unattended installation: 8 VMs installed without touching a
 
 All code at: [`04-create-vms.sh`](https://github.com/jupyterj0nes/ad-dfir-lab/blob/master/scripts/04-create-vms.sh) and [`autounattend/`](https://github.com/jupyterj0nes/ad-dfir-lab/tree/master/autounattend)
 
+## Post-install configuration via guest agent
+
+Once the guest agent is running on all 8 VMs (the 6 Windows + Ubuntu + Kali), the rest of the configuration is trivial. Forget WinRM, forget manual SSH — `qm guest exec` from Proxmox is more reliable than any alternative:
+
+```bash
+# Set static IP + hostname on DC01 from Proxmox
+qm guest exec 101 -- powershell -Command '
+    $a = Get-NetAdapter | Where { $_.Status -eq "Up" } | Select -First 1
+    New-NetIPAddress -InterfaceIndex $a.ifIndex `
+        -IPAddress 192.168.10.10 -PrefixLength 24 `
+        -DefaultGateway 192.168.10.1
+    Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex `
+        -ServerAddresses 192.168.10.10
+    Rename-Computer -NewName kingslanding -Force
+'
+```
+
+After applying the config to all 6 Windows VMs, reboot via guest exec:
+
+```bash
+qm guest exec 101 -- cmd /c "shutdown /r /t 5 /f"
+```
+
+Finally, cleanup: remove installation ISOs and set boot order:
+
+```bash
+for VMID in 101 102 103 104 105 106; do
+    qm set $VMID --delete ide2  # Windows ISO
+    qm set $VMID --delete ide0  # VirtIO ISO
+    qm set $VMID --delete ide3  # autounattend ISO
+    qm set $VMID --boot order=scsi0
+done
+```
+
+## Final state
+
+After Phase 5, the lab looks like this:
+
+| VMID | Hostname | IP | Role |
+|------|----------|-----|------|
+| 101 | kingslanding | 192.168.10.10 | Root DC, sevenkingdoms.local |
+| 102 | winterfell | 192.168.10.11 | Child DC, north.sevenkingdoms.local |
+| 103 | castelblack | 192.168.10.12 | IIS + MSSQL + shares |
+| 104 | meereen | 192.168.10.13 | Root DC, essos.local |
+| 105 | braavos | 192.168.10.14 | Cross-forest server |
+| 106 | highgarden | 192.168.10.20 | Win10 workstation |
+| 107 | oldtown | DHCP | Ubuntu (Linux client) |
+| 108 | nightking | 192.168.20.100 | Kali (attacker) |
+
+8 machines configured, hostnames matching the Game of Thrones theme, static IPs in VLAN 10 (corporate) and Kali isolated in VLAN 20.
+
+Ready for the next step: configuring pfSense as a router between the two VLANs, then deploying Active Directory with GOAD.
+
 ---
 
 *Next: Part 3 — Beyond the Wall: pfSense, VLANs and Network Segmentation*

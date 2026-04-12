@@ -375,6 +375,59 @@ VMID NAME                 STATUS     MEM(MB)    BOOTDISK(GB)
 
 Todo el código en: [`04-create-vms.sh`](https://github.com/jupyterj0nes/ad-dfir-lab/blob/master/scripts/04-create-vms.sh) y [`autounattend/`](https://github.com/jupyterj0nes/ad-dfir-lab/tree/master/autounattend)
 
+## Configuración post-instalación via guest agent
+
+Una vez que el guest agent está instalado en las 8 VMs (las 6 Windows + Ubuntu + Kali), el resto de la configuración es trivial. Olvida WinRM, olvida SSH manual — `qm guest exec` desde Proxmox es más fiable que cualquier otra alternativa:
+
+```bash
+# Asignar IP estática + hostname a DC01 desde Proxmox
+qm guest exec 101 -- powershell -Command '
+    $a = Get-NetAdapter | Where { $_.Status -eq "Up" } | Select -First 1
+    New-NetIPAddress -InterfaceIndex $a.ifIndex `
+        -IPAddress 192.168.10.10 -PrefixLength 24 `
+        -DefaultGateway 192.168.10.1
+    Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex `
+        -ServerAddresses 192.168.10.10
+    Rename-Computer -NewName kingslanding -Force
+'
+```
+
+Después de aplicar la configuración a las 6 VMs Windows, un reboot via guest exec:
+
+```bash
+qm guest exec 101 -- cmd /c "shutdown /r /t 5 /f"
+```
+
+Y por último, limpieza: quitar las ISOs de instalación y fijar el boot order:
+
+```bash
+for VMID in 101 102 103 104 105 106; do
+    qm set $VMID --delete ide2  # Windows ISO
+    qm set $VMID --delete ide0  # VirtIO ISO
+    qm set $VMID --delete ide3  # autounattend ISO
+    qm set $VMID --boot order=scsi0
+done
+```
+
+## Estado final
+
+Tras Phase 5, el laboratorio queda así:
+
+| VMID | Hostname | IP | Rol |
+|------|----------|-----|-----|
+| 101 | kingslanding | 192.168.10.10 | Root DC, sevenkingdoms.local |
+| 102 | winterfell | 192.168.10.11 | Child DC, north.sevenkingdoms.local |
+| 103 | castelblack | 192.168.10.12 | IIS + MSSQL + shares |
+| 104 | meereen | 192.168.10.13 | Root DC, essos.local |
+| 105 | braavos | 192.168.10.14 | Cross-forest server |
+| 106 | highgarden | 192.168.10.20 | Workstation Win10 |
+| 107 | oldtown | DHCP | Ubuntu (Linux client) |
+| 108 | nightking | 192.168.20.100 | Kali (atacante) |
+
+8 máquinas configuradas, hostnames coherentes con la temática Game of Thrones, IPs estáticas en VLAN 10 (corporativa) y Kali aislado en VLAN 20.
+
+Listas para el siguiente paso: configurar pfSense como router entre las dos VLANs, y luego desplegar Active Directory con GOAD.
+
 ---
 
 *Siguiente: Part 3 — Beyond the Wall: pfSense, VLANs and Network Segmentation*
