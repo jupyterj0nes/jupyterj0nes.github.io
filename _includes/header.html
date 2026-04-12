@@ -80,7 +80,13 @@
             <li><a href="{{ '/' | append: lang | append: '/tools/persistence-boromir/' | relative_url }}">Persistence Boromir</a></li>
           </ul>
         </li>
-        <li><a href="{{ '/' | append: lang | append: '/cases/' | relative_url }}">{{ t.nav.cases }}</a></li>
+        <li class="nav-dropdown">
+          <a href="{{ '/' | append: lang | append: '/cases/' | relative_url }}" class="dropdown-trigger">{{ t.nav.cases }} <span class="dropdown-arrow">&#9662;</span></a>
+          <ul class="dropdown-menu">
+            <li class="dropdown-viewall"><a href="{{ '/' | append: lang | append: '/cases/' | relative_url }}">{{ t.nav.view_all }}</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/cases/ad-dfir-lab-intro/' | relative_url }}">AD DFIR Lab</a></li>
+          </ul>
+        </li>
         <li class="nav-dropdown">
           <a href="{{ '/' | append: lang | append: '/leon/' | relative_url }}" class="dropdown-trigger">{{ t.nav.leon }} <span class="dropdown-arrow">&#9662;</span></a>
           <ul class="dropdown-menu">
