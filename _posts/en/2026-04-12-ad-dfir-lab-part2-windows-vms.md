@@ -191,38 +191,50 @@ wireshark-common wireshark-common/install-setuid boolean true
 sslh sslh/inetd_or_standalone select standalone
 ```
 
-## QEMU Guest Agent: the last hurdle
+## QEMU Guest Agent: the last hurdle (and why it needs manual intervention)
 
-The guest agent lets Proxmox communicate with VMs — get IPs, execute commands, clean shutdown. Sounds simple: install an MSI and done. It's not.
+The guest agent lets Proxmox communicate with VMs — get IPs, execute commands, clean shutdown. Sounds simple: install an MSI and done. It's not. In fact, this is **the only part of the lab that CANNOT be fully automated**.
 
 ### The MSI is not enough
 
 The `qemu-ga-x86_64.msi` on the VirtIO ISO only installs the guest agent **service**. It does NOT install the **virtio-serial driver** — the communication channel with Proxmox. Without that driver, the service starts but can't talk to the host. Proxmox reports `QEMU guest agent is not running` even though inside Windows the service is `Running`.
 
-The fix: install `virtio-win-guest-tools.exe` — the all-in-one installer that includes ALL VirtIO drivers (vioserial, balloon, etc.) plus the guest agent.
+The apparent fix: install `virtio-win-guest-tools.exe` — the all-in-one installer that includes ALL VirtIO drivers (vioserial, balloon, etc.) plus the guest agent. But here comes the problem.
 
-### WinRM can't read CD-ROMs
+### Every automation attempt we tried — and why they failed
 
-Second problem: WinRM sessions run in a restricted context where CD-ROM drives aren't fully accessible. `Copy-Item`, `xcopy`, `robocopy` — all fail silently when trying to read files from the VirtIO ISO via WinRM.
+We tried **every** way to install the driver remotely:
 
-The fix: serve the installer via HTTP from the Proxmox host:
+1. **`pnputil /add-driver vioser.inf /install`** — "Invalid INF passed as parameter". Backslash paths break through WinRM
+2. **Copy drivers from CD to local disk** (`robocopy`, `xcopy`) — WinRM sessions cannot read from CD-ROM drives, copy returns 0 files
+3. **Download `virtio-win-guest-tools.exe` via HTTP and run via WinRM** — installer returns exit 0, service is running, but the vioserial driver **does not bind to the hardware**
+4. **Scheduled task as SYSTEM** — same result, "successful" install but driver not loaded
+5. **Reinstall the MSI with `ADDLOCAL=ALL`** — doesn't install the vioserial driver either
 
-```bash
-# On Proxmox: mount ISO and serve via HTTP
-mount -o loop /var/lib/vz/template/iso/virtio-win.iso /mnt/virtio
-python3 -m http.server 8888 --directory /mnt/virtio &
+In every case, PowerShell reports:
+```
+Status  FriendlyName
+------  ------------
+Error   PCI Simple Communications Controller   (VEN_1AF4&DEV_1003)
 ```
 
-```powershell
-# Via WinRM: download to local disk and run
-Invoke-WebRequest -Uri "http://192.168.10.1:8888/virtio-win-guest-tools.exe" `
-    -OutFile "C:\virtio-win-guest-tools.exe"
-Start-Process "C:\virtio-win-guest-tools.exe" `
-    -ArgumentList "/install /passive /norestart" -Wait
-Restart-Computer
-```
+The VirtIO Serial device stays in `Status: Error` — no driver bound.
+
+### The only solution: manual install via VNC
+
+After multiple attempts, the conclusion: **the VirtIO installer requires an interactive session** to bind kernel-mode drivers to hardware. There is no automated workaround.
+
+Manual procedure per VM:
+1. Open VNC console in Proxmox web UI
+2. Login as `vagrant`/`vagrant`
+3. Open PowerShell as administrator
+4. Run: `D:\virtio-win-guest-tools.exe`
+5. Click through the wizard: Next → Install → Finish
+6. `Restart-Computer -Force`
 
 After reboot, the vioserial driver loads and the guest agent connects to Proxmox.
+
+**Total time**: ~1 minute per VM × 6 Windows VMs = **6 minutes of manual work**. This is the only non-automatable step of the lab, but after this, everything else can be done via the guest agent.
 
 ## Watch out for VLANs and Hetzner
 

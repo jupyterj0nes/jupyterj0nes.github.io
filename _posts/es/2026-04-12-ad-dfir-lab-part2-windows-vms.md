@@ -269,38 +269,50 @@ iptables -t nat -A POSTROUTING -s 192.168.20.0/24 -o vmbr0 -j MASQUERADE
 
 Esto es temporal — en la Part 3 pfSense se encargará del routing y NAT.
 
-## QEMU Guest Agent: el último obstáculo
+## QEMU Guest Agent: el último obstáculo (y por qué necesita intervención manual)
 
-El guest agent permite a Proxmox comunicarse con las VMs — obtener IPs, ejecutar comandos, hacer shutdown limpio. Parece simple: instalar un MSI y listo. No lo es.
+El guest agent permite a Proxmox comunicarse con las VMs — obtener IPs, ejecutar comandos, hacer shutdown limpio. Parece simple: instalar un MSI y listo. No lo es. De hecho, esta es **la única parte del laboratorio que NO se puede automatizar** completamente.
 
 ### El MSI no basta
 
 El MSI `qemu-ga-x86_64.msi` que hay en la ISO VirtIO solo instala el **servicio** del guest agent. No instala el **driver virtio-serial** que es el canal de comunicación con Proxmox. Sin ese driver, el servicio arranca pero no puede hablar con el host. Proxmox dice `QEMU guest agent is not running` aunque dentro de Windows el servicio está `Running`.
 
-La solución: instalar `virtio-win-guest-tools.exe` — el instalador all-in-one que incluye TODOS los drivers VirtIO (vioserial, balloon, etc.) además del guest agent.
+La solución aparente: instalar `virtio-win-guest-tools.exe` — el instalador all-in-one que incluye TODOS los drivers VirtIO (vioserial, balloon, etc.) además del guest agent. Pero aquí viene el problema.
 
-### WinRM no puede leer CD-ROMs
+### Todas las formas de automatizar que fallaron
 
-Segundo problema: las sesiones WinRM corren en un contexto restringido donde las unidades de CD-ROM no son completamente accesibles. `Copy-Item`, `xcopy`, `robocopy` — todos fallan silenciosamente al intentar leer archivos de la ISO VirtIO via WinRM.
+Intentamos **todas** las maneras de instalar el driver remotamente:
 
-La solución: servir el instalador via HTTP desde el host Proxmox:
+1. **`pnputil /add-driver vioser.inf /install`** — "Invalid INF passed as parameter". Los paths con backslashes se rompen a través de WinRM
+2. **Copiar drivers del CD a disco local** (`robocopy`, `xcopy`) — las sesiones WinRM no pueden leer de unidades CD-ROM correctamente, el copy devuelve 0 files
+3. **Descargar `virtio-win-guest-tools.exe` via HTTP y ejecutarlo via WinRM** — el instalador devuelve exit 0, el servicio queda running, pero el driver vioserial **no se bindea al hardware**
+4. **Tarea programada como SYSTEM** — mismo resultado, instalación "exitosa" pero driver no cargado
+5. **Reinstalar el MSI con `ADDLOCAL=ALL`** — tampoco instala el driver vioserial
 
-```bash
-# En Proxmox: montar ISO y servir por HTTP
-mount -o loop /var/lib/vz/template/iso/virtio-win.iso /mnt/virtio
-python3 -m http.server 8888 --directory /mnt/virtio &
+En cada caso, PowerShell reporta:
+```
+Status  FriendlyName
+------  ------------
+Error   PCI Simple Communications Controller   (VEN_1AF4&DEV_1003)
 ```
 
-```powershell
-# Via WinRM: descargar al disco local y ejecutar
-Invoke-WebRequest -Uri "http://192.168.10.1:8888/virtio-win-guest-tools.exe" `
-    -OutFile "C:\virtio-win-guest-tools.exe"
-Start-Process "C:\virtio-win-guest-tools.exe" `
-    -ArgumentList "/install /passive /norestart" -Wait
-Restart-Computer
-```
+El dispositivo VirtIO Serial queda con `Status: Error` — sin driver vinculado.
 
-Después del reboot, el driver vioserial se carga y el guest agent conecta con Proxmox.
+### La única solución: instalación manual via VNC
+
+Después de múltiples intentos, la conclusión: **el instalador VirtIO requiere una sesión interactiva** para bindear kernel-mode drivers al hardware. No hay workaround automático.
+
+El procedimiento manual por VM:
+1. Abrir la consola VNC en el web UI de Proxmox
+2. Login como `vagrant`/`vagrant`
+3. Abrir PowerShell como administrador
+4. Ejecutar: `D:\virtio-win-guest-tools.exe`
+5. Click en el asistente: Next → Install → Finish
+6. `Restart-Computer -Force`
+
+Tras el reboot, el driver vioserial carga y el guest agent conecta con Proxmox.
+
+**Tiempo total**: ~1 minuto por VM × 6 VMs Windows = **6 minutos de trabajo manual**. Es el único paso no automatizable del laboratorio, pero después, todo lo demás se puede hacer via guest agent.
 
 ## Cuidado con las VLANs y Hetzner
 
