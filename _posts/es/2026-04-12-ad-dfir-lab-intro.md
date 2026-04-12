@@ -61,7 +61,7 @@ Todo el proceso está automatizado con scripts y documentado paso a paso:
 |-------|--------|-----------|
 | **Part 1** | [From Bare Metal to Proxmox]({% post_url es/2026-04-12-ad-dfir-lab-part1-proxmox %}) | Servidor Hetzner, rescue system, instalar Proxmox VE con ZFS |
 | **Part 2** | [The Seven Kingdoms — Deploying Windows VMs]({% post_url es/2026-04-12-ad-dfir-lab-part2-windows-vms %}) | Crear VMs, autounattend, VirtIO drivers |
-| **Part 3** | Beyond the Wall — pfSense, VLANs and Network Segmentation | pfSense, VLAN 10/20, NAT, WireGuard |
+| **Part 3** | [Beyond the Wall — pfSense, VLANs and Network Segmentation]({% post_url es/2026-04-12-ad-dfir-lab-part3-pfsense %}) | pfSense, VLAN 10/20, NAT, WireGuard |
 | **Part 4** | Crowning the Domain Controllers — AD, Forests and Trusts | GOAD, dominios, forests, cross-trust |
 | **Part 5** | The Smallfolk — Users, Groups, Shares and GPOs | BadBlood, OUs, service accounts, shares |
 | **Part 6** | The Night King Rises — Kali as Attack Platform | Herramientas ofensivas, configuración |
