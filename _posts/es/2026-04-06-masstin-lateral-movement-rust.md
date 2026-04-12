@@ -46,6 +46,7 @@ Masstin parsea **todas** estas fuentes y las fusiona en una **única timeline cr
 | Soporte de volúmenes montados | Apunta `-d D:` a un volumen montado o usa `--all-volumes` — EVTX live + recuperación VSS desde discos conectados, sin necesidad de crear imagen | [Imágenes forenses](/es/tools/masstin-vss-recovery/) |
 | Parsing UAL | Detecta automáticamente bases de datos UAL (User Access Logging) — 3 años de historial de acceso a servidor que sobreviven al borrado de logs | [UAL](/es/tools/masstin-ual/) |
 | MountPoints2 del registro | Extrae NTUSER.DAT de cada perfil de usuario y parsea MountPoints2 — revela conexiones usuario→servidor share con timestamps, sobrevive al borrado de logs. Soporte de hives sucios + transaction logs | [MountPoints2](/es/artifacts/mountpoints2-lateral-movement/) |
+| EVTX carving | `carve-image` escanea el disco raw buscando chunks EVTX en espacio no asignado — recupera eventos después de que los logs Y los VSS hayan sido borrados. Construye EVTX sintéticos y los parsea por el pipeline completo | [EVTX carving](/es/tools/evtx-carving-unallocated/) |
 | Reporte transparente | La CLI muestra descubrimiento de artefactos, progreso de procesamiento, inferencias de hostname/año y recuento de eventos por artefacto | [Parsear evidencia](#parsear-evidencia) |
 
 ---
@@ -124,6 +125,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 | `parse-cortex` | Consulta la API de Cortex XDR para conexiones de red (RDP/SMB/SSH) |
 | `parse-image` | **Auto-detecta el SO por partición.** Abre imágenes E01/dd/VMDK (incluido streamOptimized), escanea carpetas de evidencia (`-d /evidence/`), volúmenes montados (`-d D:`) o `--all-volumes`. Detecta BitLocker. NTFS → EVTX + UAL + VSS + Tasks. ext4 → logs Linux. Todo fusionado en un CSV |
 | `parse-massive` | Como `parse-image` pero también incluye EVTX y logs sueltos de los directorios `-d` — útil cuando la evidencia es una mezcla de imágenes de disco y paquetes triage extraídos |
+| `carve-image` | **Último recurso.** Escanea el disco raw buscando chunks EVTX en espacio no asignado. Recupera eventos de movimiento lateral después de que logs + VSS hayan sido borrados. Usa `--carve-unalloc` para escanear solo espacio no asignado |
 | `parse-cortex-evtx-forensics` | Consulta la API de Cortex XDR para colecciones EVTX forenses de múltiples máquinas |
 | `merge` | Combina múltiples CSVs en una única timeline cronológica |
 | `load-neo4j` | Sube la timeline a Neo4j para visualización en grafos |
