@@ -191,6 +191,59 @@ wireshark-common wireshark-common/install-setuid boolean true
 sslh sslh/inetd_or_standalone select standalone
 ```
 
+## QEMU Guest Agent: the last hurdle
+
+The guest agent lets Proxmox communicate with VMs — get IPs, execute commands, clean shutdown. Sounds simple: install an MSI and done. It's not.
+
+### The MSI is not enough
+
+The `qemu-ga-x86_64.msi` on the VirtIO ISO only installs the guest agent **service**. It does NOT install the **virtio-serial driver** — the communication channel with Proxmox. Without that driver, the service starts but can't talk to the host. Proxmox reports `QEMU guest agent is not running` even though inside Windows the service is `Running`.
+
+The fix: install `virtio-win-guest-tools.exe` — the all-in-one installer that includes ALL VirtIO drivers (vioserial, balloon, etc.) plus the guest agent.
+
+### WinRM can't read CD-ROMs
+
+Second problem: WinRM sessions run in a restricted context where CD-ROM drives aren't fully accessible. `Copy-Item`, `xcopy`, `robocopy` — all fail silently when trying to read files from the VirtIO ISO via WinRM.
+
+The fix: serve the installer via HTTP from the Proxmox host:
+
+```bash
+# On Proxmox: mount ISO and serve via HTTP
+mount -o loop /var/lib/vz/template/iso/virtio-win.iso /mnt/virtio
+python3 -m http.server 8888 --directory /mnt/virtio &
+```
+
+```powershell
+# Via WinRM: download to local disk and run
+Invoke-WebRequest -Uri "http://192.168.10.1:8888/virtio-win-guest-tools.exe" `
+    -OutFile "C:\virtio-win-guest-tools.exe"
+Start-Process "C:\virtio-win-guest-tools.exe" `
+    -ArgumentList "/install /passive /norestart" -Wait
+Restart-Computer
+```
+
+After reboot, the vioserial driver loads and the guest agent connects to Proxmox.
+
+## Watch out for VLANs and Hetzner
+
+A mistake that nearly cost us the server: during provisioning, we temporarily placed VMs on the bridge without a VLAN tag so they could get DHCP. The virtual MAC addresses leaked to Hetzner's physical network.
+
+Result: an abuse email from Hetzner threatening to lock the server.
+
+**Golden rule**: never remove VLAN tags from VMs on a Hetzner dedicated server. Instead, use VLAN interfaces on the host:
+
+```bash
+# Create VLAN interfaces on Proxmox
+ip link add link vmbr0 name vmbr0.10 type vlan id 10
+ip addr add 192.168.10.1/24 dev vmbr0.10
+
+# CRITICAL: add VLANs to bridge self-port
+bridge vlan add dev vmbr0 vid 10 self
+bridge vlan add dev vmbr0 vid 20 self
+```
+
+Without `bridge vlan add dev vmbr0 vid 10 self`, the host cannot communicate with VMs on VLAN 10 even if the `vmbr0.10` interface exists.
+
 ## Result
 
 After ~20 minutes of unattended installation: 8 VMs installed without touching a single prompt:
