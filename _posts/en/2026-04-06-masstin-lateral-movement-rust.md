@@ -45,6 +45,7 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 | VSS snapshot recovery | Detect and extract EVTX from Volume Shadow Copies — recover event logs deleted by attackers | [VSS recovery](/en/tools/masstin-vss-recovery/) |
 | Mounted volume support | Point `-d D:` at a mounted volume or use `--all-volumes` — live EVTX + VSS recovery from connected disks, no imaging needed | [Forensic images](/en/tools/masstin-vss-recovery/) |
 | UAL parsing | Auto-detect User Access Logging ESE databases — 3-year server logon history surviving event log clearing | [UAL](/en/tools/masstin-ual/) |
+| MountPoints2 registry | Extract NTUSER.DAT from each user profile and parse MountPoints2 — reveals user→server share connections with timestamps, survives log clearing. Dirty hive + transaction log support | [MountPoints2](/en/artifacts/mountpoints2-lateral-movement/) |
 | Transparent reporting | CLI shows artifact discovery, processing progress, hostname/year inferences and per-artifact event counts | [Parse evidence](#parse-evidence) |
 
 ---
@@ -140,6 +141,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 | Terminal Services EVTX | [Terminal Services EVTX](/en/artifacts/terminal-services-evtx/) |
 | SMB EVTX | [SMB EVTX events](/en/artifacts/smb-evtx-events/) |
 | WinRM, WMI-Activity + Scheduled Tasks | PowerShell Remoting (Event 6), remote WMI (Event 5858) and remotely created tasks (Author field) | [WinRM, WMI & Tasks](/en/artifacts/winrm-wmi-schtasks-lateral-movement/) |
+| MountPoints2 (NTUSER.DAT) | Remote share connections from registry — user→server with timestamps, survives log clearing | [MountPoints2](/en/artifacts/mountpoints2-lateral-movement/) |
 | Linux logs | [Linux forensic artifacts](/en/artifacts/linux-forensic-artifacts/) |
 | Winlogbeat JSON | [Winlogbeat artifacts](/en/artifacts/winlogbeat-elastic-artifacts/) |
 | Cortex XDR | [Cortex XDR artifacts](/en/artifacts/cortex-xdr-artifacts/) |
