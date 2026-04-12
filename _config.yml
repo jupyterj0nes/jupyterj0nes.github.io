@@ -15,6 +15,12 @@ markdown: kramdown
 highlighter: rouge
 permalink: /:categories/:title/
 
+# Build posts with future dates. Required because the Pages CI runs in UTC
+# and may see today's posts (dated +0100) as "future" for up to an hour.
+# Also prevents `{% post_url %}` references from failing when the target
+# post is temporarily skipped as future-dated.
+future: true
+
 # Languages
 languages: ["es", "en"]
 default_lang: "es"
