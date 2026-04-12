@@ -60,7 +60,7 @@ The entire process is automated with scripts and documented step by step:
 | Part | Title | Content |
 |------|-------|---------|
 | **Part 1** | [From Bare Metal to Proxmox]({% post_url en/2026-04-12-ad-dfir-lab-part1-proxmox %}) | Hetzner server, rescue system, installing Proxmox VE with ZFS |
-| **Part 2** | The Seven Kingdoms — Deploying Windows VMs | Creating VMs, autounattend, VirtIO drivers |
+| **Part 2** | [The Seven Kingdoms — Deploying Windows VMs]({% post_url en/2026-04-12-ad-dfir-lab-part2-windows-vms %}) | Creating VMs, autounattend, VirtIO drivers |
 | **Part 3** | Beyond the Wall — pfSense, VLANs and Network Segmentation | pfSense, VLAN 10/20, NAT, WireGuard |
 | **Part 4** | Crowning the Domain Controllers — AD, Forests and Trusts | GOAD, domains, forests, cross-trust |
 | **Part 5** | The Smallfolk — Users, Groups, Shares and GPOs | BadBlood, OUs, service accounts, shares |
