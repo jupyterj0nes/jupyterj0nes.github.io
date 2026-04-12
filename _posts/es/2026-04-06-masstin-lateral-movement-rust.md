@@ -45,6 +45,7 @@ Masstin parsea **todas** estas fuentes y las fusiona en una **única timeline cr
 | Recuperación de snapshots VSS | Detecta y extrae EVTX de Volume Shadow Copies — recupera logs borrados por atacantes | [Recuperación VSS](/es/tools/masstin-vss-recovery/) |
 | Soporte de volúmenes montados | Apunta `-d D:` a un volumen montado o usa `--all-volumes` — EVTX live + recuperación VSS desde discos conectados, sin necesidad de crear imagen | [Imágenes forenses](/es/tools/masstin-vss-recovery/) |
 | Parsing UAL | Detecta automáticamente bases de datos UAL (User Access Logging) — 3 años de historial de acceso a servidor que sobreviven al borrado de logs | [UAL](/es/tools/masstin-ual/) |
+| MountPoints2 del registro | Extrae NTUSER.DAT de cada perfil de usuario y parsea MountPoints2 — revela conexiones usuario→servidor share con timestamps, sobrevive al borrado de logs. Soporte de hives sucios + transaction logs | [MountPoints2](/es/artifacts/mountpoints2-lateral-movement/) |
 | Reporte transparente | La CLI muestra descubrimiento de artefactos, progreso de procesamiento, inferencias de hostname/año y recuento de eventos por artefacto | [Parsear evidencia](#parsear-evidencia) |
 
 ---
@@ -140,6 +141,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 | Terminal Services EVTX | [Terminal Services EVTX](/es/artifacts/terminal-services-evtx/) |
 | SMB EVTX | [Eventos SMB en EVTX](/es/artifacts/smb-evtx-events/) |
 | WinRM, WMI-Activity + Scheduled Tasks | PowerShell Remoting (Event 6), WMI remoto (Event 5858) y tareas programadas remotas (campo Author) | [WinRM, WMI y Tasks](/es/artifacts/winrm-wmi-schtasks-lateral-movement/) |
+| MountPoints2 (NTUSER.DAT) | Conexiones a shares remotos desde el registro — usuario→servidor con timestamps, sobrevive al borrado de logs | [MountPoints2](/es/artifacts/mountpoints2-lateral-movement/) |
 | Logs de Linux | [Artefactos forenses de Linux](/es/artifacts/linux-forensic-artifacts/) |
 | Winlogbeat JSON | [Winlogbeat: artefactos en JSON](/es/artifacts/winlogbeat-elastic-artifacts/) |
 | Cortex XDR | [Cortex XDR: artefactos forenses](/es/artifacts/cortex-xdr-artifacts/) |
