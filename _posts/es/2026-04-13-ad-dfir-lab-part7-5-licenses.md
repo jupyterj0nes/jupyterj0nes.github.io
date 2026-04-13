@@ -161,6 +161,6 @@ Con esto zanjado, la Fase 10 (generación de ruido histórico con viaje hacia at
 
 ---
 
-*Siguiente: Parte 8 — Un día en el Reino: Generando Ruido de Base (próximamente)*
+*Siguiente: [Parte 8 — Un Día en el Reino: Generando Dos Años de Ruido Histórico]({% post_url es/2026-04-13-ad-dfir-lab-part8-historical-noise %})*
 
 *Anterior: [Parte 7 — El Rey de la Noche se Alza: Kali como Plataforma de Ataque]({% post_url es/2026-04-13-ad-dfir-lab-part7-kali %})*
