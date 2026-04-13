@@ -67,7 +67,7 @@ The entire process is automated with scripts and documented step by step:
 | **Part 6** | [Ravens and Whispers — Audit Configuration]({% post_url en/2026-04-13-ad-dfir-lab-part6-audit %}) | Sysmon, audit policy, PowerShell logging, auditd |
 | **Part 7** | [The Night King Rises — Kali as Attack Platform]({% post_url en/2026-04-13-ad-dfir-lab-part7-kali %}) | Offensive tools, configuration, AS-REP roast test |
 | **Part 7.5** | [Keeping the Kingdoms Alive — Eval Licenses and Lab Longevity]({% post_url en/2026-04-13-ad-dfir-lab-part7-5-licenses %}) | Wall-clock eval test, rearm limits, Telegram alerts |
-| **Part 8** | A Day in the Realm — Generating Baseline Noise | Realistic RDP, SMB, Kerberos, DNS traffic |
+| **Part 8** | [A Day in the Realm — Generating Two Years of Historical Noise]({% post_url en/2026-04-13-ad-dfir-lab-part8-historical-noise %}) | Day-as-iteration, Spanish calendar, personas, parallel clock travel, wlms gotcha |
 | **Part 9** | Fire and Blood — Attack Scenarios and Forensic Analysis | Attacks, image export, analysis with masstin |
 
 ## Cost

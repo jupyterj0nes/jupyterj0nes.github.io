@@ -161,6 +161,6 @@ With that out of the way, Phase 10 (historical noise generation with backwards c
 
 ---
 
-*Next: Part 8 — A Day in the Realm: Generating Baseline Noise (coming soon)*
+*Next: [Part 8 — A Day in the Realm: Generating Two Years of Historical Noise]({% post_url en/2026-04-13-ad-dfir-lab-part8-historical-noise %})*
 
 *Previous: [Part 7 — The Night King Rises: Kali as the Attack Platform]({% post_url en/2026-04-13-ad-dfir-lab-part7-kali %})*
