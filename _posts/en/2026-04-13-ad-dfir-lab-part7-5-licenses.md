@@ -126,6 +126,23 @@ curl -sS -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
     --data-urlencode text="$MESSAGE"
 ```
 
+### Running this in your own lab
+
+If you're following the series and want the same alerts, **you need your own bot** — a Telegram bot can only send to `chat_id`s that have personally messaged it, so my bot token is useless to anyone else (and sharing it would be a credential leak anyway). The setup takes five minutes:
+
+1. Talk to [@BotFather](https://t.me/BotFather) on Telegram → `/newbot` → choose a display name and a `...bot` username → copy the token it returns.
+2. Open the chat with your brand-new bot and send any message (`/start`, `hi`, whatever). Telegram will not give you a `chat_id` for a user that never talked to the bot.
+3. From Proxmox, query the updates endpoint once to read your own chat id:
+   ```bash
+   TOKEN="<your-bot-token>"
+   curl -sS "https://api.telegram.org/bot${TOKEN}/getUpdates" | jq '.result[].message.chat.id'
+   ```
+4. Drop `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` into `/root/lab/config/telegram.conf`, `chmod 600` it, and install the cron line from the previous section.
+
+If you want alerts to reach a whole team, create a Telegram group, add your bot to it, and use the group's (negative) chat id in the config — the same script sends to groups without any code change.
+
+What you will **not** be able to do is subscribe to *my* lab's bot to receive alerts about *my* lab. That's intentional: a shared bot would require publishing the token, letting anyone rate-limit it or spam the channel, and mixing unrelated labs into one alert stream. One bot per lab is the simplest secure model.
+
 ## WS01 replacement, prepared in advance
 
 When Win10 eventually runs out of rearms, we don't want to rebuild it by hand. `scripts/replace-ws01.sh` is a one-shot: you give it a fresh Win10 ISO filename, it destroys VM 106, recreates it with the same VMID/RAM/disk/VLAN, boots into an unattended install with the pre-built autounattend ISO, waits for the desktop, prompts once for the manual `virtio-win-guest-tools.exe` install through VNC (which still cannot be automated — see Part 2), and then sets hostname + static IP + DNS. The last two steps (`ansible-playbook 07.5-join-extras.yml --limit ws01` and the audit reapply) are manual because they use the same playbooks already documented in the earlier parts — no need to duplicate them.

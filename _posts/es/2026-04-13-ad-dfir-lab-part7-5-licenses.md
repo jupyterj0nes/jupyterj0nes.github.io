@@ -126,6 +126,23 @@ curl -sS -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
     --data-urlencode text="$MENSAJE"
 ```
 
+### Montarlo en tu propio laboratorio
+
+Si estás siguiendo la serie y quieres estas mismas alertas, **necesitas tu propio bot** — un bot de Telegram sólo puede enviar mensajes a `chat_id`s que previamente le han escrito, así que el token del mío no le sirve a nadie más (y compartirlo sería una fuga de credenciales de todos modos). El alta son cinco minutos:
+
+1. Habla con [@BotFather](https://t.me/BotFather) en Telegram → `/newbot` → elige un nombre visible y un username que acabe en `bot` → copia el token que te devuelve.
+2. Abre el chat con tu bot recién creado y envíale cualquier mensaje (`/start`, `hola`, lo que sea). Telegram no te dará un `chat_id` para un usuario que nunca le ha hablado al bot.
+3. Desde Proxmox, consulta una vez el endpoint de updates para leer tu propio chat id:
+   ```bash
+   TOKEN="<tu-token>"
+   curl -sS "https://api.telegram.org/bot${TOKEN}/getUpdates" | jq '.result[].message.chat.id'
+   ```
+4. Mete `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID` en `/root/lab/config/telegram.conf`, hazle `chmod 600`, e instala la línea de cron de la sección anterior.
+
+Si quieres que las alertas lleguen a un equipo entero, crea un grupo de Telegram, mete a tu bot dentro, y usa el chat id (negativo) del grupo en la config — el mismo script envía a grupos sin cambiar una línea de código.
+
+Lo que **no** vas a poder hacer es suscribirte al bot de *mi* laboratorio para recibir alertas sobre *mi* laboratorio. Es intencional: un bot compartido obligaría a publicar el token, permitiría a cualquiera rate-limitearlo o spamear el canal, y mezclaría laboratorios no relacionados en el mismo flujo de alertas. Un bot por laboratorio es el modelo seguro más simple.
+
 ## Reemplazo de WS01, preparado por adelantado
 
 Cuando Win10 agote los rearms, no queremos reconstruirlo a mano. `scripts/replace-ws01.sh` es un one-shot: le pasas el nombre de una ISO Win10 fresca, destruye la VM 106, la recrea con el mismo VMID/RAM/disco/VLAN, arranca instalación desatendida con el autounattend ISO preconstruido, espera al escritorio, pide una vez la instalación manual de `virtio-win-guest-tools.exe` por VNC (que aún no se puede automatizar — ver Parte 2), y luego configura hostname + IP estática + DNS. Los dos últimos pasos (`ansible-playbook 07.5-join-extras.yml --limit ws01` y la reaplicación del audit) son manuales porque usan los mismos playbooks documentados en partes anteriores — no duplicamos.
