@@ -96,10 +96,10 @@ The detection runs once per ZIP at discovery time and the result is stored in a 
 
 ```
 [IMAGE]  HRServer_Disk0.e01
-[TRIAGE: Cortex XDR]  offline_collector_output_TESTHOST01_2026-04-13_15-30-00.zip  [host: TESTHOST01]
-[TRIAGE: Velociraptor]  Collection-WIN-DC01-2026-04-13T15_30_00Z.zip  [host: WIN-DC01]
-[TRIAGE: KAPE]  workstation05_20260413.zip  [host: workstation05]
-[ARCHIVE]  some-other-archive.zip
+[TRIAGE: Cortex XDR]  triages/offline_collector_output_TESTHOST01_2026-04-13_15-30-00.zip  [host: TESTHOST01]
+[TRIAGE: Velociraptor]  triages/Collection-WIN-DC01-2026-04-13T15_30_00Z.zip  [host: WIN-DC01]
+[TRIAGE: KAPE]  kape-output/workstation05_20260413.zip  [host: workstation05]
+[ARCHIVE]  archives/some-other-archive.zip
 [FOLDER]  D:/evidence/loose/extracted_evtx
 ```
 
@@ -107,23 +107,25 @@ The labels are computed from the `EvtxLocation` enum that masstin already uses t
 
 - `EvtxLocation::File(path)` where the path contains the `masstin_image_extract/` marker → forensic image extract → `[IMAGE]  <image-filename>`
 - `EvtxLocation::File(path)` otherwise → loose file → `[FOLDER]  <full parent directory path>`
-- `EvtxLocation::ZipEntry { zip_path, .. }` → look up the outer zip in the triage map → `[TRIAGE: <type>]` if detected, `[ARCHIVE]` otherwise
+- `EvtxLocation::ZipEntry { zip_path, .. }` → look up the outer zip in the triage map → `[TRIAGE: <type>]` if detected, `[ARCHIVE]` otherwise. **The label includes the immediate parent directory of the zip** (`triages/host.zip`) so two physical copies of the same triage in different folders — extremely common in real cases when the client uploads a triage to `SFTP/...` and the IR team copies it to `To-Unit42/...` — appear as different source groups instead of collapsing into one bucket with duplicate entries inside.
 
-The phase-2 breakdown then groups by source label and renders each group with its event count plus the per-EVTX list:
+The phase-2 breakdown then groups by source label and renders each group with its event count plus the per-EVTX list. **VSS-recovered events are tagged inline** so the analyst can tell at a glance which logs came from a shadow copy vs which came from the live partition:
 
 ```
 [+] Lateral movement events grouped by source (4 sources):
 
-      => [IMAGE]  HRServer_Disk0.e01  (45 events total)
-         - Security.evtx (32)
-         - Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx (13)
+      => [IMAGE]  HRServer_Disk0.e01  (4521 events total)
+         - Security.evtx (3220)
+         - Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx (134)
+         - Security.evtx (1095)  [VSS]
+         - Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx (72)  [VSS]
 
-      => [TRIAGE: Cortex XDR]  offline_collector_output_TESTHOST01_...zip  [host: TESTHOST01]  (834 events total)
+      => [TRIAGE: Cortex XDR]  triages/offline_collector_output_TESTHOST01_...zip  [host: TESTHOST01]  (834 events total)
          - Security.evtx (612)
          - Microsoft-Windows-WinRM%4Operational.evtx (89)
          - Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx (133)
 
-      => [TRIAGE: Velociraptor]  Collection-WIN-DC01-...zip  [host: WIN-DC01]  (4521 events total)
+      => [TRIAGE: Velociraptor]  triages/Collection-WIN-DC01-...zip  [host: WIN-DC01]  (4521 events total)
          - Security.evtx (4380)
          - Microsoft-Windows-WinRM%4Operational.evtx (141)
 
@@ -132,7 +134,9 @@ The phase-2 breakdown then groups by source label and renders each group with it
          - Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx (11)
 ```
 
-Every event is accounted for. The analyst can read this breakdown and immediately answer questions like *"how many WinRM events came from the DC vs from the Cortex XDR triage?"* without having to grep the CSV.
+**VSS tagging is automatic.** masstin detects `partition_<N>_vss_<M>/` paths in the temp extraction tree and labels matching entries with a `[VSS]` suffix (or `[VSS-0]`, `[VSS-1]` when multiple snapshots from the same image coexist). Live entries carry no annotation. Within each `[IMAGE]` source group, items are sorted **live-first then by VSS index**, so the analyst reads "what the system has now" at the top and "what masstin recovered from the snapshots" underneath as a clearly demarcated bonus section. This is exactly the forensic story that masstin's VSS recovery feature is supposed to tell — VSS recovery is one of the most valuable features in the tool and the breakdown should surface it loudly, not bury it under identical-looking duplicate filenames.
+
+Every event is accounted for. The analyst can read this breakdown and immediately answer questions like *"how many WinRM events came from the live DC partition vs from a shadow copy vs from the Cortex XDR triage?"* without having to grep the CSV.
 
 ## Why ASCII tags instead of emoji
 
@@ -250,11 +254,11 @@ The source labels are consistent across all actions, so a `parse-massive` run ag
          - secure (45)
          - wtmp (20)
 
-      => [TRIAGE: Velociraptor]  Collection-LINUX-DC01-2026-04-13T15_30_00Z.zip  [host: LINUX-DC01]  (1834 events total)
+      => [TRIAGE: Velociraptor]  triages/Collection-LINUX-DC01-2026-04-13T15_30_00Z.zip  [host: LINUX-DC01]  (1834 events total)
          - auth.log (1500)
          - audit.log (334)
 
-      => [TRIAGE: Cortex XDR]  offline_collector_output_WIN-DB01_2026-04-13_16-15-22.zip  [host: WIN-DB01]  (612 events total)
+      => [TRIAGE: Cortex XDR]  triages/offline_collector_output_WIN-DB01_2026-04-13_16-15-22.zip  [host: WIN-DB01]  (612 events total)
          - Security.evtx (480)
          - Microsoft-Windows-WinRM%4Operational.evtx (132)
 
@@ -263,6 +267,16 @@ The source labels are consistent across all actions, so a `parse-massive` run ag
 ```
 
 One command, four source classes, every event attributed.
+
+After the summary, masstin prints a **"Load into graph (pick one):"** hint with both Memgraph and Neo4j commands ready to copy-paste, with the output path canonicalised to the long form so you don't end up with 8.3 short names like `C00PR~1.DES` leaking into the suggestion:
+
+```
+        Load into graph (pick one):
+          Memgraph:  masstin -a load-memgraph -f C:/Users/c00pr/.../timeline.csv --database localhost:7687
+          Neo4j:     masstin -a load-neo4j   -f C:/Users/c00pr/.../timeline.csv --database bolt://localhost:7687 --user neo4j
+```
+
+Both alternatives shown together, both paths in long form, no need to look up the neo4j syntax separately.
 
 ## What's next
 

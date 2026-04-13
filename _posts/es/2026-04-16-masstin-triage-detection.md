@@ -96,10 +96,10 @@ La detección corre una vez por ZIP en tiempo de descubrimiento y el resultado s
 
 ```
 [IMAGE]  HRServer_Disk0.e01
-[TRIAGE: Cortex XDR]  offline_collector_output_TESTHOST01_2026-04-13_15-30-00.zip  [host: TESTHOST01]
-[TRIAGE: Velociraptor]  Collection-WIN-DC01-2026-04-13T15_30_00Z.zip  [host: WIN-DC01]
-[TRIAGE: KAPE]  workstation05_20260413.zip  [host: workstation05]
-[ARCHIVE]  some-other-archive.zip
+[TRIAGE: Cortex XDR]  triages/offline_collector_output_TESTHOST01_2026-04-13_15-30-00.zip  [host: TESTHOST01]
+[TRIAGE: Velociraptor]  triages/Collection-WIN-DC01-2026-04-13T15_30_00Z.zip  [host: WIN-DC01]
+[TRIAGE: KAPE]  kape-output/workstation05_20260413.zip  [host: workstation05]
+[ARCHIVE]  archives/some-other-archive.zip
 [FOLDER]  D:/evidence/loose/extracted_evtx
 ```
 
@@ -107,23 +107,25 @@ Las labels se computan a partir del enum `EvtxLocation` que masstin ya usa para 
 
 - `EvtxLocation::File(path)` donde la ruta contiene el marker `masstin_image_extract/` → extract de imagen forense → `[IMAGE]  <nombre-imagen>`
 - `EvtxLocation::File(path)` en otro caso → fichero suelto → `[FOLDER]  <ruta completa del directorio padre>`
-- `EvtxLocation::ZipEntry { zip_path, .. }` → busca el zip exterior en el triage map → `[TRIAGE: <type>]` si fue detectado, `[ARCHIVE]` en otro caso
+- `EvtxLocation::ZipEntry { zip_path, .. }` → busca el zip exterior en el triage map → `[TRIAGE: <type>]` si fue detectado, `[ARCHIVE]` en otro caso. **La label incluye el directorio padre inmediato del zip** (`triages/host.zip`) para que dos copias físicas del mismo triage en carpetas distintas — extremadamente común en casos reales cuando el cliente sube un triage a `SFTP/...` y el equipo IR lo copia a `To-Unit42/...` — aparezcan como grupos source distintos en lugar de colapsarse en un mismo cubo con entradas duplicadas dentro.
 
-El desglose de fase 2 entonces agrupa por source label y renderiza cada grupo con su event count más la lista por-EVTX:
+El desglose de fase 2 entonces agrupa por source label y renderiza cada grupo con su event count más la lista por-EVTX. **Los eventos recuperados de VSS llevan tag inline** para que el analista pueda decir de un vistazo qué logs vinieron de un shadow copy vs cuáles vinieron de la partición live:
 
 ```
 [+] Lateral movement events grouped by source (4 sources):
 
-      => [IMAGE]  HRServer_Disk0.e01  (45 events total)
-         - Security.evtx (32)
-         - Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx (13)
+      => [IMAGE]  HRServer_Disk0.e01  (4521 events total)
+         - Security.evtx (3220)
+         - Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx (134)
+         - Security.evtx (1095)  [VSS]
+         - Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx (72)  [VSS]
 
-      => [TRIAGE: Cortex XDR]  offline_collector_output_TESTHOST01_...zip  [host: TESTHOST01]  (834 events total)
+      => [TRIAGE: Cortex XDR]  triages/offline_collector_output_TESTHOST01_...zip  [host: TESTHOST01]  (834 events total)
          - Security.evtx (612)
          - Microsoft-Windows-WinRM%4Operational.evtx (89)
          - Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx (133)
 
-      => [TRIAGE: Velociraptor]  Collection-WIN-DC01-...zip  [host: WIN-DC01]  (4521 events total)
+      => [TRIAGE: Velociraptor]  triages/Collection-WIN-DC01-...zip  [host: WIN-DC01]  (4521 events total)
          - Security.evtx (4380)
          - Microsoft-Windows-WinRM%4Operational.evtx (141)
 
@@ -132,7 +134,9 @@ El desglose de fase 2 entonces agrupa por source label y renderiza cada grupo co
          - Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx (11)
 ```
 
-Cada evento está contabilizado. El analista puede leer este desglose y responder inmediatamente a preguntas como *"¿cuántos eventos WinRM vinieron del DC vs del triage de Cortex XDR?"* sin tener que hacer grep al CSV.
+**El tagging VSS es automático.** masstin detecta rutas `partition_<N>_vss_<M>/` en el árbol temporal de extracción y etiqueta las entradas correspondientes con un sufijo `[VSS]` (o `[VSS-0]`, `[VSS-1]` cuando coexisten múltiples snapshots de la misma imagen). Las entradas live no llevan anotación. Dentro de cada grupo `[IMAGE]`, los items se ordenan **live primero, luego por índice VSS**, así el analista lee "lo que el sistema tiene ahora" arriba y "lo que masstin recuperó de los snapshots" debajo como una sección bonus claramente demarcada. Esta es exactamente la historia forense que la feature de VSS recovery de masstin debería contar — la recuperación VSS es una de las features más valiosas del tool y el desglose tiene que sacarla en alto, no enterrarla bajo nombres de fichero duplicados visualmente idénticos.
+
+Cada evento está contabilizado. El analista puede leer este desglose y responder inmediatamente a preguntas como *"¿cuántos eventos WinRM vinieron de la partición live del DC vs de un shadow copy vs del triage de Cortex XDR?"* sin tener que hacer grep al CSV.
 
 ## Por qué tags ASCII en lugar de emoji
 
@@ -250,11 +254,11 @@ Las source labels son consistentes entre todas las actions, así que un run de `
          - secure (45)
          - wtmp (20)
 
-      => [TRIAGE: Velociraptor]  Collection-LINUX-DC01-2026-04-13T15_30_00Z.zip  [host: LINUX-DC01]  (1834 events total)
+      => [TRIAGE: Velociraptor]  triages/Collection-LINUX-DC01-2026-04-13T15_30_00Z.zip  [host: LINUX-DC01]  (1834 events total)
          - auth.log (1500)
          - audit.log (334)
 
-      => [TRIAGE: Cortex XDR]  offline_collector_output_WIN-DB01_2026-04-13_16-15-22.zip  [host: WIN-DB01]  (612 events total)
+      => [TRIAGE: Cortex XDR]  triages/offline_collector_output_WIN-DB01_2026-04-13_16-15-22.zip  [host: WIN-DB01]  (612 events total)
          - Security.evtx (480)
          - Microsoft-Windows-WinRM%4Operational.evtx (132)
 
@@ -263,6 +267,16 @@ Las source labels son consistentes entre todas las actions, así que un run de `
 ```
 
 Un comando, cuatro clases de fuente, cada evento atribuido.
+
+Después del summary, masstin imprime una hint **"Load into graph (pick one):"** con los comandos de Memgraph y Neo4j listos para copiar y pegar, con la ruta de salida canonicalizada a forma larga así no acabas con nombres cortos 8.3 tipo `C00PR~1.DES` filtrándose en la sugerencia:
+
+```
+        Load into graph (pick one):
+          Memgraph:  masstin -a load-memgraph -f C:/Users/c00pr/.../timeline.csv --database localhost:7687
+          Neo4j:     masstin -a load-neo4j   -f C:/Users/c00pr/.../timeline.csv --database bolt://localhost:7687 --user neo4j
+```
+
+Las dos alternativas mostradas juntas, las dos rutas en forma larga, sin necesidad de buscar la sintaxis de neo4j por separado.
 
 ## Qué viene a continuación
 
