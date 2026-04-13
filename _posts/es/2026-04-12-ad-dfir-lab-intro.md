@@ -65,7 +65,7 @@ Todo el proceso está automatizado con scripts y documentado paso a paso:
 | **Part 4** | [Crowning the Domain Controllers — AD, Forests and Trusts]({% post_url es/2026-04-13-ad-dfir-lab-part4-goad %}) | GOAD, dominios, forests, cross-trust |
 | **Part 5** | [The Smallfolk — Users, Groups and Vulnerabilities]({% post_url es/2026-04-13-ad-dfir-lab-part5-users-vulns %}) | Catálogo de usuarios, grupos, AS-REP, Kerberoast, ADCS, ACLs |
 | **Part 6** | [Ravens and Whispers — Audit Configuration]({% post_url es/2026-04-13-ad-dfir-lab-part6-audit %}) | Sysmon, audit policy, PowerShell logging, auditd |
-| **Part 7** | The Night King Rises — Kali as Attack Platform | Herramientas ofensivas, configuración |
+| **Part 7** | [The Night King Rises — Kali as Attack Platform]({% post_url es/2026-04-13-ad-dfir-lab-part7-kali %}) | Herramientas ofensivas, configuración, AS-REP roast test |
 | **Part 8** | A Day in the Realm — Generating Baseline Noise | Tráfico RDP, SMB, Kerberos, DNS realista |
 | **Part 9** | Fire and Blood — Attack Scenarios and Forensic Analysis | Ataques, exportar imágenes, analizar con masstin |
 
