@@ -217,6 +217,6 @@ El siguiente paso será generar el snapshot contrario: un AD con **un año de ac
 
 ---
 
-*Siguiente: Part 8 — A Day in the Realm: Generating Baseline Noise (próximamente)*
+*Siguiente: [Parte 7.5 — Mantener vivos los Siete Reinos: Licencias Eval y Longevidad del Laboratorio]({% post_url es/2026-04-13-ad-dfir-lab-part7-5-licenses %})*
 
 *Anterior: [Part 6 — Ravens and Whispers: Audit Configuration]({% post_url es/2026-04-13-ad-dfir-lab-part6-audit %})*
