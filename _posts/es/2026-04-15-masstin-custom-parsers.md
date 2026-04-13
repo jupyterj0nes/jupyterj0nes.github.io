@@ -244,6 +244,40 @@ Apunta la salida a cualquier pipeline compatible con masstin (Neo4j, Memgraph, e
 
 ---
 
+## Relacionado: filtrado de ruido para la timeline unificada
+
+En cuanto empiezas a meter logs de VPN / firewall / proxy en la timeline de masstin junto con EVTX de Windows y auth.log de Linux, el output combinado crece rápido — y mucho de lo que crece es ruido. Logons de servicio desde `LOCAL SYSTEM`, intentos de RDP fallidos donde la IP de origen no se capturó, brute force desde jumpboxes ruidosos, autenticaciones de red de machine accounts (`HOST$`), y demás.
+
+Masstin v0.12.0 incorpora cuatro flags de filtrado opt-in construidas sobre análisis real de CSVs de 178k eventos:
+
+- **`--ignore-local`** descarta registros sin información útil de origen. La regla se basa en una tabla de verdad: un registro se mantiene siempre que `src_ip` O `src_computer` tenga señal real (la IP manda — `MSTSC|<IP-real>` se queda, `MSTSC|-` se filtra). Captura IPs de loopback, literales `LOCAL`, logon_type 5/2 de Windows con origen vacío, self-reference sin IP, y placeholders de ruido (`MSTSC`, `default_value`).
+- **`--exclude-users <LIST>`** descarta registros cuyo campo de usuario matchea algún glob de la lista. Soporta match exacto, prefijo (`svc_*`), sufijo (`*$` para machine accounts), contains (`*admin*`), CSV inline y `@file.txt`.
+- **`--exclude-hosts <LIST>`** misma sintaxis, matchea `src_computer` / `dst_computer`. Útil para excluir jumpboxes y hosts de monitoring conocidos.
+- **`--exclude-ips <LIST>`** acepta IPs individuales, rangos CIDR (`10.0.0.0/8`, `fe80::/10`) y `@file.txt`. Crítico en casos multi-sede con docenas de subredes confiables.
+
+Combinado con `--dry-run` obtienes un reporte de estadísticas pre-vuelo que muestra exactamente cuántos registros eliminaría cada capa del filtro, desglosado por regla, sin escribir el CSV de salida. Eso te permite validar la decisión de filtrado antes de comprometerte a una corrida larga.
+
+Las cuatro flags aplican a todas las parser actions (`parse-windows`, `parse-linux`, `parse-image`, `parse-custom`, `parser-elastic`, `parse-cortex`, `parse-cortex-evtx-forensics`) y a `merge` — así que también puedes re-filtrar un CSV existente sin re-parsear la evidencia original.
+
+Medidas reales contra la timeline combinada del DefCon DFIR CTF 2018 (178k eventos de FileServer + HRServer + Desktop):
+
+```
+🧹 Filter summary:
+   Total records seen: 178,274
+   Total kept:         110,070 (61.7%)
+   Total filtered:     68,204 (38.3%)
+
+   --ignore-local:     68,204 (38.3%)
+      both_noise              67,703
+      self_reference             134
+      service_logon              306
+      interactive_logon           21
+      literal_LOCAL               39
+      loopback_ip                  1
+```
+
+Documentación completa en la [sección de filtrado del README](https://github.com/jupyterj0nes/masstin#noise-filtering---ignore-local-and---exclude-).
+
 ## Qué sigue
 
 - **Extractores v2.** JSON con selectores al estilo jq. Ya planificado.

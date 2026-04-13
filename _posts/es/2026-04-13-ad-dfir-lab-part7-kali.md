@@ -191,6 +191,25 @@ Este snapshot representa el estado del lab con:
 
 Es el baseline para **estudiar TTPs en aislamiento** — cuando lances un Kerberoast aquí, los eventos que veas en el Security.evtx son **únicamente** del Kerberoast. Sin interferencias.
 
+### Gotcha: el snapshot tiene que ser previo a cualquier test
+
+Mi primera versión de `clean-ad` estaba **contaminada**. ¿Por qué? Porque lo hice **después** del AS-REP roast de verificación. Ese ataque de test dejó un Event 4768 en el Security.evtx de DC02 con `brandon.stark` y tipo de cifrado `0x17` (RC4) — exactamente la firma de un AS-REP roast en los logs. En un snapshot supuestamente "limpio" eso es un problema: cualquier detección que construyas contra clean-ad detectaría un "ataque" que no era tal.
+
+Comprobación post-hoc:
+
+```powershell
+Get-WinEvent -FilterHashtable @{LogName="Security"; Id=4768} |
+    Where-Object { $_.Message -match "brandon.stark" } |
+    Select TimeCreated, Id
+# TimeCreated             Id
+# -----------             --
+# 4/13/2026 8:39:44 AM  4768   ← el test!
+```
+
+Solución: revertir las VMs Windows al snapshot anterior (`audit-configured`), dejar Kali intocada (su estado con tools instaladas es correcto), y retomar `clean-ad` con Windows limpios + Kali armado. ZFS snapshots por VM son independientes, así que podemos revertir solo algunas VMs y snapshottar diferentes estados en el mismo "punto lógico".
+
+**Regla**: cualquier acción que toque el dominio deja rastros en EVTX. Haz tus tests **antes** del snapshot target, no después.
+
 El siguiente paso será generar el snapshot contrario: un AD con **un año de actividad corporativa simulada** encima, donde los mismos ataques se esconden entre miles de eventos legítimos. Los dos snapshots servirán para casos de uso diferentes:
 
 - **`clean-ad`** → aprender cómo se ve cada TTP, desarrollar detecciones, demos didácticas
