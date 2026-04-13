@@ -64,8 +64,8 @@ The entire process is automated with scripts and documented step by step:
 | **Part 3** | [Beyond the Wall — pfSense, VLANs and Network Segmentation]({% post_url en/2026-04-12-ad-dfir-lab-part3-pfsense %}) | pfSense, VLAN 10/20, NAT, WireGuard |
 | **Part 4** | [Crowning the Domain Controllers — AD, Forests and Trusts]({% post_url en/2026-04-13-ad-dfir-lab-part4-goad %}) | GOAD, domains, forests, cross-trust |
 | **Part 5** | [The Smallfolk — Users, Groups and Vulnerabilities]({% post_url en/2026-04-13-ad-dfir-lab-part5-users-vulns %}) | Catalog of users, groups, AS-REP, Kerberoast, ADCS, ACLs |
-| **Part 6** | The Night King Rises — Kali as Attack Platform | Offensive tools, configuration |
-| **Part 7** | Ravens and Whispers — Audit Configuration | Sysmon, audit policy, PowerShell logging |
+| **Part 6** | [Ravens and Whispers — Audit Configuration]({% post_url en/2026-04-13-ad-dfir-lab-part6-audit %}) | Sysmon, audit policy, PowerShell logging, auditd |
+| **Part 7** | The Night King Rises — Kali as Attack Platform | Offensive tools, configuration |
 | **Part 8** | A Day in the Realm — Generating Baseline Noise | Realistic RDP, SMB, Kerberos, DNS traffic |
 | **Part 9** | Fire and Blood — Attack Scenarios and Forensic Analysis | Attacks, image export, analysis with masstin |
 
