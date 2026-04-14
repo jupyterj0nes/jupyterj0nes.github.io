@@ -127,9 +127,12 @@ RETURN path ORDER BY length(path) LIMIT 5
 | `parse-massive` | Como `parse-image` pero también incluye EVTX y logs sueltos de los directorios `-d` — útil cuando la evidencia es una mezcla de imágenes de disco y paquetes triage extraídos |
 | `carve-image` | **Último recurso.** Escanea el disco raw buscando chunks EVTX en espacio no asignado. Recupera eventos de movimiento lateral después de que logs + VSS hayan sido borrados. Usa `--carve-unalloc` para escanear solo espacio no asignado |
 | `parse-cortex-evtx-forensics` | Consulta la API de Cortex XDR para colecciones EVTX forenses de múltiples máquinas |
+| `parse-custom` | Parsea logs de texto arbitrarios (VPN, firewall, proxy, aplicación web) usando ficheros YAML de reglas. Trae tu propio formato de log — ver [parsers personalizados de masstin](/es/tools/masstin-custom-parsers/) |
 | `merge` | Combina múltiples CSVs en una única timeline cronológica |
 | `load-neo4j` | Sube la timeline a Neo4j para visualización en grafos |
 | `load-memgraph` | Sube la timeline a Memgraph para visualización en grafos en memoria |
+| `merge-neo4j-nodes` | Fusiona dos nodos `:host` del grafo después de cargar (por ejemplo, cuando una IP y un hostname no se unificaron automáticamente). No requiere APOC |
+| `merge-memgraph-nodes` | Igual que el anterior, para Memgraph. No requiere MAGE |
 
 ---
 
@@ -147,6 +150,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 | Logs de Linux | [Artefactos forenses de Linux](/es/artifacts/linux-forensic-artifacts/) |
 | Winlogbeat JSON | [Winlogbeat: artefactos en JSON](/es/artifacts/winlogbeat-elastic-artifacts/) |
 | Cortex XDR | [Cortex XDR: artefactos forenses](/es/artifacts/cortex-xdr-artifacts/) |
+| **Parsers personalizados (BYO logs)** | VPN, firewall, proxy, aplicación web — define tu propio formato de log con un fichero YAML de reglas y parséalo como cualquier otra fuente. [Parsers personalizados de masstin](/es/tools/masstin-custom-parsers/) |
 
 ### Formato de salida y funcionalidades avanzadas
 
@@ -156,6 +160,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 | Análisis de imágenes forenses y recuperación VSS | [Recuperando logs borrados desde VSS](/es/tools/masstin-vss-recovery/) |
 | User Access Logging (UAL) | [Historial de acceso a servidor desde bases de datos ESE](/es/tools/masstin-ual/) |
 | vshadow-rs — parser VSS en Rust puro | [vshadow-rs](/es/tools/vshadow-rs/) |
+| Detección de triages (KAPE / Velociraptor / Cortex) — reconocimiento automático de paquetes triage dentro de `parse-image` y `parse-massive` | [Detección de triages en masstin](/es/tools/masstin-triage-detection/) |
 
 ### Bases de datos graficas
 

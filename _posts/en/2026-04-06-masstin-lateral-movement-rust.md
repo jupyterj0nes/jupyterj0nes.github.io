@@ -127,9 +127,12 @@ RETURN path ORDER BY length(path) LIMIT 5
 | `parse-massive` | Like `parse-image` but also includes loose EVTX and log files from `-d` directories — use when evidence is a mix of disk images and extracted triage packages |
 | `carve-image` | **Last resort recovery.** Scans raw disk for EVTX chunks in unallocated space. Recovers lateral movement events after logs + VSS are deleted. Use `--carve-unalloc` for unallocated-only scan |
 | `parse-cortex-evtx-forensics` | Query Cortex XDR API for forensic EVTX collections across multiple machines |
+| `parse-custom` | Parse arbitrary text logs (VPN, firewall, proxy, web app) using YAML rule files. Bring your own log format — see [masstin custom parsers](/en/tools/masstin-custom-parsers/) |
 | `merge` | Combine multiple CSVs into a single chronological timeline |
 | `load-neo4j` | Upload timeline to Neo4j for graph visualization |
 | `load-memgraph` | Upload timeline to Memgraph for in-memory graph visualization |
+| `merge-neo4j-nodes` | Fuse two `:host` graph nodes after loading (e.g., when an IP and a hostname were not auto-unified). No APOC required |
+| `merge-memgraph-nodes` | Same as above, for Memgraph. No MAGE required |
 
 ---
 
@@ -147,6 +150,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 | Linux logs | [Linux forensic artifacts](/en/artifacts/linux-forensic-artifacts/) |
 | Winlogbeat JSON | [Winlogbeat artifacts](/en/artifacts/winlogbeat-elastic-artifacts/) |
 | Cortex XDR | [Cortex XDR artifacts](/en/artifacts/cortex-xdr-artifacts/) |
+| **Custom parsers (BYO logs)** | VPN, firewall, proxy, web app — define your own log format with a YAML rule file and parse it like any other source. [masstin custom parsers](/en/tools/masstin-custom-parsers/) |
 
 ### Output Format and Advanced Features
 
@@ -156,6 +160,7 @@ RETURN path ORDER BY length(path) LIMIT 5
 | Forensic image analysis and VSS recovery | [Recovering deleted logs from VSS](/en/tools/masstin-vss-recovery/) |
 | User Access Logging (UAL) | [Server access history from ESE databases](/en/tools/masstin-ual/) |
 | vshadow-rs — pure Rust VSS parser | [vshadow-rs](/en/tools/vshadow-rs/) |
+| Triage detection (KAPE / Velociraptor / Cortex) — automatic recognition of triage packages inside `parse-image` and `parse-massive` | [Triage detection in masstin](/en/tools/masstin-triage-detection/) |
 
 ### Graph Databases
 
