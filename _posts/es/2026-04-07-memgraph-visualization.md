@@ -214,7 +214,7 @@ MATCH (h1:host)-[r]->(h2:host)
 RETURN h1, r, h2
 ```
 
-![Grafo de movimiento lateral en Memgraph Lab](/assets/images/memgraph_output1.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+![Grafo de movimiento lateral en Memgraph Lab](/assets/images/memgraph_output1.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
 ### Filtrar por rango temporal
 
@@ -251,7 +251,7 @@ ORDER BY length(path)
 LIMIT 5
 ```
 
-![Reconstrucción de camino temporal en Memgraph Lab](/assets/images/memgraph_temporal_path.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+![Reconstrucción de camino temporal en Memgraph Lab](/assets/images/memgraph_temporal_path.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
 Para el catálogo completo de queries (filtrado por tipo de logon, cuentas de servicio, usuarios específicos, nodos más conectados), consulta el [artículo de Neo4j y Cypher](/es/tools/2026-04-07-neo4j-cypher-visualization/). Todas funcionan en Memgraph sustituyendo `datetime()` por `localDateTime()`.
 
@@ -278,7 +278,7 @@ Para guardarlo permanentemente y que sea el estilo por defecto en todas las quer
 3. Selecciona **Save locally**
 4. Activa **Default Graph Style** — esto aplicará el estilo automáticamente a todos los nuevos resultados de queries
 
-![Guardar estilo como defecto](/assets/images/memgraph_save_style.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+![Guardar estilo como defecto](/assets/images/memgraph_save_style.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
 ---
 

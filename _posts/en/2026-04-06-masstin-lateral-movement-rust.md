@@ -41,7 +41,7 @@ comments: true
 }
 </script>
 
-![Masstin Logo](/assets/images/masstin-logo.png){: style="display:block; margin: 0 auto 2rem; max-width: 100%; width: 600px;" }
+![Masstin Logo](/assets/images/masstin-logo.png){: style="display:block; margin: 0 auto 2rem; max-width: 100%; width: 600px;" loading="lazy"}
 
 ## The problem
 
@@ -117,7 +117,7 @@ masstin -a parse-windows -d /evidence/DC01 -d /evidence/SRV-FILE -o windows.csv
 masstin -a parse-linux -d /evidence/linux-triage/ -o linux.csv
 ```
 
-![Masstin CLI output](/assets/images/masstin_cli_output.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+![Masstin CLI output](/assets/images/masstin_cli_output.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
 ### Visualize in a graph database
 
@@ -129,7 +129,7 @@ masstin -a load-memgraph -f full-timeline.csv --database localhost:7687
 masstin -a load-neo4j -f full-timeline.csv --database localhost:7687 --user neo4j
 ```
 
-![Lateral movement graph in Memgraph Lab](/assets/images/memgraph_output1.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+![Lateral movement graph in Memgraph Lab](/assets/images/memgraph_output1.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
 ### Reconstruct the attacker's path
 
@@ -142,7 +142,7 @@ WHERE ALL(i IN range(0, size(relationships(path))-2)
 RETURN path ORDER BY length(path) LIMIT 5
 ```
 
-![Temporal path in Memgraph](/assets/images/memgraph_temporal_path.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+![Temporal path in Memgraph](/assets/images/memgraph_temporal_path.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
 ---
 

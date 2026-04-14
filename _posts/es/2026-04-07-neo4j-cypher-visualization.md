@@ -214,7 +214,7 @@ LIMIT 5
 
 Reemplaza los nombres de host de inicio y fin con los tuyos. El resultado muestra la progresión del atacante a través de la red, validada temporalmente:
 
-![Camino temporal mostrando la cadena del ataque](/assets/images/temporal_path.png)
+![Camino temporal mostrando la cadena del ataque](/assets/images/temporal_path.png){:loading="lazy"}
 
 ---
 

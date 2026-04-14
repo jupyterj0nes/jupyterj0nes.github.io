@@ -214,7 +214,7 @@ MATCH (h1:host)-[r]->(h2:host)
 RETURN h1, r, h2
 ```
 
-![Lateral movement graph in Memgraph Lab](/assets/images/memgraph_output1.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+![Lateral movement graph in Memgraph Lab](/assets/images/memgraph_output1.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
 ### Filter by time range
 
@@ -251,7 +251,7 @@ ORDER BY length(path)
 LIMIT 5
 ```
 
-![Temporal path reconstruction in Memgraph Lab](/assets/images/memgraph_temporal_path.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+![Temporal path reconstruction in Memgraph Lab](/assets/images/memgraph_temporal_path.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
 For the full query catalog (filtering by logon type, service accounts, specific users, most connected nodes), see the [Neo4j and Cypher article](/en/tools/2026-04-07-neo4j-cypher-visualization/). All of them work in Memgraph by replacing `datetime()` with `localDateTime()`.
 
@@ -278,7 +278,7 @@ To save it permanently and make it the default for all future queries:
 3. Select **Save locally**
 4. Enable **Default Graph Style** — this will automatically apply the style to all new query results
 
-![Save style as default](/assets/images/memgraph_save_style.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+![Save style as default](/assets/images/memgraph_save_style.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
 ---
 

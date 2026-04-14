@@ -38,7 +38,7 @@ La instalación dura unos 5 minutos via VNC. Te describo el proceso completo.
 
 Boot desde la ISO de pfSense (`pfSense-CE-2.7.2-RELEASE-amd64.iso`):
 
-![pfSense installer copyright notice](/assets/img/posts/ad-dfir-lab/pfsense-01-installer.png)
+![pfSense installer copyright notice](/assets/img/posts/ad-dfir-lab/pfsense-01-installer.png){:loading="lazy"}
 
 Enter para Accept.
 
@@ -46,13 +46,13 @@ Enter para Accept.
 
 Pasamos por el menú de instalación: Install → default keymap → **Auto (ZFS)** → Install → Stripe → seleccionar disco:
 
-![pfSense ZFS disk selection](/assets/img/posts/ad-dfir-lab/pfsense-02-zfs-disk.png)
+![pfSense ZFS disk selection](/assets/img/posts/ad-dfir-lab/pfsense-02-zfs-disk.png){:loading="lazy"}
 
 Espacio para marcar `da0`, Tab a OK, Enter.
 
 ### 3. Confirmar borrado
 
-![pfSense confirm wipe disk](/assets/img/posts/ad-dfir-lab/pfsense-03-confirm-wipe.png)
+![pfSense confirm wipe disk](/assets/img/posts/ad-dfir-lab/pfsense-03-confirm-wipe.png){:loading="lazy"}
 
 YES. El disco está vacío, no hay riesgo.
 
@@ -73,12 +73,12 @@ Sin esto, pfSense te pide reinstalar en cada boot. Es el mismo problema que vimo
 
 Tras el primer boot del sistema instalado, pfSense pregunta por la configuración de interfaces:
 
-![pfSense VLAN setup prompt](/assets/img/posts/ad-dfir-lab/pfsense-04-vlan-prompt.png)
+![pfSense VLAN setup prompt](/assets/img/posts/ad-dfir-lab/pfsense-04-vlan-prompt.png){:loading="lazy"}
 
 - "Should VLANs be set up now?" → **n** (no, las VLANs ya las maneja Proxmox a nivel de bridge)
 - "Enter the WAN interface name" → **vtnet0** (es nuestro `--net0` con `tag=10`)
 
-![pfSense WAN interface assignment](/assets/img/posts/ad-dfir-lab/pfsense-05-wan-interface.png)
+![pfSense WAN interface assignment](/assets/img/posts/ad-dfir-lab/pfsense-05-wan-interface.png){:loading="lazy"}
 
 - "Enter the LAN interface name" → **vtnet1** (nuestro `--net1` con `tag=20`)
 - Confirmar → **y**
@@ -87,7 +87,7 @@ Tras el primer boot del sistema instalado, pfSense pregunta por la configuració
 
 Llegamos al menú principal de pfSense:
 
-![pfSense console menu](/assets/img/posts/ad-dfir-lab/pfsense-06-console-menu.png)
+![pfSense console menu](/assets/img/posts/ad-dfir-lab/pfsense-06-console-menu.png){:loading="lazy"}
 
 Por defecto pfSense ha cogido DHCP en WAN (`192.168.10.50` del dnsmasq temporal de Proxmox) y la LAN está en `192.168.1.1`. Hay que cambiar ambas a las IPs del lab.
 
@@ -95,7 +95,7 @@ Por defecto pfSense ha cogido DHCP en WAN (`192.168.10.50` del dnsmasq temporal 
 
 Opción **2** (Set interface IP) → **1** (WAN) → **n** (no DHCP):
 
-![pfSense set IP](/assets/img/posts/ad-dfir-lab/pfsense-07-set-ip.png)
+![pfSense set IP](/assets/img/posts/ad-dfir-lab/pfsense-07-set-ip.png){:loading="lazy"}
 
 - IP: `192.168.10.2`
 - Subnet: `24`
@@ -104,7 +104,7 @@ Opción **2** (Set interface IP) → **1** (WAN) → **n** (no DHCP):
 - IPv6: `n`
 - DHCP server on WAN: `n` (las VMs Windows tienen IPs estáticas)
 
-![pfSense WAN config result](/assets/img/posts/ad-dfir-lab/pfsense-08-wan-config.png)
+![pfSense WAN config result](/assets/img/posts/ad-dfir-lab/pfsense-08-wan-config.png){:loading="lazy"}
 
 ### 8. Configurar IP estática LAN
 
@@ -119,7 +119,7 @@ Opción **2** otra vez → **2** (LAN) → **n**:
 
 ### 9. Estado final
 
-![pfSense final state](/assets/img/posts/ad-dfir-lab/pfsense-09-final-state.png)
+![pfSense final state](/assets/img/posts/ad-dfir-lab/pfsense-09-final-state.png){:loading="lazy"}
 
 ```
 WAN (vtnet0) → 192.168.10.2/24
@@ -261,7 +261,7 @@ mstsc /v:192.168.10.10          # RDP a DC01 (vagrant/vagrant)
 
 El certificado RDP confirma el hostname `kingslanding`:
 
-![RDP connection showing kingslanding hostname](/assets/img/posts/ad-dfir-lab/wg-rdp-success.png)
+![RDP connection showing kingslanding hostname](/assets/img/posts/ad-dfir-lab/wg-rdp-success.png){:loading="lazy"}
 
 A partir de aquí ya tienes una conexión "como si estuvieras dentro" de la red corporativa del lab.
 

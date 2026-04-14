@@ -214,7 +214,7 @@ LIMIT 5
 
 Replace the start and end host names with your own. The result shows the attacker's progression through the network, validated temporally:
 
-![Temporal path showing attack chain](/assets/images/temporal_path.png)
+![Temporal path showing attack chain](/assets/images/temporal_path.png){:loading="lazy"}
 
 ---
 
