@@ -244,7 +244,7 @@ masstin -a parse-linux -d /evidence/var/log/ -o timeline.csv
 masstin -a parse-linux -d /evidence/triage_package/ -o timeline.csv
 ```
 
-![Salida CLI de masstin parse-linux](/assets/images/masstin_cli_linux.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+![Salida CLI de masstin parse-linux](/assets/images/masstin_cli_linux.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
 Masstin reporta de forma transparente todas las inferencias: identificación del hostname (desde `/etc/hostname`, `dmesg` o la cabecera syslog), inferencia del año (desde `dpkg.log`, `wtmp` o fecha de modificación del fichero) y extracción de ZIPs protegidos con contraseña.
 

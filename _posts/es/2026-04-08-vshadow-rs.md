@@ -10,7 +10,7 @@ description: "Parser en Rust puro para snapshots de Volume Shadow Copy (VSS) de 
 comments: true
 ---
 
-![vshadow-rs logo](/assets/images/vshadow-rs-logo.png){: style="display:block; margin: 0 auto 2rem; max-width: 100%; width: 400px;" }
+![vshadow-rs logo](/assets/images/vshadow-rs-logo.png){: style="display:block; margin: 0 auto 2rem; max-width: 100%; width: 400px;" loading="lazy"}
 
 ## El problema
 
@@ -91,7 +91,7 @@ sudo vshadow-rs info -f /dev/sda2
 sudo vshadow-rs info -f /mnt/evidence
 ```
 
-<img src="/assets/images/vshadow-rs-volume.png" alt="vshadow-rs leyendo desde volumen montado C:" width="700">
+<img src="/assets/images/vshadow-rs-volume.png" alt="vshadow-rs leyendo desde volumen montado C:" width="700" loading="lazy">
 
 ### Listar: navegar ficheros en un store VSS o volumen activo
 
@@ -118,7 +118,7 @@ vshadow-rs list-delta -f evidence.E01 -p "Windows/System32/winevt/Logs"
 vshadow-rs list-delta -f evidence.E01 -o delta.csv
 ```
 
-<img src="/assets/images/vshadow-rs-list-delta.png" alt="vshadow-rs list-delta output" width="700">
+<img src="/assets/images/vshadow-rs-list-delta.png" alt="vshadow-rs list-delta output" width="700" loading="lazy">
 
 La salida muestra cada fichero modificado con su tamaño en el volumen activo vs. el store VSS, haciendo inmediatamente obvio cuándo los logs han sido borrados.
 

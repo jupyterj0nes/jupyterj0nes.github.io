@@ -10,7 +10,7 @@ description: "Pure Rust parser for Windows Volume Shadow Copy (VSS) snapshots. I
 comments: true
 ---
 
-![vshadow-rs logo](/assets/images/vshadow-rs-logo.png){: style="display:block; margin: 0 auto 2rem; max-width: 100%; width: 400px;" }
+![vshadow-rs logo](/assets/images/vshadow-rs-logo.png){: style="display:block; margin: 0 auto 2rem; max-width: 100%; width: 400px;" loading="lazy"}
 
 ## The problem
 
@@ -91,7 +91,7 @@ sudo vshadow-rs info -f /dev/sda2
 sudo vshadow-rs info -f /mnt/evidence
 ```
 
-<img src="/assets/images/vshadow-rs-volume.png" alt="vshadow-rs reading from mounted volume C:" width="700">
+<img src="/assets/images/vshadow-rs-volume.png" alt="vshadow-rs reading from mounted volume C:" width="700" loading="lazy">
 
 ### List: browse files in a VSS store or live volume
 
@@ -118,7 +118,7 @@ vshadow-rs list-delta -f evidence.E01 -p "Windows/System32/winevt/Logs"
 vshadow-rs list-delta -f evidence.E01 -o delta.csv
 ```
 
-<img src="/assets/images/vshadow-rs-list-delta.png" alt="vshadow-rs list-delta output" width="700">
+<img src="/assets/images/vshadow-rs-list-delta.png" alt="vshadow-rs list-delta output" width="700" loading="lazy">
 
 The output shows each changed file with its size on the live volume vs. the VSS store, making it immediately obvious when logs have been cleared.
 

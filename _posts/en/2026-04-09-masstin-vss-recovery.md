@@ -43,7 +43,7 @@ For each image, masstin:
 7. **Parses each source** with its native parser
 8. **Merges and deduplicates** into a single timeline
 
-![Masstin parse-image-windows output](/assets/images/masstin_cli_parse_image.png){: style="display:block; margin: 1rem auto; max-width: 100%;" }
+![Masstin parse-image-windows output](/assets/images/masstin_cli_parse_image.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
 ## Example
 
