@@ -62,6 +62,27 @@ Load data with:
 masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j
 ```
 
+### Loader options that change the graph shape
+
+| Flag | What it does |
+|------|--------------|
+| `--ungrouped` | Emit one edge per CSV row instead of collapsing identical `(src, user, dst, logon_type)` tuples into a single edge with a `count` property. Useful for narrow time windows where individual events matter — pair it with the time window flags below. |
+| `--start-time "YYYY-MM-DD HH:MM:SS"` | Drop rows whose `time_created` is earlier than this before building the graph. |
+| `--end-time "YYYY-MM-DD HH:MM:SS"` | Drop rows whose `time_created` is later than this. |
+
+Example — load every individual event during a 30-minute window:
+
+```bash
+masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j \
+        --ungrouped --start-time "2026-03-15 14:00:00" --end-time "2026-03-15 14:30:00"
+```
+
+### IP and hostname unification
+
+The same physical host often appears in different events as either an IP or a hostname. masstin builds an internal frequency map and resolves both to a single graph node automatically. Events `4778` (Session Reconnected) and `4779` (Session Disconnected) carry an **x1000 weight** in that map because Windows always populates both the workstation name and the IP reliably for those events — so a single 4778/4779 outweighs hundreds of conflicting normal events. External attacker IPs that have no matching session simply stay as IP nodes.
+
+If you discover post-hoc that two nodes are still the same machine — for example because there was no 4778/4779 evidence in your dataset — you can fuse them with the `merge-neo4j-nodes` action shown at the end of this article.
+
 ---
 
 ## Cypher Queries
@@ -194,3 +215,40 @@ LIMIT 5
 Replace the start and end host names with your own. The result shows the attacker's progression through the network, validated temporally:
 
 ![Temporal path showing attack chain](/assets/images/temporal_path.png)
+
+---
+
+## Post-load: merge two nodes that are the same physical host
+
+Sometimes the loader cannot tie an IP-shaped node to its hostname-shaped twin — typically because there were no `4778` or `4779` Security events in the dataset to act as authoritative evidence. masstin ships with a `merge-neo4j-nodes` action that fuses both nodes into one, transferring every relationship from the old node to the new one, preserving relationship type and properties, and then deleting the orphan node. **It does not require APOC.**
+
+```bash
+masstin -a merge-neo4j-nodes \
+        --database bolt://localhost:7687 --user neo4j \
+        --old-node "10.0.0.10" --new-node "WORKSTATION-A"
+```
+
+Internally, masstin introspects the relationship types touching the old node and runs one transfer query per type — because vanilla Cypher does not allow dynamic relationship types in `CREATE`, and masstin produces one type per `target_user_name`. If you prefer to run the Cypher manually for a single type `:RELTYPE`, the pattern is:
+
+```cypher
+// Outgoing edges of one specific type
+MATCH (new:host {name:'WORKSTATION-A'})
+WITH new
+MATCH (old:host {name:'10.0.0.10'})-[r:RELTYPE]->(target)
+CREATE (new)-[nr:RELTYPE]->(target)
+SET nr = properties(r)
+DELETE r;
+
+// Incoming edges of the same type
+MATCH (new:host {name:'WORKSTATION-A'})
+WITH new
+MATCH (source)-[r:RELTYPE]->(old:host {name:'10.0.0.10'})
+CREATE (source)-[nr:RELTYPE]->(new)
+SET nr = properties(r)
+DELETE r;
+
+// Delete the orphan node once all of its edges are gone
+MATCH (old:host {name:'10.0.0.10'}) DELETE old;
+```
+
+If you have APOC installed, the equivalent one-liner is `CALL apoc.refactor.mergeNodes([new, old], {properties:'combine', mergeRels:false})`. The masstin action covers the case where APOC is not available, which is most fresh installs.
