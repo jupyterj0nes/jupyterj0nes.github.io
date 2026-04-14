@@ -144,7 +144,26 @@ masstin -a load-memgraph -f timeline.csv --database localhost:7687
 
 By default, Memgraph has no authentication enabled. If you've configured credentials on your instance, use the corresponding parameters. But for a quick analysis deployment, the default configuration is all you need.
 
-Masstin preserves original values from the evidence. Node names and properties are stored without transformation. Only relationship types (user accounts) are normalized to valid Cypher identifiers (uppercase, underscores, `@domain` stripped). See the [Neo4j article](/en/tools/2026-04-07-neo4j-cypher-visualization/) for details.
+Masstin preserves original values from the evidence. Node names and properties are stored without transformation. Only relationship types (user accounts) are normalized to valid Cypher identifiers (uppercase, underscores, `@domain` stripped, any non-alphanumeric character replaced — including the trailing `$` of machine accounts). See the [Neo4j article](/en/tools/2026-04-07-neo4j-cypher-visualization/) for details.
+
+### Loader options that change the graph shape
+
+| Flag | What it does |
+|------|--------------|
+| `--ungrouped` | Emit one edge per CSV row instead of collapsing identical `(src, user, dst, logon_type)` tuples into a single edge with a `count` property. Useful for narrow time windows where individual events matter — pair it with the time window flags below. |
+| `--start-time "YYYY-MM-DD HH:MM:SS"` | Drop rows whose `time_created` is earlier than this before building the graph. |
+| `--end-time "YYYY-MM-DD HH:MM:SS"` | Drop rows whose `time_created` is later than this. |
+
+```bash
+masstin -a load-memgraph -f timeline.csv --database localhost:7687 \
+        --ungrouped --start-time "2026-03-15 14:00:00" --end-time "2026-03-15 14:30:00"
+```
+
+### IP and hostname unification
+
+The same physical host often appears in different events as either an IP or a hostname. Both loaders build an internal frequency map and resolve them to a single graph node automatically. Events `4778` (Session Reconnected) and `4779` (Session Disconnected) carry an **x1000 weight** in that map because Windows always populates both the workstation name and the IP reliably for those events — so a single 4778/4779 outweighs hundreds of conflicting normal events. External attacker IPs that have no matching session simply stay as IP nodes.
+
+If after loading you still see duplicates, see the `merge-memgraph-nodes` action at the end of this article.
 
 ---
 
@@ -274,6 +293,43 @@ To save it permanently and make it the default for all future queries:
 | **License** | Open source | Community / Enterprise |
 
 For quick analysis during an incident, Memgraph is the most practical option. If you need a persistent environment for extended investigations, Neo4j may be more suitable.
+
+---
+
+## Post-load: merge two nodes that are the same physical host
+
+Sometimes the loader cannot tie an IP-shaped node to its hostname-shaped twin — typically because there were no `4778` or `4779` Security events in the dataset to act as authoritative evidence. masstin ships with a `merge-memgraph-nodes` action that fuses both nodes into one, transferring every relationship from the old node to the new one, preserving relationship type and properties, and then deleting the orphan node. **It does not require the MAGE module.**
+
+```bash
+masstin -a merge-memgraph-nodes \
+        --database localhost:7687 \
+        --old-node "10.0.0.10" --new-node "WORKSTATION-A"
+```
+
+Internally, masstin introspects the relationship types touching the old node and runs one transfer query per type — because vanilla Cypher does not allow dynamic relationship types in `CREATE`, and masstin produces one type per `target_user_name`. If you prefer to run the Cypher manually for a single type `:RELTYPE`, the pattern is:
+
+```cypher
+// Outgoing edges of one specific type
+MATCH (new:host {name:'WORKSTATION-A'})
+WITH new
+MATCH (old:host {name:'10.0.0.10'})-[r:RELTYPE]->(target)
+CREATE (new)-[nr:RELTYPE]->(target)
+SET nr = properties(r)
+DELETE r;
+
+// Incoming edges of the same type
+MATCH (new:host {name:'WORKSTATION-A'})
+WITH new
+MATCH (source)-[r:RELTYPE]->(old:host {name:'10.0.0.10'})
+CREATE (source)-[nr:RELTYPE]->(new)
+SET nr = properties(r)
+DELETE r;
+
+// Delete the orphan node once all of its edges are gone
+MATCH (old:host {name:'10.0.0.10'}) DELETE old;
+```
+
+If you have the MAGE `merge` module installed, `CALL merge.nodes([new, old]) YIELD merged` does the same thing in one statement. The masstin action covers the case where MAGE is not available.
 
 ---
 

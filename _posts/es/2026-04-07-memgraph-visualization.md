@@ -144,7 +144,26 @@ masstin -a load-memgraph -f timeline.csv --database localhost:7687
 
 Por defecto, Memgraph no tiene autenticación habilitada. Si has configurado credenciales en tu instancia, usa los parámetros correspondientes. Pero para un despliegue rápido de análisis, la configuración por defecto es todo lo que necesitas.
 
-Masstin preserva los valores originales de la evidencia. Los nombres de nodos y propiedades se almacenan sin transformación. Solo los tipos de relación (cuentas de usuario) se normalizan a identificadores Cypher válidos (mayúsculas, guiones bajos, eliminar `@dominio`). Consulta el [artículo de Neo4j](/es/tools/2026-04-07-neo4j-cypher-visualization/) para más detalles.
+Masstin preserva los valores originales de la evidencia. Los nombres de nodos y propiedades se almacenan sin transformación. Solo los tipos de relación (cuentas de usuario) se normalizan a identificadores Cypher válidos (mayúsculas, guiones bajos, eliminar `@dominio`, sustituir cualquier carácter no alfanumérico — incluyendo el `$` final de las cuentas de máquina). Consulta el [artículo de Neo4j](/es/tools/2026-04-07-neo4j-cypher-visualization/) para más detalles.
+
+### Opciones del cargador que cambian la forma del grafo
+
+| Flag | Qué hace |
+|------|----------|
+| `--ungrouped` | Emite una arista por cada fila del CSV en lugar de colapsar las tuplas idénticas `(src, user, dst, logon_type)` en una sola arista con la propiedad `count`. Útil para ventanas de tiempo estrechas donde te interesa cada evento individual — combínalo con los flags de ventana temporal de abajo. |
+| `--start-time "YYYY-MM-DD HH:MM:SS"` | Descarta las filas cuyo `time_created` sea anterior a este momento antes de construir el grafo. |
+| `--end-time "YYYY-MM-DD HH:MM:SS"` | Descarta las filas cuyo `time_created` sea posterior a este momento. |
+
+```bash
+masstin -a load-memgraph -f timeline.csv --database localhost:7687 \
+        --ungrouped --start-time "2026-03-15 14:00:00" --end-time "2026-03-15 14:30:00"
+```
+
+### Unificación de IP y nombre de host
+
+Un mismo equipo físico aparece con frecuencia en distintos eventos, unas veces como IP y otras como hostname. Ambos cargadores construyen internamente un mapa de frecuencias y los resuelven a un único nodo del grafo de forma automática. Los eventos `4778` (Sesión Reconectada) y `4779` (Sesión Desconectada) reciben un **peso x1000** en ese mapa porque Windows siempre rellena de forma fiable tanto el nombre de la estación como la IP en esos eventos — así que un solo 4778/4779 pesa más que cientos de eventos normales que pudieran contradecirlo. Las IPs externas de atacantes que no tienen sesión asociada simplemente se quedan como nodos IP.
+
+Si después de cargar todavía ves duplicados, mira la acción `merge-memgraph-nodes` al final de este artículo.
 
 ---
 
@@ -274,6 +293,43 @@ Para guardarlo permanentemente y que sea el estilo por defecto en todas las quer
 | **Licencia** | Open source | Community / Enterprise |
 
 Para análisis rápido durante un incidente, Memgraph es la opción más práctica. Si necesitas un entorno persistente para investigaciones prolongadas, Neo4j puede ser más adecuado.
+
+---
+
+## Post-carga: fusionar dos nodos que son el mismo equipo físico
+
+A veces el cargador no logra atar un nodo en forma de IP con su gemelo en forma de hostname — normalmente porque el dataset no contenía eventos `4778` o `4779` de Security que actúen como evidencia autoritativa. masstin incluye una acción `merge-memgraph-nodes` que fusiona ambos nodos en uno, transfiriendo cada relación del nodo viejo al nuevo, preservando el tipo de relación y sus propiedades, y borrando después el nodo huérfano. **No requiere el módulo MAGE.**
+
+```bash
+masstin -a merge-memgraph-nodes \
+        --database localhost:7687 \
+        --old-node "10.0.0.10" --new-node "WORKSTATION-A"
+```
+
+Internamente, masstin descubre los tipos de relación que tocan al nodo viejo y ejecuta una query de transferencia por cada tipo — porque Cypher vanilla **no permite tipos de relación dinámicos** en `CREATE`, y masstin produce un tipo por cada `target_user_name`. Si prefieres ejecutar el Cypher a mano para un tipo concreto `:RELTYPE`, el patrón es:
+
+```cypher
+// Aristas SALIENTES de un tipo concreto
+MATCH (new:host {name:'WORKSTATION-A'})
+WITH new
+MATCH (old:host {name:'10.0.0.10'})-[r:RELTYPE]->(target)
+CREATE (new)-[nr:RELTYPE]->(target)
+SET nr = properties(r)
+DELETE r;
+
+// Aristas ENTRANTES del mismo tipo
+MATCH (new:host {name:'WORKSTATION-A'})
+WITH new
+MATCH (source)-[r:RELTYPE]->(old:host {name:'10.0.0.10'})
+CREATE (source)-[nr:RELTYPE]->(new)
+SET nr = properties(r)
+DELETE r;
+
+// Borrar el nodo huérfano una vez que ya no tiene aristas
+MATCH (old:host {name:'10.0.0.10'}) DELETE old;
+```
+
+Si tienes el módulo `merge` de MAGE instalado, `CALL merge.nodes([new, old]) YIELD merged` hace lo mismo en una sola sentencia. La acción de masstin cubre el caso en que MAGE no está disponible.
 
 ---
 
