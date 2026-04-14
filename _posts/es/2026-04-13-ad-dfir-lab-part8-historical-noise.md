@@ -491,9 +491,52 @@ Tras la regeneración, el corpus forense completo vive en siete VMs abarcando 20
 - **Cada DC del forest replicando todos los días** — ningún silencio sospechoso
 - **Cada evento narrativo** (contratación, despido, promoción, maternidad, jubilación) reflejado en el event log con precisión diaria
 
+## El problema del gap y el catchup rolling
+
+Un snapshot estático de 2 años termina en el día X. El tiempo real sigue avanzando. Si vuelves a lanzar un ataque dos semanas después, el timeline forense muestra dos semanas de silencio entre el último evento narrativo y el primer evento del ataque. Eso es feo — y cuanto más esperas, más feo se pone. A seis meses, el gap se come cualquier cosa que produzca el ataque.
+
+La solución es un catchup rolling: cuando el tiempo real avanza, extender la narrativa hacia delante por esos días extra para que el "último día" del dataset sea siempre "ayer". Dos decisiones de diseño importaron aquí.
+
+**Primera: no tocar el snapshot pristine.** `noisy-ad-2years` se queda congelado para siempre como la baseline de referencia. Un segundo snapshot `noisy-ad-current` vive encima y es reemplazado por el catchup en cada ejecución. Si `noisy-ad-current` se corrompe, la siguiente pasada del cron lo recrea desde el estado pristine. Si en algún momento quieres resetear todo el lab a "snapshot de 2 años recién sacado de fábrica", haces rollback a `noisy-ad-2years` y el cron reconstruye `noisy-ad-current` en su próximo tick.
+
+```
+clean-ad → pre-noise → noisy-ad-2years → noisy-ad-current
+                       ↑ nunca se toca   ↑ actualizado diariamente
+```
+
+**Segunda: phase10 se niega a correr con un override parcial.** El primer test del script de catchup murió con un bug de parseo de fechas que dejó una de las flags de override vacía. Sin red de seguridad, phase10 habría silenciosamente caído de vuelta al `start_date: 2024-04-13` por defecto, reconstruyendo el plan completo de 2 años desde cero e iterando 8 horas de rounds ya generados (escribiendo nuevos eventos 4616 de clock-change por el camino, contaminando el dataset). Eso pasó de verdad durante unos minutos antes de que lo matara, y me costó un rollback + reconstrucción de snapshot recuperarme. Tras ese incidente hice que `phase10.py` se niegue explícitamente a correr si `--extend-from` y `--extend-to` no vienen juntos, o si falta `--state-dir` cuando vienen.
+
+La confianza es cara; el hard-fail es barato.
+
+El script de catchup en sí es un wrapper bash de ~100 líneas que:
+
+1. Consulta el marker más reciente en SRV02 para averiguar el último día narrado
+2. Calcula "ayer UTC" como objetivo
+3. Si hay gap, llama a `phase10.py` en modo ephemeral (`--state-dir /tmp/...`) con el rango de fechas exacto
+4. Reemplaza el snapshot `noisy-ad-current` con el nuevo estado
+5. Loguea todo en `/var/log/lab-catchup.log`
+
+La programación es **una vez al día a las 03:00 UTC** vía `/etc/cron.d/lab-catchup`. Fuera de horas para el operador (05:00 CEST), y después de medianoche UTC para que "ayer" sea un día completo. La mayoría de ejecuciones generan exactamente 1 día de ruido en unos 90 segundos. Si el cron ha estado caído una semana, la siguiente ejecución genera 7 días en una sola invocación — idempotente y reanudable, la misma maquinaria que el run original completo.
+
+**Comportamiento de Telegram**: silencio en éxito. Solo dispara pings cuando algo falla. Eso mantiene limpio el inbox de notificaciones y garantiza que cualquier mensaje significa "algo necesita atención ahora". Para verificar que el cron está vivo día a día:
+
+```bash
+tail -20 /var/log/lab-catchup.log
+/root/lab/scripts/lab-catchup-status.sh    # resumen del gap, últimas ejecuciones
+```
+
+**Trigger manual** para cuando estás a punto de lanzar una sesión de ataque y quieres un gap de cero días:
+
+```bash
+ssh root@hetzner
+/root/lab/scripts/lab-catchup.sh    # idempotente, ~3s si no hay nada que recuperar
+```
+
+Espera a que termine (éxito silencioso, o error por Telegram si falla), luego haces rollback de los VMs a `noisy-ad-current` para descartar cualquier drift del live state antes de lanzar Kali contra ellos. Los eventos del ataque caen un día después de la última entrada narrativa: un timeline forense continuo sin gap visible de recolección.
+
 ## Lo que viene
 
-El scaffolding está completo, el dataset está validado, y el snapshot `noisy-ad-2years` está sentado en cada VM listo para uso.
+El scaffolding está completo, el dataset está validado, y el par de snapshots `noisy-ad-2years` + `noisy-ad-current` está listo para usarse.
 
 **Matiz importante**: esto sigue siendo actividad stub. Cada tupla (persona, round) escribe un único fichero marker y una línea en heartbeat.log. Eso es suficiente para probar que el scaffolding funciona end-to-end Y para generar el ruido de fondo Sysmon/Security que Windows produce de forma natural cuando un proceso corre bajo el nombre de una persona. Pero NO es aún actividad realista a nivel de aplicación — jon.snow no abre documentos Word de verdad, samwell.tarly no hace push de commits git de verdad, y no hay historial de Chrome poblándose. Esos hooks son lo que cubrirá la Parte 9. La arquitectura es de lo que va la Parte 8.
 

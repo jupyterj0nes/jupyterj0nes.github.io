@@ -491,9 +491,52 @@ After the regeneration, the complete forensic corpus sits on seven VMs spanning 
 - **Every DC in the forest replicating every single day** — no suspicious silences
 - **Every narrative event** (hire, fire, promotion, maternity, retirement) reflected in the event log with day-level accuracy
 
+## The gap problem and the rolling catchup
+
+A static 2-year snapshot ends on day X. Real time keeps moving. If you come back to run an attack two weeks later, the forensic timeline shows two weeks of silence between the last narrative event and the first attack event. That's ugly — and the longer you wait, the uglier it gets. At six months, the gap dwarfs anything the attack itself produces.
+
+The fix is a rolling catchup: whenever real time advances, extend the narrative forward by those extra days so the dataset's "last day" is always "yesterday". Two design decisions mattered here.
+
+**First: don't touch the pristine snapshot.** `noisy-ad-2years` stays frozen forever as the reference baseline. A second snapshot `noisy-ad-current` sits on top of it and gets replaced by the catchup each run. If `noisy-ad-current` ever gets corrupted, the next cron run recreates it from the pristine state. If you ever want to reset the whole lab to "factory new 2-year snapshot", you roll back to `noisy-ad-2years` and the cron rebuilds `noisy-ad-current` on its next tick.
+
+```
+clean-ad → pre-noise → noisy-ad-2years → noisy-ad-current
+                       ↑ never touched   ↑ updated daily
+```
+
+**Second: phase10 refuses to run with a partial override.** The first test run of the catchup script died with a date-parsing bug that left one of the override flags empty. Without a safety net, phase10 would have silently fallen back to the default `start_date: 2024-04-13`, rebuilding the full 2-year plan from scratch and iterating 8 hours of already-done rounds (writing fresh 4616 clock-change events along the way, polluting the dataset). That actually happened for a few minutes before I killed it, and it took a rollback + snapshot rebuild to recover. After that incident I made `phase10.py` explicitly refuse to run if `--extend-from` and `--extend-to` aren't provided together, or if `--state-dir` is missing when they are.
+
+Trust is expensive; hard-fail is cheap.
+
+The catchup script itself is a ~100-line bash wrapper that:
+
+1. Queries the newest marker on SRV02 to figure out the last narrated day
+2. Computes "yesterday UTC" as the target
+3. If there's a gap, calls `phase10.py` in ephemeral mode (`--state-dir /tmp/...`) with the exact date range
+4. Replaces the `noisy-ad-current` snapshot with the new state
+5. Logs everything to `/var/log/lab-catchup.log`
+
+Scheduling is **once a day at 03:00 UTC** via `/etc/cron.d/lab-catchup`. Off-hours for the operator (05:00 CEST), and past UTC midnight so "yesterday" is a complete day. Runs most days generate exactly 1 day of noise in about 90 seconds. If the cron has been down for a week, the next run generates 7 days in a single invocation — idempotent and resumable, same machinery as the original full run.
+
+**Telegram behaviour**: silent on success. Pings only when something fails. That keeps the notification inbox clean and guarantees that any message means "something needs attention now". To verify the cron is alive day-to-day:
+
+```bash
+tail -20 /var/log/lab-catchup.log
+/root/lab/scripts/lab-catchup-status.sh    # gap summary, recent runs
+```
+
+**Manual trigger** for when you're about to run an attack session and want a zero-day gap:
+
+```bash
+ssh root@hetzner
+/root/lab/scripts/lab-catchup.sh    # idempotent, ~3s if nothing to catch up
+```
+
+Wait for it to finish (silent success, or Telegram error if it failed), then roll back the VMs to `noisy-ad-current` to discard any live-state drift before launching Kali at them. Attack events land one day after the last narrative entry: a continuous forensic timeline with no visible collection gap.
+
 ## What's next
 
-The scaffolding is complete, the dataset is validated, and the `noisy-ad-2years` snapshot is sitting on every VM ready for use.
+The scaffolding is complete, the dataset is validated, and the `noisy-ad-2years` + `noisy-ad-current` snapshot pair is ready for use.
 
 **Important caveat**: this is still stub activity. Each (persona, round) tuple writes a single marker file and a heartbeat log line. That's enough to prove the scaffolding works end-to-end AND to generate the background Sysmon/Security noise that Windows itself produces when a process runs under a persona's name. But it's not yet realistic *application-level* activity — jon.snow doesn't actually open Word documents, samwell.tarly doesn't actually push git commits, and there's no Chrome history being populated. Those hooks are what Part 9 will cover. The architecture is what Part 8 is about.
 
