@@ -8,3 +8,20 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 {% seo %}
 {% feed_meta %}
+
+{%- comment -%}
+  hreflang alternates: when a post has a `ref:` field, find the post with
+  the same ref in the other language and emit the rel="alternate" hreflang
+  links so Google indexes them as language variants of the same page
+  instead of duplicates. Also emit x-default pointing to the Spanish
+  version (the site default_lang).
+{%- endcomment -%}
+{%- if page.ref -%}
+  {%- assign alternates = site.posts | where: "ref", page.ref -%}
+  {%- for alt in alternates -%}
+    <link rel="alternate" hreflang="{{ alt.lang }}" href="{{ alt.url | absolute_url }}">
+    {%- if alt.lang == site.default_lang %}
+    <link rel="alternate" hreflang="x-default" href="{{ alt.url | absolute_url }}">
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}

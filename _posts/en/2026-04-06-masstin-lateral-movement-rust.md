@@ -10,6 +10,37 @@ description: "Masstin is a Rust-based DFIR tool that parses forensic artifacts a
 comments: true
 ---
 
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "masstin",
+  "alternateName": "Masstin",
+  "description": "Masstin is a Rust-based DFIR tool that parses Windows EVTX, Linux logs, UAL databases, Cortex XDR exports, custom logs and forensic disk images (E01/dd/VMDK including streamOptimized) into a unified lateral movement timeline, with Neo4j and Memgraph graph visualization.",
+  "url": "https://weinvestigateanything.com/en/tools/masstin-lateral-movement-rust/",
+  "downloadUrl": "https://github.com/jupyterj0nes/masstin/releases/latest",
+  "softwareVersion": "0.13.0",
+  "applicationCategory": "SecurityApplication",
+  "applicationSubCategory": "Digital Forensics and Incident Response",
+  "operatingSystem": "Windows, Linux, macOS",
+  "programmingLanguage": "Rust",
+  "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+  "codeRepository": "https://github.com/jupyterj0nes/masstin",
+  "author": {
+    "@type": "Person",
+    "name": "Toño Díaz",
+    "url": "https://github.com/jupyterj0nes",
+    "sameAs": "https://www.linkedin.com/in/antoniodiazcastano/"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "keywords": "DFIR, lateral movement, EVTX, UAL, VSS, Neo4j, Memgraph, Velociraptor, KAPE, Cortex XDR, incident response, digital forensics, Rust, EVTX carving, BitLocker, Windows Security events, 4624, 4778, 4779"
+}
+</script>
+
 ![Masstin Logo](/assets/images/masstin-logo.png){: style="display:block; margin: 0 auto 2rem; max-width: 100%; width: 600px;" }
 
 ## The problem
