@@ -6,7 +6,7 @@ category: cases
 lang: es
 ref: case-ad-dfir-lab-part8
 tags: [dfir, lab, active-directory, forensics, python, proxmox]
-description: "Dos años de actividad corporativa sintética sobre un AD limpio, usando viaje hacia atrás en el reloj, un planner día-como-iteración, calendario español con vacaciones y eventos narrativos, y un traspié brutal con wlms.exe de Windows que apagó tres VMs a mitad del run."
+description: "Dos años de actividad corporativa sintética sobre un AD limpio, usando viaje hacia atrás en el reloj, un planner día-como-iteración, calendario español con vacaciones y eventos narrativos, tres traspiés brutales (wlms.exe shutdown, drift del reloj Linux, personas nocturnas invisibles), y una regeneración final cubriendo 7 VMs en 3 dominios."
 comments: true
 ---
 
@@ -280,13 +280,224 @@ Antes incluso del crash de wlms, había sacado pruebas forenses exhaustivas de q
 
 Y el control negativo: DC02, DC03, SRV03 y LNX01 (que no tenían personas asignadas esos 5 días) tuvieron **cero** eventos en la ventana 2024. El orchestrator es quirúrgico — toca exactamente lo que el plan dice y nada más.
 
+## El primer run completo
+
+Con wlms desactivado, el snapshot `pre-noise` re-tomado, y las 6 personas iniciales sobre 4 VMs tocadas, lancé el run completo otra vez en tmux. Acabó limpio en **7h 34m** para los 730 días:
+
+```
+progress:           730/730 days done, 0 in-progress, 0 pending
+failures logged:    0
+rounds:             1683 / 1683
+participants:       8024 / 8024
+```
+
+Markers por VM tras el primer run completo:
+
+| VM | Markers | Personas |
+|---|---:|---|
+| 101 DC01 | 1,683 | system.replication |
+| 103 SRV02 | 4,126 | system.backup + tyron + catelyn + stannis |
+| 106 WS01 | 1,167 | jon.snow (solo workdays) |
+| 107 LNX01 | 1,048 | samwell.tarly + arya.stark |
+| 102 DC02 | 0 | *(sin tocar)* |
+| 104 DC03 | 0 | *(sin tocar)* |
+| 105 SRV03 | 0 | *(sin tocar)* |
+
+Ese "0" en las tres últimas filas es donde mi propia revisión de mi propio laboratorio cazó una laguna real. Te explico.
+
+## El segundo problema: tres DCs silenciosos
+
+Mirando el dataset terminado, me di cuenta de algo que cualquier instructor razonable de DFIR pillaría en cinco minutos:
+
+> "Espera — DC02 es el domain controller del dominio hijo `north.sevenkingdoms.local`. En AD real, los DCs de child domains replican con el padre cada 15 minutos por defecto, y cualquier usuario autenticándose contra ese child domain genera tráfico Kerberos en ese DC. Un DC de child domain entero con cero eventos en dos años es forensicamente imposible."
+
+La misma historia para DC03 (el DC del segundo forest `essos.local`) y SRV03 (la Certificate Authority ADCS — los certificados de CA se renuevan en background, y como mínimo ves una publicación de CRL diaria). Un dataset donde esos tres servidores están totalmente muertos es un dataset que un investigador entrenado marcaría como sintético en el momento en que lo abre.
+
+La causa raíz no era un bug — era mi roster de personas. Había construido el set inicial de validación alrededor de "un representante de cada categoría de rol": un DC raíz, un file server, una workstation, un host Linux. Eso es una validación **mecánica** sólida (¿funciona el orchestrator end-to-end?) pero deja la topología del forest GOAD a medio poblar. Los otros tres VMs no se tocaban porque ninguna persona había sido definida para tocarlos.
+
+Arreglar esto requería tres cosas.
+
+**Primero, el modelo de persona tenía que soportar targeting multi-VM explícito.** El modelo viejo tenía un campo `workstation` por persona humana más un fallback hardcodeado a SRV02. Eso vale para un usuario centralizado de workstation pero está mal para una persona que "se autentica contra el DC del norte" — que no tiene workstation en absoluto, solo un DC. Añadí un nuevo campo lista `touches_vms`:
+
+```yaml
+- id: brandon.stark
+  role: Junior Developer (north)
+  touches_vms: [102]             # autentica contra DC02
+  schedule: {start: 9, end: 17}
+  workdays: [mon, tue, wed, thu, fri]
+```
+
+Y cambié `day_planner.py` para iterar `persona.target_vm_set()` (una unión de `workstation` + `linux_host` + `touches_vms`) en lugar de la lógica vieja campo-a-campo.
+
+**Segundo, el roster de personas tenía que crecer para cubrir los tres dominios.** El set final son 11 humanas (desde 6) más 5 system personas (desde 2), distribuidas entre los tres dominios:
+
+| Dominio | DC | Personas nuevas |
+|--------|----|-----------------|
+| sevenkingdoms.local (root) | 101 | (las 6 existentes) |
+| north.sevenkingdoms.local (child) | 102 | brandon.stark, robb.stark |
+| essos.local (segundo forest) | 104 | daenerys.targaryen, viserys.targaryen, khal.drogo |
+
+Más tres system personas nuevas para garantizar que ningún DC se queda callado:
+
+```yaml
+- id: system.replication.north
+  target_vm: 102
+  always: true
+
+- id: system.replication.essos
+  target_vm: 104
+  always: true
+
+- id: system.adcs
+  target_vm: 105                       # SRV03 CA, CRL nocturna
+  always: true
+```
+
+**Tercero, los eventos narrativos había que asignarlos también a las nuevas personas.** Si no, las nuevas filas serían solo ruido plano, no historias. Añadí:
+
+- **viserys.targaryen** (board member de essos) — part-time L/X/V, `active_to: 2025-06-30`. El analista debería poder pinpoint "cuándo se jubiló viserys".
+- **khal.drogo** (sales de essos) — `active_from: 2024-06-01`. Contratación a mitad de ventana como samwell, pero del lado essos.
+- **robb.stark** y **brandon.stark** (north) — horarios tipo sevenkingdoms con vacaciones.
+
+## El tercer problema: personas nocturnas invisibles
+
+Aprovechando que tenía el modelo de personas abierto, arreglé también una limitación que ya había anotado antes. arya.stark se suponía que era una junior dev nocturna (22:00–02:00) hasta su promoción el 2025-10-16, tras la cual pasa a turno de día 10:00–19:00. En el primer run completo, su era pre-promoción tenía **cero eventos** en el dataset. ¿Por qué? Porque los round hours del perfil `workday_normal` eran `[9, 13, 17]`, y ninguno cae en la ventana nocturna 22–02. El planner correctamente nunca la seleccionaba.
+
+Forensicamente esto significaba que arya aparecía como "una usuaria que salió de la nada el 2025-10-16", no como "una trabajadora nocturna que fue promocionada". Narrativa rota.
+
+Fix: añadir un cuarto round a las 23:xx a cada perfil `workday_*`:
+
+```yaml
+workday_normal:
+  rounds: 4                          # antes 3
+  round_hours: [9, 13, 17, 23]       # añadido round nocturno
+```
+
+Ahora los rounds pre-promoción de arya caen dentro de su ventana de turno nocturno. Las demás personas no se ven afectadas porque no están activas a las 23:xx. Coste: un round extra por workday = ~432 rounds extra en todo el run, un incremento modesto de ~30% en runtime de workdays.
+
+## El cuarto problema: Linux atascado en fecha falsa tras el restore
+
+El primer run completo acabó con todos los VMs Windows de vuelta a tiempo real — `w32tm /resync` funcionó. Pero LNX01 mostraba `2026-04-13 07:46` cuando el UTC real era `23:57` — atascado 16 horas por detrás de lo real. Eso alarma: ¿falló el restore?
+
+Corriendo `timedatectl` dentro del guest reveló la causa raíz al momento:
+
+```
+Local time:            Mon 2026-04-13 07:46:13 UTC
+Universal time:        Mon 2026-04-13 07:46:13 UTC
+RTC time:              Mon 2026-04-13 23:57:31      ← reloj hardware CORRECTO
+System clock synchronized: no
+```
+
+El **RTC** estaba bien — había sido tiempo real durante todo el run, porque KVM pasa el reloj del host a través del RTC hardware emulado independientemente de lo que hagamos con `date -s`. Pero el **system clock del kernel Linux** estaba atascado en cualquier fecha falsa que hubiéramos seteado por última vez, porque `systemd-timesyncd` todavía no había contactado con su servidor NTP upstream (la red tardó en levantarse, quizás una ventana de firewall, quizás el pool por defecto era inalcanzable).
+
+El fix es trivialmente una línea: forzar la sincronización del system clock desde el RTC antes de tocar el daemon NTP:
+
+```bash
+hwclock --hctosys 2>/dev/null || true
+# ... luego arranca systemd-timesyncd / chrony
+```
+
+Añadido a `LNX_RESTORE_SH` en `clock_control.py`. Idempotente, independiente de la red, siempre correcto porque el RTC siempre es correcto.
+
+## Regenerando el dataset — siete VMs, tres dominios
+
+Con los tres fixes commiteados (modelo touches_vms + round nocturno + restore hwclock), borré el snapshot antiguo `noisy-ad-2years`, rollback de los siete VMs a `pre-noise`, reseteé el checkpoint, y lancé el run completo otra vez.
+
+El plan nuevo:
+
+```
+days:              730
+rounds:            2132          (antes 1683, +27% por el round nocturno)
+participants:      21521         (antes 8024, +168% por 7 VMs + 5 personas extra)
+VMs touched:       7 / 7
+domains covered:   sevenkingdoms + north + essos
+```
+
+Runtime total: **8h 32m** (vs 7h 34m del primer run). Los 58 min extra son el coste de cubrir tres VMs más — menos de lo esperado porque el paralelismo escala bien: dentro de cada round, todos los VMs tocados corren en worker threads en paralelo, así que añadir más VMs no multiplica el wall time linealmente.
+
+## Verificación forense — la batería per-VM
+
+Una vez terminó el segundo run, escribí un script `phase10-verify.py` que consulta artefactos forenses nativos en cada VM y los compara contra expectativas. No auto-checks de heartbeat — Windows Event Log real, metadata NTFS, scan de Prefetch. El tipo de cosas que un investigador haría el día uno.
+
+Resultados clave por VM:
+
+**VM 101 DC01-kingslanding** (DC raíz sevenkingdoms, `system.replication` + acceso admin de jon.snow):
+- 3,333 markers (2,132 system + 1,201 jon.snow)
+- Sysmon: **216,188** eventos
+- Event 4616 (System time changed): **4,280** ← la firma del clock travel
+- Primer marker: 2024-04-13, último: 2026-04-12 ✓
+
+**VM 102 DC02-winterfell** (DC child north, antes 0 markers):
+- 4,243 markers (2,132 system + 929 brandon + 1,182 robb)
+- Sysmon: **254,684** eventos
+- Firma 4616: **4,277** (antes eran 23, puro baseline de NTP)
+
+**VM 103 SRV02-castelblack** (la más pesada, 4 humanas + system.backup):
+- 4,636 markers
+- Sysmon: **268,903**
+- Checks narrativos todos exactos:
+  - último evento de stannis.baratheon: **2025-09-15** (fecha exacta de su salida)
+  - markers de catelyn.stark durante maternidad 2025-04-20 → 2025-10-14: **0**
+  - último de catelyn pre-maternidad: 2025-04-17 ✓
+  - primero de catelyn post-maternidad: 2025-10-16 ✓
+
+**VM 104 DC03-meereen** (DC forest essos, antes 0 markers):
+- 4,573 markers (2,132 system + 1,313 daenerys + 174 viserys + 954 khal)
+- Sysmon: **231,066**
+- Checks narrativos exactos:
+  - primer evento de khal.drogo: **2024-06-03** (primer lunes tras su hire 2024-06-01 sábado)
+  - último evento de viserys.targaryen: **2025-06-30** (fecha exacta de su jubilación)
+
+**VM 105 SRV03-braavos** (ADCS, antes 0 markers):
+- 2,132 markers (= total rounds, exacto — system.adcs dispara en cada round)
+- Sysmon: **139,098**
+- Security: **264,086**
+- 4616: **4,282**
+
+**VM 106 WS01-highgarden** (workstation de jon.snow):
+- 1,201 markers, todos jon.snow
+- Histograma día-de-semana: Lun 238, Mar 250, Mié 237, Jue 242, Vie 234, **Sáb 0, Dom 0** ← patrón workday-only perfecto
+- Sysmon: 88,957 | Security: 150,596
+- Ficheros Prefetch .pf con LastWrite en la ventana fake: **120** (Win10 tiene Prefetch habilitado, artefacto NTFS natural)
+
+**VM 107 LNX01** (samwell + arya):
+- 1,403 markers (823 samwell + 580 arya)
+- primer evento de samwell: **2024-09-02** (primer lunes tras su hire 2024-09-01 domingo)
+- **arya markers pre-promoción: 330** ← el fix del round nocturno funcionando
+- arya markers post-promoción: 250
+- **horas de arya pre-promoción: `['00', '22', '23']`** ← solo horas de turno nocturno
+- horas de arya post-promoción: `['10', '11', '12', '13', '14', '16', '17', '18']` ← solo horas de turno de día
+
+Las diez aserciones narrativas que prueban que la historia aguanta:
+
+1. ✅ samwell.tarly contratado 2024-09-01 → primer evento **2024-09-02** (primer lunes)
+2. ✅ khal.drogo contratado 2024-06-01 → primer evento **2024-06-03** (primer lunes)
+3. ✅ viserys.targaryen jubilado 2025-06-30 → último evento **2025-06-30** exacto
+4. ✅ catelyn.stark maternidad 2025-04-20 → 0 eventos en la ventana → primer post-evento **2025-10-16**
+5. ✅ stannis.baratheon se fue 2025-09-15 → último evento **2025-09-15** exacto
+6. ✅ arya.stark promocionada 2025-10-16 → turno cambia de 22-00 a 10-18 en esa fecha exacta
+7. ✅ jon.snow solo workdays → 0 eventos Sáb/Dom en 730 días
+8. ✅ Los tres DCs (101/102/104) tienen 4k+ de 4616 (firma clock travel)
+9. ✅ Los tres DCs tienen 2,132 markers de system.replication = total rounds
+10. ✅ SRV03 ADCS tiene exactamente 2,132 markers de system.adcs (uno por round, CRL nocturna)
+
+## Cómo queda el dataset ahora
+
+Tras la regeneración, el corpus forense completo vive en siete VMs abarcando 2024-04-13 hasta 2026-04-12:
+
+- **~1.3 millones de eventos EVTX** backdateados entre Sysmon, Security, PowerShell y System log en los seis VMs Windows
+- **~120 ficheros Prefetch `.pf` naturales** en WS01 con LastWrite en la ventana fake
+- **21,521 ficheros sentinel marker** con NTFS CreationTimeUtc en la ventana fake, parseables per-persona
+- **Cada DC del forest replicando todos los días** — ningún silencio sospechoso
+- **Cada evento narrativo** (contratación, despido, promoción, maternidad, jubilación) reflejado en el event log con precisión diaria
+
 ## Lo que viene
 
-El run completo está en progreso mientras escribo esto. Cuando acabe, el snapshot `noisy-ad-2years` se tomará, NTP se restaurará en cada VM, y un ✅ final llegará a Telegram.
+El scaffolding está completo, el dataset está validado, y el snapshot `noisy-ad-2years` está sentado en cada VM listo para uso.
 
-**Matiz importante**: esta primera pasada usa actividades stub. Cada tupla (persona, round) escribe un único fichero marker y una línea en heartbeat.log. Eso es suficiente para probar que el scaffolding funciona end-to-end con calendar/personas/planner/checkpoint/paralelismo, pero NO es aún actividad realista persona-driven — jon.snow no abre documentos Word de verdad, samwell.tarly no hace push de commits git de verdad, y no hay historial de Chrome poblándose. Esos hooks son lo que cubrirá la Parte 9. La arquitectura es de lo que va la Parte 8.
+**Matiz importante**: esto sigue siendo actividad stub. Cada tupla (persona, round) escribe un único fichero marker y una línea en heartbeat.log. Eso es suficiente para probar que el scaffolding funciona end-to-end Y para generar el ruido de fondo Sysmon/Security que Windows produce de forma natural cuando un proceso corre bajo el nombre de una persona. Pero NO es aún actividad realista a nivel de aplicación — jon.snow no abre documentos Word de verdad, samwell.tarly no hace push de commits git de verdad, y no hay historial de Chrome poblándose. Esos hooks son lo que cubrirá la Parte 9. La arquitectura es de lo que va la Parte 8.
 
-La buena noticia: la infraestructura que acabamos de construir significa que añadir actividad real de persona es *solo* una reescritura de `lib/activities.py`. El bucle diario, el paralelismo, el checkpoint, el viaje en reloj, el calendario español, el workaround de wlms y las alertas Telegram están hechos y son reutilizables.
+La buena noticia: la infraestructura que acabamos de construir significa que añadir actividad real de persona es *solo* una reescritura de `lib/activities.py`. El bucle diario, el paralelismo, el checkpoint, el viaje en reloj, el calendario español, el modelo de personas tri-dominio, el workaround de wlms, el restore de hwclock, el soporte de turno nocturno, las alertas Telegram y la verificación forense per-VM están hechos y son reutilizables.
 
 ---
 
