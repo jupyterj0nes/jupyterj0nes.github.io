@@ -17,7 +17,7 @@ A ransomware incident hits your network. You receive a folder full of forensic i
 **Masstin's `parse-image` does it all in one command.** It auto-detects the operating system of every partition inside every image and applies the right parser automatically:
 
 - **NTFS partition detected?** → Extracts EVTX + UAL from the live volume, recovers deleted logs from VSS snapshots, deduplicates
-- **ext4 partition detected?** → Extracts auth.log, secure, messages, audit.log, wtmp, btmp, lastlog, infers hostname and year
+- **ext4 partition detected?** → Extracts auth.log, secure, messages, audit.log, wtmp, btmp, lastlog, **systemd-journald binary logs** (`/var/log/journal/<machine-id>/*.journal[~]` — essential on SSSD + Active Directory hosts), infers hostname and year
 
 All results are merged into a **single chronological CSV** — Windows RDP logons and Linux SSH sessions side by side.
 
