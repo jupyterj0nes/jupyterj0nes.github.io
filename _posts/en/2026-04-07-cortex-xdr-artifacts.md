@@ -23,15 +23,17 @@ Palo Alto Cortex XDR is an EDR/XDR platform that provides visibility into endpoi
 
 ### What It Captures
 
-Cortex XDR agents record network connections established by processes on each endpoint. For lateral movement, the most relevant ports are:
+Cortex XDR agents record network connections established by processes on each endpoint. For lateral movement, the default admin port set masstin queries is:
 
 | Port | Protocol | Relevance |
 |:----:|----------|-----------|
+| 22   | SSH | Remote access to servers |
+| 445  | SMB | Share access, PsExec |
 | 3389 | RDP | Remote Desktop sessions |
-| 445 | SMB | Share access, PsExec, WMI |
-| 22 | SSH | Remote access to servers |
+| 5985 | WinRM (HTTP)  | PowerShell Remoting |
+| 5986 | WinRM (HTTPS) | PowerShell Remoting |
 
-Masstin queries the Cortex XDR API for network connection data on these ports, extracting information about which machines connected to each other, when, and through which protocols.
+`--admin-ports` widens the set further to include 135 (RPC), 139 (NetBIOS), 1433 (MSSQL), 3306 (MySQL) and 5900 (VNC) for broader pivot visibility. `--ignore-local` pushes loopback/link-local/self-connection filtering server-side so less data has to traverse the stream, and `--start-time`/`--end-time` over wide windows auto-paginate via time bisection when an individual window hits the 1M API cap.
 
 ### What Information You Get
 
@@ -63,6 +65,8 @@ Masstin queries the Cortex XDR API directly, filters connections to ports releva
 
 Cortex XDR allows deploying **forensic collection agents** to endpoints during an investigation. These are lightweight agents that are temporarily installed on target machines to collect forensic artifacts -- including Windows Event Log (EVTX) files -- and send them to the Cortex XDR cloud for analysis.
 
+The same backing dataset (`forensics_event_log`) also receives logs uploaded by the **Cortex XDR offline collector**, so triage packages gathered from air-gapped or unreachable hosts and pushed into the tenant are queried through the exact same path as those collected remotely by the forensic agent.
+
 Forensic collection agents are especially useful when:
 
 - You don't have direct access to the compromised machines
@@ -72,14 +76,19 @@ Forensic collection agents are especially useful when:
 
 ### What Logs They Collect
 
-The forensic collection agents capture Windows Event Logs from the endpoints, including the logs most relevant to lateral movement:
+Masstin's query covers the full lateral-movement event set from `parse-windows`, across ten Windows Event Log providers:
 
-- **Security.evtx** -- logons, authentication, Kerberos, NTLM
-- **TerminalServices-LocalSessionManager** -- RDP sessions
-- **SMBServer/Security** and **SMBClient/Security** -- SMB connections
-- **System.evtx** -- remote service installation
+- **Security** -- logons (4624/4625/4648), logoffs (4634/4647), Kerberos (4768/4769/4770/4771), NTLM (4776), session reconnect/disconnect (4778/4779), network share access (5140)
+- **TerminalServices-LocalSessionManager/Operational** -- RDP session lifecycle (21, 22, 24, 25)
+- **TerminalServices-RemoteConnectionManager/Operational** -- incoming RDP connections (1149)
+- **TerminalServices-RDPClient/Operational** -- outgoing RDP (1024, 1102)
+- **RemoteDesktopServices-RdpCoreTS/Operational** -- RDP transport (131)
+- **SMBServer/Security** -- SMB server-side logons (1009, 551)
+- **SmbClient/Security** and **SMBClient/Connectivity** -- SMB client (31001, 30803-30808)
+- **WinRM/Operational** -- PowerShell Remoting session init (6)
+- **WMI-Activity/Operational** -- remote WMI (5858)
 
-Once collected, these logs are available in the Cortex XDR platform and can be queried.
+The regex extraction against the localized `message` field ships with English, Spanish, German, French and Italian keyword variants and auto-paginates via time window bisection if a single query saturates the 1M API cap.
 
 ### How Masstin Retrieves This Data
 
@@ -99,9 +108,9 @@ Masstin queries the logs collected by the forensic agents and extracts lateral m
 
 | Aspect | Network Connections | EVTX Forensics |
 |--------|-------------------|----------------|
-| **Data source** | Network events captured by Cortex agents | EVTX logs collected by forensic agents |
-| **What it provides** | Connections by process to key ports | Full Windows Event Log events |
-| **Ports/Event IDs** | 3389, 445, 22 | 4624, 4625, 4648, 21, 22, 7045, etc. |
+| **Data source** | Network events captured by Cortex agents | EVTX logs collected by the forensic agent or uploaded by the offline collector |
+| **What it provides** | Connections by process to admin ports | Full Windows Event Log events |
+| **Ports/Event IDs** | 22, 445, 3389, 5985, 5986 by default; `--admin-ports` adds 135, 139, 1433, 3306, 5900 | 32 event IDs across 10 providers (Security, TS-LSM/RCM/RDPClient/RdpCoreTS, SMB Server/Client/Connectivity, WinRM, WMI-Activity) |
 | **Masstin action** | `parse-cortex` | `parse-cortex-evtx-forensics` |
 | **When to use** | Complement EVTX with endpoint network data | When you lack direct access to EVTX files |
 
