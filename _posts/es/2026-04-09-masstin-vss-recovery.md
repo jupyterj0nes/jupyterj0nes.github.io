@@ -17,7 +17,7 @@ Un incidente de ransomware golpea tu red. Recibes una carpeta llena de imágenes
 **El comando `parse-image` de masstin lo hace todo en un solo paso.** Auto-detecta el sistema operativo de cada partición dentro de cada imagen y aplica el parser correcto automáticamente:
 
 - **¿Partición NTFS detectada?** → Extrae EVTX + UAL del volumen activo, recupera logs borrados de snapshots VSS, deduplica
-- **¿Partición ext4 detectada?** → Extrae auth.log, secure, messages, audit.log, wtmp, btmp, lastlog, infiere hostname y año
+- **¿Partición ext4 detectada?** → Extrae auth.log, secure, messages, audit.log, wtmp, btmp, lastlog, **logs binarios de systemd-journald** (`/var/log/journal/<machine-id>/*.journal[~]` — esenciales en hosts SSSD + Active Directory), infiere hostname y año
 
 Todos los resultados se fusionan en un **único CSV cronológico** — logons RDP de Windows y sesiones SSH de Linux lado a lado.
 

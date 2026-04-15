@@ -5,8 +5,8 @@ date: 2026-04-07 11:00:00 +0100
 category: artifacts
 lang: es
 ref: artifact-linux-logs
-tags: [linux, ssh, lateral-movement, dfir, masstin, logs, utmp, wtmp, btmp, audit]
-description: "Guía forense de artefactos Linux para detectar movimiento lateral: /var/log/secure, audit.log, utmp/wtmp/btmp y lastlog para reconstruir sesiones SSH y accesos remotos."
+tags: [linux, ssh, lateral-movement, dfir, masstin, logs, utmp, wtmp, btmp, audit, systemd-journal, sssd, active-directory]
+description: "Guía forense de artefactos Linux para detectar movimiento lateral: /var/log/secure, auth.log, audit.log, logs binarios de systemd-journald (esenciales en hosts SSSD + AD), utmp/wtmp/btmp y lastlog."
 comments: true
 ---
 
@@ -218,13 +218,69 @@ www-data                                   **Never logged in**
 
 ---
 
+## Logs binarios de systemd-journald — la mitad que falta en el Linux moderno
+
+En Ubuntu 18+, Debian 11+, RHEL 8+ y en cualquier distribución donde **SSSD esté enrolado en Active Directory**, `/var/log/auth.log` suele estar casi vacío. No es un problema de retención ni de rotación, es por diseño: `systemd-journald` captura la corriente de eventos y o bien `rsyslog`/`syslog-ng` no reenvía los eventos SSH al fichero de texto, o simplemente no está instalado. El registro real de SSH vive en el journal binario bajo:
+
+```
+/var/log/journal/<machine-id>/system.journal
+/var/log/journal/<machine-id>/system@<secuencia>.journal
+/var/log/journal/<machine-id>/system@<secuencia>.journal~   # archivado (rotado)
+```
+
+Cada fichero `.journal` es una base de datos binaria:
+- **Cabecera + arena** de `OBJECT_DATA` (campos tipo `MESSAGE=`, `_COMM=sshd`, `_HOSTNAME=`, `_UID=0`) y `OBJECT_ENTRY` (una entrada de log que referencia un conjunto de data objects).
+- **Modo compacto** (versiones recientes de `journalctl`) usa offsets de 4 bytes en lugar de 8 bytes + hash, para ocupar menos.
+- **Payloads comprimidos con zstd** para campos `MESSAGE` grandes (es el default en Ubuntu 22+).
+
+Los campos que importan para análisis forense de movimiento lateral:
+
+| Campo | Qué contiene |
+|-------|--------------|
+| `_COMM` | Nombre del comando — `sshd`, `sudo`, `systemd`, etc. Filtrar por `sshd` corta el ruido rápido. |
+| `SYSLOG_IDENTIFIER` | Identificador estilo syslog, normalmente igual a `_COMM` para servicios simples. |
+| `MESSAGE` | La línea de log real — p.ej. `Accepted publickey for ubuntu from 192.168.10.1 port 41764 ssh2` |
+| `_HOSTNAME` | Host que emitió el evento. Útil cuando has agregado journals de varias máquinas. |
+| `_PID` | PID del sshd de la sesión. |
+| `__REALTIME_TIMESTAMP` | Microsegundos desde epoch Unix — siempre presente, siempre preciso. |
+
+Lo bonito es que **la línea de log dentro de `MESSAGE` es textualmente idéntica a la que verías en `auth.log`** en una configuración clásica de syslog:
+
+```
+Accepted publickey for ubuntu from 192.168.10.1 port 41764 ssh2: RSA SHA256:/uCIzrTZ...
+Failed password for invalid user test from 203.0.113.9 port 43112 ssh2
+```
+
+Por tanto, las mismas regex que matchean `/var/log/auth.log` también matchean el `MESSAGE` de los ficheros `.journal` — solo hace falta un lector que sepa recorrer el formato binario y entregarte la cadena `MESSAGE`.
+
+### Por qué esto importa en Linux enrolado en dominio
+
+En un servidor Ubuntu unido a un dominio Active Directory vía SSSD (`realmd join`, `adcli`...), la imagen típica que ve el analista es esta:
+
+```
+$ cat /var/log/auth.log | grep sshd
+(vacío — o como mucho unos pocos mensajes de systemd-logind sobre seats)
+
+$ sudo journalctl -u ssh --since "-30d" | grep Accepted
+Apr 12 18:20:44 LNX01-oldtown sshd[2134]: Accepted publickey for ubuntu from 192.168.10.1 port 41764 ssh2
+Apr 12 18:20:53 LNX01-oldtown sshd[2141]: Accepted publickey for ubuntu from 192.168.10.1 port 57200 ssh2
+...
+```
+
+Si extraes `/var/log/auth.log` de una imagen forense ext4 y lo parseas con una herramienta clásica, concluirás "aquí no pasó nada" — y te perderás el 100% de la evidencia de movimiento lateral. Cualquier pipeline de DFIR que ignore el journal binario en Linux moderno tiene un punto ciego del tamaño de toda la huella SSH.
+
+Masstin gestiona esto de forma nativa: lee directamente los ficheros `.journal` y `.journal~`, decodifica el modo compacto y los data objects comprimidos con zstd, filtra por `_COMM=sshd` y aplica las mismas regex `Accepted (password|publickey)` / `Failed password` que usa sobre logs de texto. La implementación es **Rust puro** — sin binding a `libsystemd` — con lo cual también funciona cuando analizas evidencia Linux desde una **workstation DFIR con Windows**.
+
+---
+
 ## Tabla resumen de artefactos Linux
 
 | Artefacto | Ubicación | Formato | Qué registra | Herramienta de lectura |
 |-----------|-----------|---------|--------------|----------------------|
-| secure / auth.log | `/var/log/secure` o `/var/log/auth.log` | Texto | Autenticación SSH (éxitos, fallos, conexiones) | `cat`, `grep` |
+| auth.log / secure | `/var/log/auth.log` (Debian/Ubuntu) o `/var/log/secure` (RHEL) | Texto | Autenticación SSH (éxitos, fallos, conexiones) — **a menudo vacío en hosts SSSD + AD** | `cat`, `grep` |
 | messages | `/var/log/messages` | Texto | Eventos del sistema, PAM, systemd | `cat`, `grep` |
-| audit.log | `/var/log/audit/audit.log` | Texto estructurado | Auditoría detallada de autenticación | `ausearch`, `aureport` |
+| audit.log | `/var/log/audit/audit.log` | Texto estructurado | `USER_LOGIN` / `USER_AUTH` / `USER_START` — auditoría detallada, señal SSH primaria en Ubuntu + SSSD | `ausearch`, `aureport` |
+| **systemd-journald** | `/var/log/journal/<machine-id>/*.journal[~]` | **Binario (comprimido con zstd)** | Todos los eventos sshd en distros modernas (Ubuntu 18+, RHEL 8+, Debian 11+) — el registro real de SSH cuando `auth.log` está vacío | `journalctl --file`, masstin |
 | utmp | `/var/run/utmp` | Binario | Sesiones activas | `who`, `w` |
 | wtmp | `/var/log/wtmp` | Binario | Historial de logon/logout | `last` |
 | btmp | `/var/log/btmp` | Binario | Logons fallidos | `lastb` |
@@ -234,7 +290,7 @@ www-data                                   **Never logged in**
 
 ## Cómo masstin parsea artefactos Linux
 
-[Masstin](/es/tools/masstin-lateral-movement-rust/) soporta el parseo de logs de autenticación Linux, extrayendo logons exitosos y fallidos de `/var/log/secure` (y `/var/log/auth.log`), y los normaliza en el mismo formato CSV que utiliza para los artefactos Windows.
+[Masstin](/es/tools/masstin-lateral-movement-rust/) soporta el parseo de logs de autenticación Linux — ficheros de texto (`/var/log/auth.log`, `/var/log/secure`, `/var/log/audit/audit.log`), accounting binario (`utmp`/`wtmp`/`btmp`/`lastlog`) **y los logs binarios de systemd-journald** bajo `/var/log/journal/` — y normaliza cada evento al mismo formato CSV que utiliza para los artefactos Windows.
 
 ```bash
 # Directorio con logs extraidos
@@ -256,11 +312,13 @@ Esto permite crear timelines de movimiento lateral que cruzan las fronteras de s
 
 Los logs de Linux difieren según la distribución, pero masstin los maneja de forma transparente:
 
-| Distribución | Fichero de log | Formato |
-|-------------|----------------|---------|
-| **Debian, Ubuntu** | `/var/log/auth.log` | RFC3164 (syslog legacy) |
+| Distribución | Fuente principal | Formato |
+|-------------|------------------|---------|
+| **Debian, Ubuntu** (rsyslog clásico) | `/var/log/auth.log` | RFC3164 (syslog legacy) |
 | **RHEL, CentOS, Fedora, Rocky** | `/var/log/secure` | RFC3164 (syslog legacy) |
-| **Cualquiera (export journal systemd)** | Variable | RFC5424 (syslog estructurado) |
+| **Cualquiera (rsyslog estructurado)** | Variable | RFC5424 |
+| **Ubuntu 18+ / Debian 11+ / RHEL 8+** (stock, sin rsyslog) | `/var/log/journal/<id>/*.journal[~]` | **Binario (comprimido con zstd)** — parseado directamente |
+| **SSSD + Active Directory (Ubuntu 22, RHEL 9)** | `/var/log/journal/` + `/var/log/audit/audit.log` | Binario + texto estructurado |
 
 ### Formatos de timestamp
 
