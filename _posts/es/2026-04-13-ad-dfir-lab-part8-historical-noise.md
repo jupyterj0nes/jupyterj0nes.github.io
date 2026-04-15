@@ -544,6 +544,6 @@ La buena noticia: la infraestructura que acabamos de construir significa que añ
 
 ---
 
-*Siguiente: Parte 9 — Fuego y Sangre: Escenarios de Ataque y Análisis Forense (próximamente)*
+*Siguiente: [Parte 9 — Recolectando la Evidencia: Pipeline de Imagen Forense]({% post_url es/2026-04-15-ad-dfir-lab-part9-forensic-imaging %})*
 
 *Anterior: [Parte 7.5 — Mantener vivos los Siete Reinos: Licencias Eval y Longevidad del Laboratorio]({% post_url es/2026-04-13-ad-dfir-lab-part7-5-licenses %})*

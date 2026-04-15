@@ -544,6 +544,6 @@ The good news: the infrastructure we just built means adding real persona activi
 
 ---
 
-*Next: Part 9 — Fire and Blood: Attack Scenarios and Forensic Analysis (coming soon)*
+*Next: [Part 9 — Collecting the Evidence: Forensic Imaging Pipeline]({% post_url en/2026-04-15-ad-dfir-lab-part9-forensic-imaging %})*
 
 *Previous: [Part 7.5 — Keeping the Kingdoms Alive: Eval Licenses and Lab Longevity]({% post_url en/2026-04-13-ad-dfir-lab-part7-5-licenses %})*

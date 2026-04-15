@@ -68,6 +68,7 @@ Todo el proceso está automatizado con scripts y documentado paso a paso:
 | **Part 7** | [The Night King Rises — Kali as Attack Platform]({% post_url es/2026-04-13-ad-dfir-lab-part7-kali %}) | Herramientas ofensivas, configuración, AS-REP roast test |
 | **Part 7.5** | [Mantener vivos los Siete Reinos — Licencias Eval y Longevidad del Laboratorio]({% post_url es/2026-04-13-ad-dfir-lab-part7-5-licenses %}) | Test empírico de eval wall-clock, límites de rearm, alertas Telegram |
 | **Part 8** | [Un Día en el Reino — Generando Dos Años de Ruido Histórico]({% post_url es/2026-04-13-ad-dfir-lab-part8-historical-noise %}) | Día-como-iteración, calendario español, personas, viaje en reloj paralelo, traspié con wlms |
+| **Part 9** | [Recolectando la Evidencia — Pipeline de Imagen Forense]({% post_url es/2026-04-15-ad-dfir-lab-part9-forensic-imaging %}) | Clones ZFS, dd + zstd streaming por SSH, benchmark real 52m 42GB |
 | **Part 9** | Fire and Blood — Attack Scenarios and Forensic Analysis | Ataques, exportar imágenes, analizar con masstin |
 
 ## Coste
