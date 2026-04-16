@@ -173,19 +173,18 @@ A second chunk caused the parser to read a size field from a corrupted BinXML te
 
 A different chunk, different provider, same failure mode — a 2.3 GB allocation attempt that aborted the process.
 
-All three bugs were **reproducible**, **triggered by real data recovered from unallocated space**, and **would have made Tier 1 carving unusable in practice**. We filed them upstream with minimal repros and attached the offending chunks.
+All three bugs were **reproducible**, **triggered by real data recovered from unallocated space**, and **would have made Tier 1 carving unusable in practice**. We filed them upstream with minimal repros and attached the offending chunks ([issues #290, #291, #292](https://github.com/omerbenamram/evtx/issues/290)). **Fixed upstream in evtx 0.11.2**: the new version bounds the BinXML deserializer loop and rejects corrupt size fields before attempting allocation. Masstin pins `evtx = "0.11.2"` and the pathological Desktop image that previously aborted the whole process now carves cleanly to 35,477 events with zero rejections on a stable build.
 
 ### How masstin defends itself
 
-The fix ladder inside masstin is:
+Even with the upstream fix, the defense ladder stays in place as belt-and-suspenders — if a future image triggers a new pathological pattern, the harness catches it instead of aborting the process:
 
-1. **Thread isolation for every chunk parse.** When extracting the provider name during carving, the `peek_chunk_provider` call runs in a dedicated worker thread with a 3-second `recv_timeout`. If the thread hangs, masstin prints `[evtx hang] chunk at 0xOFFSET — skipping corrupt BinXML`, abandons the worker with `std::mem::forget` (it will die with the process), and continues scanning. **Bug 1 mitigated.**
-2. **`alloc_error_hook` for every validation parse.** Before validating synthetic EVTX files, masstin installs `std::alloc::set_alloc_error_hook` to convert allocation failures into panics. Now a runaway `Vec::with_capacity(14_000_000_000)` becomes a catchable panic instead of a process abort. **Bugs 2 and 3 partially mitigated.**
-3. **Validation phase with timeout + `catch_unwind`.** Every synthetic EVTX file goes through an isolated validation thread that walks all its records with a 15-second timeout, with `catch_unwind` wrapping the walk. Files that hang, panic, or trigger the alloc-error hook are **rejected** and never reach the main parsing pipeline. The rest of the timeline is unaffected. **Bugs 2 and 3 fully mitigated.**
-4. **`--skip-offsets` escape hatch.** For pathological images where even the thread isolation isn't enough (for example, a read call inside the E01 decompressor that doesn't return), the analyst can pass `--skip-offsets 0x6478b6000,0x7a0000000` to tell masstin to skip a 32 MB window around each specified offset on the next run. Offsets of stalled reads are printed with a copy-paste-ready hint.
-5. **Rejected-file preservation in debug mode.** When running with `--debug`, masstin copies every rejected synthetic EVTX to `<output_dir>/masstin_rejected_evtx/` with a prefix indicating the failure mode (`panic_oom__`, `hang__`, `open_fail__`). This lets the analyst examine them with other tools and gives you the artifacts you need to file an upstream bug report.
+1. **Thread isolation for every chunk parse.** When extracting the provider name during carving, the `peek_chunk_provider` call runs in a dedicated worker thread with a 3-second `recv_timeout`. If the thread hangs, masstin prints `[evtx hang] chunk at 0xOFFSET — skipping corrupt BinXML`, abandons the worker with `std::mem::forget` (it will die with the process), and continues scanning.
+2. **Validation phase with timeout + `catch_unwind`.** Every synthetic EVTX file goes through an isolated validation thread that walks all its records with a 60-second timeout, with `catch_unwind` wrapping the walk. Files that hang or panic are **rejected** and never reach the main parsing pipeline. The rest of the timeline is unaffected.
+3. **`--skip-offsets` escape hatch.** For pathological images where even the thread isolation isn't enough (for example, a read call inside the E01 decompressor that doesn't return), the analyst can pass `--skip-offsets 0x6478b6000,0x7a0000000` to tell masstin to skip a 32 MB window around each specified offset on the next run. Offsets of stalled reads are printed with a copy-paste-ready hint.
+4. **Rejected-file preservation in debug mode.** When running with `--debug`, masstin copies every rejected synthetic EVTX to `<output_dir>/masstin_rejected_evtx/` with a prefix indicating the failure mode (`panic_oom__`, `hang__`, `open_fail__`). This lets the analyst examine them with other tools and gives you the artifacts you need to file an upstream bug report.
 
-The result: even when the upstream parser would happily abort your whole process on a single malformed chunk, masstin finishes the scan, builds the timeline from the good data, and tells you exactly what it had to discard.
+The result: with evtx 0.11.2 the three known bugs are fixed upstream, and the in-process defenses below remain as a safety net — so even if a future malformed chunk surfaces a new failure mode, masstin finishes the scan, builds the timeline from the good data, and tells you exactly what it had to discard.
 
 ---
 
