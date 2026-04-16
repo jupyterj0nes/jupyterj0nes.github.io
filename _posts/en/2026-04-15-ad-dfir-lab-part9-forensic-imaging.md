@@ -341,7 +341,13 @@ done
 masstin -a parse-massive -d . -o masstin-output.csv --overwrite
 ```
 
-That produces one unified CSV with all the lateral-movement events masstin can extract across the 7 images: logons, SMB sessions, WinRM/WMI/PsExec traces, Kerberos tickets, MountPoints2 registry writes, scheduled task remote triggers, and the rest of the toolkit. The output is designed to be loaded into Neo4j or Memgraph for graph-based hunting.
+That produces one unified CSV with all the lateral-movement events masstin can extract across the 7 images: logons, SMB sessions, WinRM/WMI/PsExec traces, Kerberos tickets, MountPoints2 registry writes, scheduled task remote triggers, and the rest of the toolkit. In our case: **256,237 events** across 30+ user accounts spanning all 3 domains.
+
+The output is designed to be loaded into Neo4j or Memgraph for graph-based hunting. Here's the result of loading the full lab timeline into Memgraph — each node is a machine, each edge an authentication or lateral connection:
+
+![Full lab lateral-movement graph in Memgraph — 256K events, 7 VMs, 3 domains](/assets/img/posts/ad-dfir-lab/masstin-memgraph-full-lab.png){:loading="lazy"}
+
+The dense clusters at the top are the Domain Controllers — thousands of cross-domain Kerberos authentications between the three domains. The nodes with fewer edges below are the member workstations and servers. This is the real topology of two years of simulated corporate activity, ready for an attacker to leave their footprint on top.
 
 But that's Part 10. Part 9 ends here, with a validated pipeline and a real dataset sitting on my desk.
 
