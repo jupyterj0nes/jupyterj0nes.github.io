@@ -217,32 +217,33 @@ HRServer_Disk0.e01_carved_Microsoft-Windows-Security-Auditing.evtx
 
 ## Real-world results
 
-### HRServer (DEFCON DFIR CTF 2018, 12.6 GB E01)
+Numbers below come from masstin v0.14.0 (evtx 0.11.2, stable build, no feature flags) against the DEFCON DFIR CTF 2018 images.
+
+### HRServer (12.6 GB E01 / ~50 GB logical)
 
 | Metric | Result |
 |--------|--------|
-| Image size | 12.6 GB (compressed E01) |
-| Disk size | ~50 GB (expanded) |
-| Chunks found (Tier 1) | 1,092 |
-| Orphan records (Tier 2) | 8,451 |
-| Synthetic EVTX files | 94 (grouped by provider) |
-| **Lateral movement events recovered** | **37,772** |
-| Scan time | ~3 minutes |
+| Chunks found (Tier 1) | 1,104 |
+| Orphan records (Tier 2) | 7,895 |
+| Synthetic EVTX files | 93 (grouped by provider) |
+| Synthetic files rejected | 0 |
+| **Lateral movement events recovered** | **37,288** |
+| Scan time | 3m 54s |
 
-Tier 1 alone recovered Security.evtx (32,195 events), SMBServer (5,374), TerminalServices (90), and RdpCoreTS (136). A complete lateral movement timeline, built entirely from raw disk bytes, with no need for NTFS or VSS.
+Event-ID breakdown: Security.evtx dominates with 31,791 events (4625 failed logons, 4624/4634/4648/4776), SMBServer contributes 5,291 (551 auth failures, 1009 server events), TerminalServices-LocalSessionManager 67 (21/22/24/25), and RdpCoreTS 139 (event 131). A complete lateral movement timeline, built entirely from raw disk bytes, with no need for NTFS or VSS.
 
-### Desktop (DEFCON DFIR CTF 2018, 29.2 GB E01 / 50 GB logical)
+### Desktop (29.2 GB E01 / ~50 GB logical)
 
 | Metric | Result |
 |--------|--------|
-| Chunks found (Tier 1) | 2,219 |
-| Orphan records (Tier 2) | 28,503 |
+| Chunks found (Tier 1) | 2,376 |
+| Orphan records (Tier 2) | 24,911 |
 | Synthetic EVTX files | 103 |
-| Synthetic files rejected | 2 (Bug 2 and Bug 3 from above) |
-| **Lateral movement events recovered** | **34,916** |
-| Scan time | ~8 minutes |
+| Synthetic files rejected | 0 |
+| **Lateral movement events recovered** | **35,477** |
+| Scan time | 5m 39s |
 
-This was the image that surfaced all three upstream bugs. Notice that **103 synthetic files were built, 2 were rejected, and 101 were successfully parsed** — without the hardening layers, the first rejection would have taken the whole process down with it, leaving you with nothing.
+This is the image that surfaced all three upstream bugs during development of masstin's carving path. With evtx 0.8.0 plus the old `alloc_error_hook` workaround, two synthetic files were rejected (the 14 GB and 2.3 GB allocation attempts described above) and ~34,916 events came out. With evtx 0.11.2 the parser handles those chunks cleanly: **zero rejected files**, all 103 synthetic EVTX parsed end-to-end, and 561 extra events recovered from the chunks that the hook-based path was discarding entirely — giving the 35,477 total shown here.
 
 ---
 

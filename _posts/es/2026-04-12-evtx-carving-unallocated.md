@@ -217,32 +217,33 @@ HRServer_Disk0.e01_carved_Microsoft-Windows-Security-Auditing.evtx
 
 ## Resultados reales
 
-### HRServer (DEFCON DFIR CTF 2018, E01 de 12.6 GB)
+Los números de abajo vienen de masstin v0.14.0 (evtx 0.11.2, build stable, sin feature flags) contra las imágenes del DEFCON DFIR CTF 2018.
+
+### HRServer (E01 de 12.6 GB / ~50 GB lógicos)
 
 | Métrica | Resultado |
 |---------|-----------|
-| Tamaño imagen | 12.6 GB (E01 comprimido) |
-| Tamaño disco | ~50 GB (expandido) |
-| Chunks encontrados (Nivel 1) | 1,092 |
-| Records huérfanos (Nivel 2) | 8,451 |
-| Ficheros EVTX sintéticos | 94 (agrupados por provider) |
-| **Eventos de movimiento lateral recuperados** | **37,772** |
-| Tiempo de escaneo | ~3 minutos |
+| Chunks encontrados (Nivel 1) | 1,104 |
+| Records huérfanos (Nivel 2) | 7,895 |
+| Ficheros EVTX sintéticos | 93 (agrupados por provider) |
+| Ficheros sintéticos rechazados | 0 |
+| **Eventos de movimiento lateral recuperados** | **37,288** |
+| Tiempo de escaneo | 3m 54s |
 
-Solo el Nivel 1 recuperó Security.evtx (32,195 eventos), SMBServer (5,374), TerminalServices (90) y RdpCoreTS (136). Una timeline completa de movimiento lateral, construida enteramente a partir de bytes raw del disco, sin necesidad de NTFS ni VSS.
+Desglose por Event ID: Security.evtx domina con 31,791 eventos (4625 failed logons, 4624/4634/4648/4776), SMBServer aporta 5,291 (551 fallos de auth, 1009 eventos de servidor), TerminalServices-LocalSessionManager 67 (21/22/24/25) y RdpCoreTS 139 (event 131). Una timeline completa de movimiento lateral, construida enteramente a partir de bytes raw del disco, sin necesidad de NTFS ni VSS.
 
-### Desktop (DEFCON DFIR CTF 2018, E01 de 29.2 GB / 50 GB lógicos)
+### Desktop (E01 de 29.2 GB / ~50 GB lógicos)
 
 | Métrica | Resultado |
 |---------|-----------|
-| Chunks encontrados (Nivel 1) | 2,219 |
-| Records huérfanos (Nivel 2) | 28,503 |
+| Chunks encontrados (Nivel 1) | 2,376 |
+| Records huérfanos (Nivel 2) | 24,911 |
 | Ficheros EVTX sintéticos | 103 |
-| Ficheros sintéticos rechazados | 2 (Bug 2 y Bug 3 de arriba) |
-| **Eventos de movimiento lateral recuperados** | **34,916** |
-| Tiempo de escaneo | ~8 minutos |
+| Ficheros sintéticos rechazados | 0 |
+| **Eventos de movimiento lateral recuperados** | **35,477** |
+| Tiempo de escaneo | 5m 39s |
 
-Esta fue la imagen que hizo aflorar los tres bugs upstream. Observa que **se construyeron 103 ficheros sintéticos, 2 fueron rechazados, y 101 fueron parseados con éxito** — sin las capas de endurecimiento, el primer rechazo habría tumbado el proceso entero, dejándote sin nada.
+Esta es la imagen que hizo aflorar los tres bugs upstream durante el desarrollo del carving de masstin. Con evtx 0.8.0 más el antiguo workaround de `alloc_error_hook`, dos ficheros sintéticos eran rechazados (los intentos de asignación de 14 GB y 2.3 GB descritos arriba) y salían ~34,916 eventos. Con evtx 0.11.2 el parser maneja esos chunks limpiamente: **cero ficheros rechazados**, los 103 EVTX sintéticos parseados de extremo a extremo, y 561 eventos extra recuperados de los chunks que el camino basado en el hook descartaba enteros — dando los 35,477 totales que se muestran aquí.
 
 ---
 
