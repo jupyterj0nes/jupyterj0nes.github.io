@@ -62,17 +62,32 @@ Load data with:
 masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j
 ```
 
-### Loader options that change the graph shape
+### Two loading modes: grouped vs ungrouped
+
+The loader has two modes that answer different questions:
+
+**Grouped (default)** produces one edge per unique `(destination, user, logon_type)` combination, with a `count` property showing how many events collapsed into it and `time` set to the earliest. This is the **global picture** — who talks to whom, how often, and via which logon type. Perfect for understanding the network topology, mapping trust boundaries, and presenting findings to stakeholders.
+
+**Ungrouped (`--ungrouped`)** produces one edge per CSV row, preserving the real timestamp of every event. This is the mode for **temporal path hunting** — finding chronologically coherent attacker routes where each hop happened after the previous one. Always scope it with `--start-time` / `--end-time`; loading a full 250k-row timeline ungrouped will create an unusable graph.
+
+| Mode | Use case | Edges |
+|------|----------|-------|
+| Grouped (default) | Global overview, topology, presentations | ~100-200 |
+| `--ungrouped` + time window | Temporal path hunting, incident timeline | 1 per event |
+
+### Loader flags
 
 | Flag | What it does |
 |------|--------------|
-| `--ungrouped` | Emit one edge per CSV row instead of collapsing identical `(src, user, dst, logon_type)` tuples into a single edge with a `count` property. Useful for narrow time windows where individual events matter — pair it with the time window flags below. |
-| `--start-time "YYYY-MM-DD HH:MM:SS"` | Drop rows whose `time_created` is earlier than this before building the graph. |
-| `--end-time "YYYY-MM-DD HH:MM:SS"` | Drop rows whose `time_created` is later than this. |
-
-Example — load every individual event during a 30-minute window:
+| `--ungrouped` | One edge per CSV row. Preserves real timestamps for temporal path queries. |
+| `--start-time "YYYY-MM-DD HH:MM:SS"` | Drop rows earlier than this before building the graph. |
+| `--end-time "YYYY-MM-DD HH:MM:SS"` | Drop rows later than this. |
 
 ```bash
+# Global overview (default) — who talks to whom
+masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j
+
+# Temporal hunting — every event in a 30-minute window
 masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j \
         --ungrouped --start-time "2026-03-15 14:00:00" --end-time "2026-03-15 14:30:00"
 ```
