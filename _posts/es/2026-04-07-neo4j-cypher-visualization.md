@@ -62,17 +62,32 @@ Carga los datos con:
 masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j
 ```
 
-### Opciones del cargador que cambian la forma del grafo
+### Dos modos de carga: agrupado vs sin agrupar
+
+El cargador tiene dos modos que responden a preguntas distintas:
+
+**Agrupado (por defecto)** produce una arista por cada combinación única `(destino, usuario, logon_type)`, con una propiedad `count` que indica cuántos eventos se colapsaron y `time` con la fecha del primer evento. Es la **foto global** — quién habla con quién, con qué frecuencia y mediante qué tipo de logon. Ideal para entender la topología de la red, mapear fronteras de confianza y presentar hallazgos.
+
+**Sin agrupar (`--ungrouped`)** produce una arista por cada fila del CSV, preservando el timestamp real de cada evento. Es el modo para **hunting de caminos temporales** — encontrar rutas de atacante cronológicamente coherentes donde cada salto ocurrió después del anterior. Siempre acotarlo con `--start-time` / `--end-time`; cargar un timeline completo de 250k filas sin agrupar generará un grafo inutilizable.
+
+| Modo | Caso de uso | Aristas |
+|------|-------------|---------|
+| Agrupado (defecto) | Vista global, topología, presentaciones | ~100-200 |
+| `--ungrouped` + ventana temporal | Hunting de caminos temporales, timeline del incidente | 1 por evento |
+
+### Flags del cargador
 
 | Flag | Qué hace |
 |------|----------|
-| `--ungrouped` | Emite una arista por cada fila del CSV en lugar de colapsar las tuplas idénticas `(src, user, dst, logon_type)` en una sola arista con la propiedad `count`. Útil para ventanas de tiempo estrechas donde te interesa cada evento individual — combínalo con los flags de ventana temporal de abajo. |
-| `--start-time "YYYY-MM-DD HH:MM:SS"` | Descarta las filas cuyo `time_created` sea anterior a este momento antes de construir el grafo. |
-| `--end-time "YYYY-MM-DD HH:MM:SS"` | Descarta las filas cuyo `time_created` sea posterior a este momento. |
-
-Ejemplo — cargar cada evento individual durante una ventana de 30 minutos:
+| `--ungrouped` | Una arista por fila del CSV. Preserva timestamps reales para queries de caminos temporales. |
+| `--start-time "YYYY-MM-DD HH:MM:SS"` | Descarta filas anteriores a este momento. |
+| `--end-time "YYYY-MM-DD HH:MM:SS"` | Descarta filas posteriores a este momento. |
 
 ```bash
+# Vista global (defecto) — quién habla con quién
+masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j
+
+# Hunting temporal — cada evento en una ventana de 30 minutos
 masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j \
         --ungrouped --start-time "2026-03-15 14:00:00" --end-time "2026-03-15 14:30:00"
 ```
