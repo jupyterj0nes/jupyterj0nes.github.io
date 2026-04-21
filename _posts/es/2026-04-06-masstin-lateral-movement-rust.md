@@ -166,6 +166,31 @@ RETURN path ORDER BY length(path) LIMIT 5
 | `merge-neo4j-nodes` | Fusiona dos nodos `:host` del grafo después de cargar (por ejemplo, cuando una IP y un hostname no se unificaron automáticamente). No requiere APOC |
 | `merge-memgraph-nodes` | Igual que el anterior, para Memgraph. No requiere MAGE |
 
+### parse-windows vs parse-image vs parse-massive — qué procesa cada una
+
+Las tres acciones del lado Windows se diferencian por **qué les metes**, no por el parser subyacente — el dispatch EVTX es el mismo en todas (routing por Provider.Name, providers desconocidos se saltan silenciosamente).
+
+| Fuente | `parse-windows` | `parse-image` | `parse-massive` |
+|---|:---:|:---:|:---:|
+| Ficheros EVTX sueltos y directorios | ✅ | ❌ | ✅ |
+| Recorrido recursivo de ZIP (anidamiento ilimitado) | ✅ | ❌ | ✅ |
+| Fallback `Provider.Name` para EVTX archivados / renombrados | ✅ | ✅ | ✅ |
+| Imágenes forenses de disco (E01, VMDK, raw, dd, img) | ❌ | ✅ | ✅ |
+| Walker NTFS → `winevt/Logs` + recovery VSS | ❌ | ✅ | ✅ |
+| Bases de datos UAL (`LogFiles/Sum/*.mdb`) | ❌ | ✅ | ✅ |
+| Scheduled Tasks XML (`System32/Tasks/`) | ❌ | ✅ | ✅ |
+| MountPoints2 (hive de registro NTUSER.DAT) | ❌ | ✅ | ✅ |
+| Triage detection (KAPE / Velociraptor / Cortex XDR) con labels por fuente | ❌ | ❌ | ✅ |
+| Promoción de directorios `-d` como loose artifacts al pipeline | ❌ | ❌ | ✅ |
+
+Regla rápida:
+
+- **Carpeta / ZIP / EVTX suelto** → `parse-windows`
+- **Imagen forense** (`.e01`, `.vmdk`, `.raw`) → `parse-image`
+- **Evidencia mixta** (imagen + zip + triage + ficheros sueltos) → `parse-massive`
+
+En las tres, cualquier EVTX cuyo `Provider.Name` coincida con un canal que masstin conoce se parsea — independientemente del nombre de fichero. Logs archivados (`Security-YYYY-MM-DD-HH-MM-SS.evtx` producidos por la política de retención "Archive the log when full"), copias renombradas por el operador, y extracciones de herramientas de terceros se enrutan todas correctamente. Ver [post de EVTX archivados](/es/tools/masstin-archived-evtx-provider-dispatch/) para la historia completa.
+
 ---
 
 ## Documentación
