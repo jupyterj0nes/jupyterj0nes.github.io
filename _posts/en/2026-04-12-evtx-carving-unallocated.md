@@ -173,18 +173,40 @@ A second chunk caused the parser to read a size field from a corrupted BinXML te
 
 A different chunk, different provider, same failure mode — a 2.3 GB allocation attempt that aborted the process.
 
-All three bugs were **reproducible**, **triggered by real data recovered from unallocated space**, and **would have made Tier 1 carving unusable in practice**. We filed them upstream with minimal repros and attached the offending chunks ([issues #290, #291, #292](https://github.com/omerbenamram/evtx/issues/290)). **Fixed upstream in evtx 0.11.2**: the new version bounds the BinXML deserializer loop and rejects corrupt size fields before attempting allocation. Masstin pins `evtx = "0.11.2"` and the pathological Desktop image that previously aborted the whole process now carves cleanly to 35,477 events with zero rejections on a stable build.
+All three bugs were **reproducible**, **triggered by real data recovered from unallocated space**, and **would have made Tier 1 carving unusable in practice**. We filed them upstream with minimal repros and attached the offending chunks ([issues #290, #291, #292](https://github.com/omerbenamram/evtx/issues/290)). These were closed as presumed-fixed in evtx 0.11.2 and the pathological Desktop image that previously aborted the whole process does now carve cleanly to 35,477 events with zero rejections on a stable build — but the fix did not cover every BinXML allocation path.
+
+### Bug 4 — The one 0.11.2 didn't catch: a ~16 GB allocation inside `read_template_values_cursor`
+
+While testing masstin against a freshly wiped `ws01-wipe-novss.raw` (50 GB Windows workstation imaged after an attacker's cleanup), the carver produced 108 synthetic EVTX files — and on one of them the whole process died:
+
+```
+memory allocation of 17179868328 bytes failed
+stack backtrace:
+ 0: std::alloc::rust_oom
+ 1: std::alloc::_::__rust_alloc_error_handler
+ 2: alloc::alloc::handle_alloc_error
+ 3: alloc::raw_vec::handle_error
+ 4: evtx::binxml::tokens::read_template_values_cursor
+ 5: evtx::binxml::ir::build_tree_from_binxml_bytes_direct_with_mode
+...
+ 13: rayon::iter::...
+```
+
+17,179,868,328 bytes is ~16 GiB, the signature of a `u32` read from the stream used as a capacity without an upper bound. Same family as bugs 2 and 3, different code path: the chunk header and record sizes are valid, but inside a BinXML template the count of values is garbage. evtx 0.11.2 bounds the top-level loops and record sizes, but not this particular `Vec::with_capacity` inside `read_template_values_cursor`.
+
+The harder problem: this is an **`alloc_error`, not a panic**. The Rust allocator calls `abort()` directly (Windows status `0xC0000409`). `std::panic::catch_unwind` does not intercept it, thread isolation does not help (the abort kills the whole process), and rayon amplifies it because the crate parallelises chunk decoding — the abort can come from a worker pool thread the parent never sees.
 
 ### How masstin defends itself
 
-Even with the upstream fix, the defense ladder stays in place as belt-and-suspenders — if a future image triggers a new pathological pattern, the harness catches it instead of aborting the process:
+On top of the upstream fix, the defense ladder keeps two layers that handle the `alloc_error` class of failures specifically:
 
-1. **Thread isolation for every chunk parse.** When extracting the provider name during carving, the `peek_chunk_provider` call runs in a dedicated worker thread with a 3-second `recv_timeout`. If the thread hangs, masstin prints `[evtx hang] chunk at 0xOFFSET — skipping corrupt BinXML`, abandons the worker with `std::mem::forget` (it will die with the process), and continues scanning.
-2. **Validation phase with timeout + `catch_unwind`.** Every synthetic EVTX file goes through an isolated validation thread that walks all its records with a 60-second timeout, with `catch_unwind` wrapping the walk. Files that hang or panic are **rejected** and never reach the main parsing pipeline. The rest of the timeline is unaffected.
-3. **`--skip-offsets` escape hatch.** For pathological images where even the thread isolation isn't enough (for example, a read call inside the E01 decompressor that doesn't return), the analyst can pass `--skip-offsets 0x6478b6000,0x7a0000000` to tell masstin to skip a 32 MB window around each specified offset on the next run. Offsets of stalled reads are printed with a copy-paste-ready hint.
-4. **Rejected-file preservation in debug mode.** When running with `--debug`, masstin copies every rejected synthetic EVTX to `<output_dir>/masstin_rejected_evtx/` with a prefix indicating the failure mode (`panic_oom__`, `hang__`, `open_fail__`). This lets the analyst examine them with other tools and gives you the artifacts you need to file an upstream bug report.
+1. **Subprocess isolation for phase-2 validation.** Every synthetic EVTX is validated in a **dedicated child process**, spawned by masstin itself via `MASSTIN_VALIDATE_EVTX=<path>` on the same binary. The child opens the file, iterates every record, and exits 0 on success. If the child aborts by OOM, the parent observes a non-zero exit code, rejects the file, and carries on with the remaining synthetics. This is the only strategy that survives `abort()` — no amount of in-process guard rails can.
+2. **`catch_unwind` inside the child** for any ordinary panic path in malformed BinXML, plus a 60-second poll deadline on the parent side so hangs are killed cleanly.
+3. **Thread isolation for chunk-scan peeks.** When extracting the provider name during the initial scan, `peek_chunk_provider` runs in a dedicated worker thread with a 3-second `recv_timeout`. If it hangs, masstin prints `[evtx hang] chunk at 0xOFFSET — skipping corrupt BinXML`, abandons the worker with `std::mem::forget`, and continues scanning.
+4. **`--skip-offsets` escape hatch.** For pathological images where even the thread isolation isn't enough (a read inside the E01 decompressor that doesn't return), the analyst can pass `--skip-offsets 0x6478b6000,0x7a0000000` to tell masstin to skip a 32 MB window around each specified offset on the next run. Offsets of stalled reads are printed with a copy-paste-ready hint.
+5. **Rejected-file preservation in debug mode.** When running with `--debug`, masstin copies every rejected synthetic EVTX to `<output_dir>/masstin_rejected_evtx/` with a prefix indicating the failure mode (`panic_oom__`, `hang__`, `open_fail__`). Useful for post-mortem, upstream bug reports, or just to know exactly what you could not use.
 
-The result: with evtx 0.11.2 the three known bugs are fixed upstream, and the in-process defenses below remain as a safety net — so even if a future malformed chunk surfaces a new failure mode, masstin finishes the scan, builds the timeline from the good data, and tells you exactly what it had to discard.
+Verified end-to-end on the `ws01-wipe-novss.raw` case above: **one** synthetic EVTX (`Security.evtx` rebuilt from 108 carved chunks) aborted the validator child with `0xC0000409`, got quarantined as `panic_oom__Security.evtx`, and the remaining **107** parsed cleanly — 49 lateral movement events recovered from a disk where the attacker had deleted everything and wiped VSS.
 
 ---
 
