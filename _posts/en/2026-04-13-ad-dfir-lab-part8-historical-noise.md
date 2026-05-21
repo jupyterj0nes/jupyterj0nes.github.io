@@ -516,7 +516,7 @@ The catchup script itself is a ~100-line bash wrapper that:
 4. Replaces the `noisy-ad-current` snapshot with the new state
 5. Logs everything to `/var/log/lab-catchup.log`
 
-Scheduling is **once a day at 03:00 UTC** via `/etc/cron.d/lab-catchup`. Off-hours for the operator (05:00 CEST), and past UTC midnight so "yesterday" is a complete day. Runs most days generate exactly 1 day of noise in about 90 seconds. If the cron has been down for a week, the next run generates 7 days in a single invocation — idempotent and resumable, same machinery as the original full run.
+Scheduling is **once a day at 02:00 UTC** (04:00 CEST) via `/etc/cron.d/lab-catchup`. Off-hours for the operator, and past UTC midnight so "yesterday" is a complete day. Runs most days generate exactly 1 day of noise in about 90 seconds. If the cron has been down for a week, the next run generates 7 days in a single invocation — idempotent and resumable, same machinery as the original full run.
 
 **Telegram behaviour**: silent on success. Pings only when something fails. That keeps the notification inbox clean and guarantees that any message means "something needs attention now". To verify the cron is alive day-to-day:
 
@@ -541,6 +541,69 @@ The scaffolding is complete, the dataset is validated, and the `noisy-ad-2years`
 **Important caveat**: this is still stub activity. Each (persona, round) tuple writes a single marker file and a heartbeat log line. That's enough to prove the scaffolding works end-to-end AND to generate the background Sysmon/Security noise that Windows itself produces when a process runs under a persona's name. But it's not yet realistic *application-level* activity — jon.snow doesn't actually open Word documents, samwell.tarly doesn't actually push git commits, and there's no Chrome history being populated. Those hooks are what Part 9 will cover. The architecture is what Part 8 is about.
 
 The good news: the infrastructure we just built means adding real persona activity is *only* an `lib/activities.py` rewrite. The day loop, parallelism, checkpoint, clock travel, Spanish calendar, three-domain persona model, wlms workaround, hwclock restore, night-shift support, Telegram alerts, and per-VM forensic verification are all done and reusable.
+
+## Postscript — 36 days in production cron
+
+The text above describes the lab as it was the day the snapshot chain was first complete. Six weeks later, the catchup cron had failed silently every single night since installation. The findings from that incident are worth flagging here so anyone copying the design can avoid the same traps.
+
+### 1. cron PATH does NOT include /usr/sbin
+
+`qm` is at `/usr/sbin/qm`. cron starts jobs with `PATH=/usr/bin:/bin`. Every `qm guest exec` returned `command not found` (exit 127). The original marker-query function did not log raw command output — only a generic *"could not read last narrative day from VM 103"* Telegram ping, which is informative-sounding but tells you exactly nothing about what failed.
+
+The kicker: that ping fires at the exact same minute every night, so when I finally sat down to investigate I assumed a time-of-day issue inside `qm guest exec` itself and moved the cron from `0 3 * * *` to `0 4 * * *` as a "mitigation". It fixed nothing. The new schedule failed silently for six more days before I added raw output logging and saw `qm: command not found` plain as day.
+
+Fix (defense in depth):
+
+```bash
+# Top of lab-catchup.sh, after `set -u`
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+# /etc/cron.d/lab-catchup
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+0 4 * * * root /root/lab/scripts/lab-catchup.sh
+```
+
+The marker-query function now logs raw `qm` output on every failed attempt, so a future failure mode is diagnosable in under five seconds of `tail /var/log/lab-catchup.log`. That single change is worth more than any retry logic.
+
+### 2. phase10 leaves orphan markers for `end+1` day
+
+After each successful catchup of range `[start..end]`, the system-role VMs (101, 102, 103, 104, 105) end up with one `day_<end+1>_round_3_system.X.marker` each. The activity itself belongs to day N — replication tick, nightly backup, ADCS CRL — but the marker is named with `N+1` because it represents the day-rolled-over event.
+
+The trap: the marker-query function sorts by CreationTimeUtc and returns the newest. With one `2026-05-20` marker present after a catchup that targeted `2026-05-19`, the next night's run computes `gap = 0` and exits no-op. The day 2026-05-20 then **never** gets generated as a complete day — only its round 3 "system" tick exists, rounds 1 and 2 with users are lost forever.
+
+Until phase10 is patched to either rename the markers or have `lab-catchup.sh` prune them in a post-run step, the manual fix is: delete the five orphan markers on VMs 101-105, then re-take `noisy-ad-current`. That's part of the catchup operator playbook now.
+
+### 3. `w32tm /resync` is a silent no-op with source `LOCL`
+
+The clock-travel design forces all Windows VMs to use `LOCL` (Local CMOS Clock) as their NTP source — you can't point them at an external time server when phase10 is going to drag them backward years at a time. Five of the six Windows VMs drift around 30 seconds per hour from real time; DC03 drifts at roughly **2 minutes per hour** (likely a `kvm-clock` / `hpet` config difference, not yet investigated).
+
+The trap: `w32tm /resync /rediscover` returns success but doesn't move the clock when the configured source is itself the drifted clock. After 4 minutes of drift, DC03 was still 4 minutes behind host after the resync — completely silent failure.
+
+Fix: use `Set-Date` directly when you need to force the wall clock.
+
+```powershell
+Set-Date -Date ([datetime]::SpecifyKind(
+    [datetime]::ParseExact('2026-05-20 14:51:28','yyyy-MM-dd HH:mm:ss',$null),
+    'Utc').ToLocalTime())
+```
+
+This now runs on all six Windows VMs as a post-catchup step. Important because the snapshot freezes whatever drift exists at the moment of `qm snapshot` — every future rollback from `noisy-ad-current` starts the VMs at that drift, and if it's 4 minutes you get Kerberos failures inside the 5-minute tolerance window almost immediately.
+
+### 4. `gen-linux-authlog.py` needed an incremental mode
+
+The original `gen-linux-authlog.py` was one-shot only: it baked the full 2-year synthetic SSH `auth.log` once at lab build time and was never invoked again. The daily catchup never extended it, so the Linux narrative lagged the Windows narrative by whatever real-time had accumulated since the bake.
+
+Refactored to support `--from DATE --to DATE`, which appends to `/var/log/auth.log` only (no truncation, no rotation handling — exact real syslog behaviour). Wired into `lab-catchup.sh` as **Step 4c**, between Step 4b lateral movement and Step 5 snapshots.
+
+What this does NOT fix: Ubuntu's default logrotate rotates `auth.log` weekly with `rotate 4`. The 2025 and early-2026 synthetic entries that the original bake wrote have been rotated out as the lab kept running for real time. The 2024 entries survive in `auth.log.2` (the oldest archive), the explicit gap from the day of incident discovery was backfilled, but the 2025 window in the Linux logs is gone forever. For new lab builds this is fine; for this specific lab it's an acknowledged dataset hole.
+
+### What these failures generalize to
+
+- **Always set PATH explicitly in scripts invoked from cron**. Don't rely on environment.
+- **When a pipeline fails, log raw command output, not a synthesized error string**. A grep that matches nothing followed by a "couldn't parse output" message hides what actually happened — and you'll hunt the wrong root cause for a week.
+- **In a clock-travel lab you cannot use external NTP.** `LOCL` is the only source, and `w32tm /resync` is a no-op when `LOCL` is the source. Use `Set-Date` directly when you need to move the wall clock.
+- **Anything that runs once at initial lab build needs an incremental "catchup mode"** if it produces durable artifacts that should keep accumulating. Same logic that motivated `phase10-lateral.py --resume`.
+- **A 1-day off-by-one in marker generation compounds into a permanent 1-day-per-day gap** if the cron then no-ops. Marker-driven idempotency makes this kind of bug easy to miss until you read the markers by hand.
 
 ---
 
