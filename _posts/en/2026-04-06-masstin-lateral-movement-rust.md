@@ -165,6 +165,8 @@ RETURN path ORDER BY length(path) LIMIT 5
 | `load-memgraph` | Upload timeline to Memgraph for in-memory graph visualization |
 | `merge-neo4j-nodes` | Fuse two `:host` graph nodes after loading (e.g., when an IP and a hostname were not auto-unified). No APOC required |
 | `merge-memgraph-nodes` | Same as above, for Memgraph. No MAGE required |
+| `graph-hunt` | **Automated lateral movement detection on Memgraph.** Runs 7 detectors (novel edge, chain motif, PageRank/betweenness spike, community bridge, credential rotation, rare logon type) against an already-loaded graph and emits a ranked CSV of findings. Uses MAGE algorithms (bundled with Memgraph). See [graph-hunt post](/en/tools/masstin-graph-hunt/) |
+| `graph-hunt-neo4j` | **Same 7 detectors against Neo4j.** Uses the Graph Data Science (GDS) 2.x plugin — requires Neo4j 5.x+ with GDS installed via Neo4j Desktop's Plugins UI. Supports `--db <name>` for multi-database setups. See [graph-hunt post](/en/tools/masstin-graph-hunt/) |
 
 ### parse-windows vs parse-image vs parse-massive — what each one actually processes
 
@@ -218,6 +220,7 @@ In all three, any EVTX whose `Provider.Name` matches a channel masstin knows is 
 | User Access Logging (UAL) | [Server access history from ESE databases](/en/tools/masstin-ual/) |
 | vshadow-rs — pure Rust VSS parser | [vshadow-rs](/en/tools/vshadow-rs/) |
 | Triage detection (KAPE / Velociraptor / Cortex) — automatic recognition of triage packages inside `parse-image` and `parse-massive` | [Triage detection in masstin](/en/tools/masstin-triage-detection/) |
+| **graph-hunt** — automated lateral movement detection on the loaded graph (7 detectors, both Memgraph MAGE and Neo4j GDS 2.x) | [graph-hunt in masstin](/en/tools/masstin-graph-hunt/) |
 
 ### Graph Databases
 
