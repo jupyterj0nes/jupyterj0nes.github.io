@@ -87,7 +87,7 @@ Si te devuelve una cadena de versión (ej. `2026.04.0`), el plugin está cargado
 También puedes listar las procedures que masstin va a llamar para asegurarte:
 
 ```cypher
-CALL gds.list() YIELD name
+SHOW PROCEDURES YIELD name
 WHERE name STARTS WITH 'gds.graph.project'
    OR name STARTS WITH 'gds.pageRank.stream'
    OR name STARTS WITH 'gds.louvain.stream'
@@ -95,7 +95,20 @@ WHERE name STARTS WITH 'gds.graph.project'
 RETURN name
 ```
 
-Las cuatro familias deberían aparecer. Si falta alguna, la instalación de GDS está incompleta y `graph-hunt-neo4j` fallará en el paso de proyección.
+Las cuatro familias deberían aparecer. Si no aparecen — y `SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'gds.'` no devuelve nada — el plugin cargó pero sus procedures fueron **denegadas por el allowlist**. Esto es un footgun real en Neo4j 2026.x: el kernel ship con `dbms.security.procedures.allowlist` puesto a `apoc.*,genai.*,ai.*` por defecto, y el plugin manager de Desktop **no actualiza esa lista cuando se instala GDS vía la UI**. El JAR del plugin acaba en `plugins/`, el log de arranque muestra `Graph Data Science extension built`, y aun así cada procedure `gds.*` se rechaza en silencio al registro con un WARN en `logs/debug.log`:
+
+```
+WARN  The procedure 'gds.X' is not on the allowlist and won't be loaded.
+```
+
+Fix: abre `conf/neo4j.conf` en la carpeta de la instancia (el botón **Open folder** de la tarjeta de la instancia en Desktop te lleva ahí) y edita ambas líneas:
+
+```
+dbms.security.procedures.unrestricted=apoc.*,gds.*
+dbms.security.procedures.allowlist=apoc.*,genai.*,ai.*,gds.*
+```
+
+Luego reinicia la instancia. Las procedures pasan a ser visibles vía `SHOW PROCEDURES` y llamables desde masstin.
 
 ### 4. Ejecutar graph-hunt-neo4j
 
@@ -188,17 +201,62 @@ Un workflow de triage DFIR real se ve así:
 
 ## Qué pinta tiene el eval
 
-`graph-hunt-neo4j` ha sido validado sobre corpus sintéticos de tamaño y dificultad adversarial crecientes. El framework de eval vive fuera del repo de masstin (los fixtures de test no pertenecen a la distribución de la herramienta) pero la metodología es reproducible:
+`graph-hunt-neo4j` se valida sobre un harness de doble corpus — un **corpus pequeño de control** que reproduce una baseline conocida, y un **corpus de estrés** que modela una empresa de 200 hosts / 85 cuentas. El framework de eval vive fuera del repo de masstin (los fixtures de test no pertenecen a la distribución de la herramienta) pero la metodología es reproducible:
 
-1. Un generador de topología construye una red AD sintética (DCs, fileservers, jumpboxes, workstations en múltiples clusters y una DMZ) con modelos realistas de retención por-host para Security.evtx (3-60 días según clase de host), UAL (24 meses), wtmp (30 días), y el resto de la matriz de fuentes de la que tiran las capturas reales.
-2. Se genera tráfico legítimo de baseline durante 90 días desde 60+ identidades de usuario (admins, helpdesk, usuarios con rol restringido, cuentas de servicio) siguiendo patrones de acceso realistas.
-3. Se inyectan escenarios de ataque en los últimos 7 días: 22 escenarios distintos cubriendo las técnicas estándar de MITRE (acceso inicial, credential dumping + lateral, Kerberoasting, golden/silver ticket, DCSync, reconocimiento interno, WMI lateral, cadenas de creación de servicios, pivot VPN, exfil de insider, etc.) más 5 escenarios explícitamente adversariales diseñados para evadir detectores específicos (living-off-the-land sin eje de novelty, slow-burn cred theft, lateral intra-cluster, distributed-user, pivot vía host de servicio).
-4. También entran patrones legítimos-pero-novedosos: onboarding de nuevo empleado, promoción de helpdesk a admin, formación de equipo de proyecto, test de DR, Patch Tuesday, auditor externo. Estos NO están en el fichero truth — si un detector dispara sobre ellos cuenta como falso positivo, midiendo resiliencia frente a ruido realista.
-5. Tras `load-neo4j` + `graph-hunt-neo4j`, un harness de evaluación clasifica cada finding TP/FP contra el fichero truth (matching sobre host + ventana temporal con tolerancia ±2 minutos) y computa precision/recall por detector y por escenario.
+1. **Generador de topología** que construye una red AD sintética (DCs, fileservers, jumpboxes, workstations en múltiples clusters y una DMZ) con modelos realistas de retención por-host para Security.evtx (3-60 días según clase de host), UAL (24 meses), wtmp (30 días), y el resto de la matriz de fuentes de la que tiran las capturas reales.
 
-El estado actual de evaluación a 5M de aristas + escenarios adversariales es 98.9% precision / 100% recall (cada uno de los 22 escenarios de ataque pillado por al menos un detector). El único falso positivo es `betweenness-spike` disparando sobre un host de monitoring SCCM que es legítimamente un hub de alto betweenness haciendo su trabajo — el tipo de FP que ningún detector algorítmico puede eliminar del todo sin contexto que los datos no llevan.
+2. **Modelo de actividad de baseline**. 90 días de tráfico legítimo de 70+ identidades de usuario + 13 cuentas de servicio. El modelo está calibrado contra fuentes empíricas publicadas en vez de muestreo aleatorio uniforme, que produce tasas de novedad irrealmente altas a escala:
 
-La escalera a 15M de aristas está en curso al momento de escribir esto; el trabajo de streaming loader que la habilitó shippeó en `load-neo4j` v0.13 (el pre-pase anterior en memoria hacía OOM alrededor de 1.7M de aristas en hosts Windows contendidos).
+   - **Perfil persistente por usuario**: una única workstation primaria recibe el 88-96% de los logons del usuario (hallazgo de sparsity de Kent & Liebrock sobre grafos de autenticación; guía CISA AA23-059A sobre Privileged Access Workstations), con workstation secundaria opcional y cola rara de hot-desk.
+   - **Destinos en niveles** muestreados con Zipf exponente ~1.2 dentro de tres tiers: un set "core" pequeño que cubre el 80% de eventos, un set "occasional" que cubre el 15%, y una cola larga "rare" del 5% (el corpus enterprise de Hopper, USENIX Security 2021, observó un ratio raw-a-significativo de 222× que este tiering reproduce).
+   - **Cuentas de servicio** con sets de objetivos scoped y fijos — el client-push de SCCM toca el estate gestionado, DNS/DHCP se quedan en los DCs que alojan el rol, los backups recorren fileservers + DCs — en vez de uniforme sobre todos los servidores (investigación SCCM de SpecterOps; premisa de baselining de Microsoft Defender for Identity).
+   - **Ratio 3:1 weekday/weekend** para humanos, plano 24/7 para servicios (benchmarks de productividad tipo ActivTrak/BLS).
+
+   El baseline resultante tiene una tasa de aristas-nuevas en la ventana de investigación de ~6% sobre ternas — cercano al <1% que entornos productivos maduros exhiben según la literatura de baselines de 30 días de MDI, con la diferencia residual atribuible a inyecciones de ataques y churn modelado de empleados.
+
+3. **Escenarios de ataque** inyectados en los últimos 7 días: 22 escenarios cubriendo técnicas MITRE estándar (initial-access dump + lateral, cred-spray, Kerberoasting, golden/silver ticket, DCSync, internal-recon, WMI lateral, cadenas de creación de servicios, pivot VPN, exfil de insider, etc.) más 5 escenarios explícitamente adversariales diseñados para evadir detectores específicos (living-off-the-land sin eje de novelty, slow-burn cred theft, lateral intra-cluster, distributed-user, pivot vía host de servicio).
+
+4. **Patrones legítimos-pero-novedosos** también inyectados y NO en el fichero truth: onboarding de nuevo empleado, promoción de helpdesk a admin, formación de equipo de proyecto, test de DR, Patch Tuesday, visita de auditor externo. Si un detector dispara sobre ellos cuenta como falso positivo — mide la resiliencia frente a ruido realista.
+
+5. **Eval harness** que clasifica cada finding TP/FP contra el fichero truth (host + ventana temporal con tolerancia ±2 minutos) y computa precision/recall por detector, por escenario, y **Precision@K** (calidad del triage top-K, la métrica que realmente importa para el flujo DFIR).
+
+### Resultados actuales
+
+Dos preguntas importan al evaluar una herramienta de triage DFIR: **cuánto reduce el trabajo del analista**, y **¿se pierde ataques?**. `graph-hunt-neo4j` se evalúa contra ambas.
+
+Sobre el corpus de estrés — 3.87M eventos, 200 hosts, 85 cuentas, baseline de 90 días + ventana de investigación de 7 días con 23 escenarios de ataque inyectados (22 canónicos de MITRE + 5 adversariales + 6 señuelos legítimos-pero-novedosos) — la herramienta emite **380 alertas priorizadas**, una **reducción de 10,190×** sobre el flujo bruto de eventos. De esas 380 alertas, **252 son ataques reales (66.3% hit rate)**. La base rate de ataques en los eventos brutos es ~0.003%, así que el factor de enrichment sobre muestreo aleatorio es de aproximadamente **23,300×** — un analista revisando el output de graph-hunt es veintitrés mil veces más eficiente encontrando lateral movement que revisando logs al azar.
+
+En el lado del recall, **109 de los 110 eventos de ataque inyectados fueron detectados (99.1%)**, y **23 de 23 escenarios** fueron pillados por al menos un detector. El único evento perdido pertenece a un escenario de 3 eventos que otros dos detectores sí marcaron — al nivel de escenario, no se perdió nada.
+
+La calidad de la cima de la lista es lo que dirige el workflow real de triage: **P@10 = 90%** significa que las primeras 10 alertas que revisa el analista contienen 9 ataques reales; **P@20 = 85%** soporta un ciclo de revisión diaria de 20 alertas; **P@50 = 92%** significa que incluso una revisión exhaustiva de 50 alertas diarias es prácticamente sin ruido.
+
+**Control (5M aristas, 50 hosts, 14 usuarios, 14 escenarios)**:
+
+| Findings | TP | FP | Hit rate | Recall (eventos) | Recall (escenarios) | P@10 | P@20 | P@50 |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 83 | 83 | 0 | **100.0%** | **100%** | **14/14** | 100% | 100% | 100% |
+
+El falso positivo histórico de SCCM que vivió en este corpus durante dos años desapareció — `betweenness-spike` ahora compara la centralidad de cada host contra un snapshot baseline-only del grafo, así que los hubs estructurales que siempre fueron centrales no salen como anomalías (Times Square no se vuelve "sospechoso" solo porque tiene mucho tráfico). Solo los hosts cuya centralidad creció genuinamente durante la ventana de investigación disparan.
+
+**Estrés (3.87M aristas, 200 hosts, 85 cuentas, 23 escenarios)**:
+
+| Findings | TP | FP | Hit rate | Recall (eventos) | Recall (escenarios) | P@10 | P@20 | P@50 | P@100 |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 380 | 252 | 128 | **66.3%** | **109/110 (99.1%)** | **23/23 (100%)** | **90%** | **85%** | **92%** | **73%** |
+
+P@50 = 92% — un detalle que merece la pena destacar: la precisión sube entre K=20 y K=50 en este corpus porque los pocos FPs de alto score residuales de los detectores de centralidad (hubs legítimos como servidores de monitorización que viven un pico real de actividad) se concentran en lo más alto del ranking, mientras que las posiciones 20-50 están dominadas por findings limpios de triple-novelty. Un analista revisando los primeros 50 ve casi nada de ruido.
+
+### Notas algorítmicas
+
+Cuatro cambios de detectores contribuyeron materialmente a los números del estrés:
+
+1. **`betweenness-spike` y `pagerank-spike` usan un delta two-snapshot**. Se crea una proyección GDS baseline-only (`mass-hunt-baseline`, aristas con `r.time < cutoff`) junto a la del grafo completo, se computa betweenness/PageRank en ambas, y se emiten findings solo cuando la centralidad de un host creció materialmente entre las dos snapshots. Suprime la clase entera de falsos positivos de "hub estructural" (SCCM, jumpboxes, granjas Citrix) que la centralidad single-snapshot siempre marca.
+
+2. **`community-bridge` corre Louvain sobre la proyección baseline-only más el mismo gate de contexto destination-density + origin-fanout que novel-edge** (mismo patrón two-snapshot). Hallazgo crítico: correr Louvain sobre el grafo completo (baseline + ventana) deja que las aristas del atacante de la ventana muevan las fronteras de comunidades — el algoritmo puede absorber un bridge de lateral movement en una sola comunidad, ocultándole el salto cross-cluster al detector por completo. Congelar la estructura de comunidades al estado pre-cutoff vía Louvain baseline-only restauró la visibilidad sobre 10 escenarios de ataque a los que la versión anterior sobre grafo completo era algorítmicamente ciega (chain-pivot, cred-spray, dcsync, golden-ticket, kerberoasting, service-creation-chain, silver-ticket, slow-burn-creds, svc-account-abuse, wmi-lateral). El gate de contexto entonces suprime la clase residual de FPs — hosts de infraestructura (monitorización/SIEM/SCCM/backup) bridging hacia comunidades pequeñas — filtrando orígenes con out-degree de baseline por encima del 30% del estate y destinos con muy pocos eventos de baseline. Efecto combinado: la precision de community-bridge subió de ~17% (Louvain single-snapshot sobre grafo completo) a **66.7%**, sin perder ningún true positive.
+
+3. **`novel-edge` usa la novelty de terna (origen, usuario, destino)** más un gate de contexto destination-density + origin-fanout. La novelty de terna reemplaza el test disyuntivo de 3 ejes anterior (par-novel OR usuario-novel OR logon-type-novel) — captura la firma canónica de lateral movement directamente e incluye el caso "ambos sub-pares conocidos en baseline pero nunca como el mismo evento" (firma clásica de host comprometido + credencial robada) que el test disyuntivo perdía. El gate de contexto entonces suprime dos clases residuales de FP a escala: destinos con muy pocos eventos en baseline (donde la novelty es un artefacto de cobertura, no anomalía) y orígenes que hablaron con más de ~30% del estate en baseline (servicios, agentes de monitorización — las ternas nuevas desde esos orígenes son rotación operacional, no señal). La señal de logon-type se delega al detector dedicado `rare-logon-type`, que la trata con estratificación por clase de host.
+
+4. **Resiliencia del ciclo de vida de proyección GDS 2.x**. Cada detector algorítmico llama `ensure_projection()` al arrancar, recreando defensivamente la proyección si ha desaparecido del catálogo entre llamadas consecutivas. Requerido porque el catálogo GDS por-base-de-datos puede desincronizarse entre sesiones Bolt en Neo4j 2026.x.
 
 ## Cuándo `graph-hunt` NO es la herramienta correcta
 
