@@ -258,6 +258,12 @@ Cuatro cambios de detectores contribuyeron materialmente a los números del estr
 
 4. **Resiliencia del ciclo de vida de proyección GDS 2.x**. Cada detector algorítmico llama `ensure_projection()` al arrancar, recreando defensivamente la proyección si ha desaparecido del catálogo entre llamadas consecutivas. Requerido porque el catálogo GDS por-base-de-datos puede desincronizarse entre sesiones Bolt en Neo4j 2026.x.
 
+### Paridad entre backends: Neo4j vs Memgraph
+
+Los números de arriba son sobre Neo4j 2026.x + GDS 2.x. La variante Memgraph de `graph-hunt` comparte el mismo refactor de triple-novelty y la lógica de context gate para `novel-edge` y `community-bridge`, así que las mejoras más impactantes de detectores shippean en ambos backends. Sin embargo, MAGE (la librería algorítmica de Memgraph) no expone variantes `_subgraph` para `pagerank.get` ni `betweenness_centrality.get` — solo para community detection (Louvain y Leiden). Esto significa que el patrón two-snapshot de centralidad no se puede replicar en Memgraph sin manipulación destructiva de aristas (DELETE/restore) o workarounds basados en peso que no son estructuralmente equivalentes, ninguno de los cuales es aceptable para una herramienta de incident response.
+
+La variante Memgraph mantiene por tanto el scoring single-snapshot para `pagerank-spike` y `betweenness-spike`. En el corpus pequeño de control esto produce igualmente **100% P@10 / 100% P@20 / 100% recall de escenarios** — operacionalmente idéntico para triage top-K. El trade-off es ~13 puntos porcentuales menos de precisión overall que Neo4j, concentrados en la cola larga (posiciones 50+) donde los workflows de triage DFIR típicamente no llegan. Recomendación: Memgraph para corpus hasta ~5M aristas; Neo4j para stress enterprise mayor.
+
 ## Cuándo `graph-hunt` NO es la herramienta correcta
 
 Dos límites merecen mención explícita:

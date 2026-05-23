@@ -258,6 +258,12 @@ Four detector changes contributed materially to the stress numbers:
 
 4. **GDS 2.x projection lifecycle resilience**. Each algorithmic detector calls `ensure_projection()` at start, defensively re-creating the projection if it has vanished from the catalog between consecutive calls. Required because the per-database GDS catalog can desynchronize across Bolt sessions on Neo4j 2026.x.
 
+### Backend parity: Neo4j vs Memgraph
+
+The numbers above are on Neo4j 2026.x + GDS 2.x. The Memgraph variant of `graph-hunt` shares the same triple-novelty refactor and context-gate logic for `novel-edge` and `community-bridge`, so the most impactful detector improvements ship on both backends. However, MAGE (Memgraph's algorithmic library) doesn't expose `_subgraph` variants for `pagerank.get` or `betweenness_centrality.get` — only for community detection (Louvain and Leiden). That means the two-snapshot centrality pattern can't be replicated in Memgraph without destructive edge manipulation (DELETE/restore) or non-equivalent weight-based workarounds, neither of which is acceptable for an incident-response tool.
+
+The Memgraph variant therefore keeps single-snapshot scoring for `pagerank-spike` and `betweenness-spike`. On the small control corpus this still yields **100% P@10 / 100% P@20 / 100% scenario recall** — operationally identical for top-K triage. The trade-off is ~13 percentage points lower overall precision than Neo4j, concentrated in the long tail (positions 50+) where DFIR triage workflows typically don't reach. Recommendation: Memgraph for corpora up to ~5M edges; Neo4j for larger enterprise stress.
+
 ## When `graph-hunt` is NOT the right tool
 
 Two limits are worth calling out:
