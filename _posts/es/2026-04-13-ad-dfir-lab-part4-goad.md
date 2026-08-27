@@ -14,7 +14,7 @@ comments: true
 
 ## Por qué GOAD
 
-[GOAD (Game of Active Directory)](https://github.com/Orange-Cyberdefense/GOAD) de Orange Cyberdefense es **el** proyecto open source para entornos vulnerables de AD. Está testeado, mantenido y reproduce decenas de vulnerabilidades reales: AS-REP Roasting, Kerberoasting, ADCS ESC1-ESC8, abuso de ACLs, cross-forest trust attacks, MSSQL trusted links, etc.
+[GOAD (Game of Active Directory)](https://github.com/Orange-Cyberdefense/GOAD) de Orange Cyberdefense es **el** proyecto open source para entornos vulnerables de AD. Está testeado, mantenido y reproduce decenas de vulnerabilidades reales: AS-REP Roasting, Kerberoasting, ADCS ESC1-ESC13, abuso de ACLs, cross-forest trust attacks, MSSQL trusted links, etc.
 
 ¿Por qué no escribirlo nosotros desde cero? Porque ya está hecho y battle-tested por una empresa que vive de pentestear AD. Reinventar la rueda sería absurdo.
 

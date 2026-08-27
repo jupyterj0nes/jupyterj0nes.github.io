@@ -38,7 +38,7 @@ VLAN 20 — Red de ataque (192.168.20.0/24)
 pfSense como firewall entre VLANs — Kali tiene que pivotar, como en un pentest real.
 ```
 
-Dos forests con trust bidireccional. Tres dominios. Nueve máquinas virtuales. Más de 2.500 usuarios generados con BadBlood. Vulnerabilidades preconfiguradas que incluyen AS-REP Roasting, Kerberoasting, delegación, ADCS ESC1-ESC8, abuso de ACLs y mucho más.
+Dos forests con trust bidireccional. Tres dominios. Nueve máquinas virtuales. ~46 usuarios en los tres dominios — el conjunto que crea GOAD (no se ejecutó generación masiva con BadBlood). Vulnerabilidades preconfiguradas que incluyen AS-REP Roasting, Kerberoasting, delegación, ADCS ESC1-ESC13 (en essos.local), abuso de ACLs y mucho más.
 
 ## El flujo DFIR completo
 
@@ -78,7 +78,7 @@ Todo el proceso está automatizado con scripts y documentado paso a paso:
 | Hetzner AX41-NVMe (64 GB RAM, 2x512 GB NVMe) | 38 EUR |
 | Licencias Windows (evaluación, reset con ZFS snapshot) | 0 |
 | Proxmox VE (community edition) | 0 |
-| GOAD + BadBlood + herramientas | 0 (open source) |
+| GOAD + herramientas | 0 (open source) |
 | **Total** | **38 EUR/mes** |
 
 ## Repositorio
