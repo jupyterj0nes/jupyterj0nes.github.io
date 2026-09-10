@@ -87,7 +87,7 @@ After the attacks, we'll have thousands of these events in `Microsoft-Windows-Sy
 
 ## Windows Advanced Audit Policy
 
-Sysmon is great but doesn't catch everything. **Security.evtx** is where Kerberos events (4768, 4769), logons (4624, 4625), and DCSync (4662) live. You need to explicitly enable it with `auditpol`:
+Sysmon is great but doesn't catch everything. **Security.evtx** is where Kerberos events (4768, 4769), logons (4624, 4625), and DCSync (4662) live — DCSync being the attack where someone impersonates a domain controller to pull password hashes over the replication protocol. Windows groups these events into audit *subcategories* (finer-grained than the top-level categories), and each one has to be switched on explicitly with `auditpol`:
 
 ```yaml
 - name: Enable Account Logon auditing (4768-4776 Kerberos)

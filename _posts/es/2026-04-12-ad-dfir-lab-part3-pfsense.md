@@ -185,7 +185,7 @@ Para escenarios de ataque más complejos (callbacks de meterpreter, conexiones r
 
 Hasta ahora todo el acceso al lab es via SSH al host Proxmox (`qm guest exec`, consolas VNC). Para trabajar realmente con las VMs (RDP a los servidores Windows, abrir el web UI de pfSense, hacer SMB) necesitamos un VPN.
 
-El plan original era WireGuard sobre pfSense, pero acabamos poniéndolo **directamente en el host Proxmox** porque:
+WireGuard es una VPN pequeña y rápida: intercambias claves públicas entre dos peers y obtienes un túnel cifrado, así puedes llegar a las redes privadas del lab desde tu propia máquina como si estuvieras dentro. El plan original era WireGuard sobre pfSense, pero acabamos poniéndolo **directamente en el host Proxmox** porque:
 
 1. `wireguard-tools` ya está instalado desde Phase 2
 2. El host tiene la IP pública de Hetzner — pfSense no

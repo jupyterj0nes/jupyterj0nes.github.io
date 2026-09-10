@@ -18,6 +18,8 @@ A DFIR lab with only attacks and no baseline noise is a teaching toy, not a trai
 
 So Phase 10 exists to generate **two years of simulated corporate history** across the entire forest — DC logons from fifty users with realistic schedules, file creations on file shares, browser history, MSSQL sessions, scheduled tasks, prefetch, user shellbags, everything that a two-year-old domain should have. The end state: a `noisy-ad-2years` snapshot that sits alongside `clean-ad`.
 
+The mechanism is **clock travel**: for each simulated day, phase10 rolls every VM's clock back to that date, runs a batch of activity so Windows stamps its log events with it, then steps the clock forward one day and repeats — walking from two years ago up to today. Freezing the clock in the past has a bonus: the run doesn't burn the Windows evaluation licenses, which only count real elapsed time.
+
 The two snapshots serve different purposes:
 
 - **`clean-ad`** → learn what each TTP looks like in isolation. Zero distraction, deterministic.

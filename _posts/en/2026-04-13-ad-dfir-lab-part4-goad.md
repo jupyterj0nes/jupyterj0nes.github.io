@@ -24,6 +24,16 @@ GOAD has a Python launcher (`goad.py`) that orchestrates everything: it provisio
 
 **We already have the VMs**, so we **skip the launcher** and use the playbooks directly with a custom inventory pointing at our IPs. Faster and with more control.
 
+Two words of vocabulary first. A **forest** is the top-level container of an Active Directory install; a **domain** lives inside it, and a forest can hold several in a parent/child tree (here `north` is a child of `sevenkingdoms`). A **trust** is a link that lets accounts in one domain or forest authenticate against another — our lab has a bidirectional trust between the two forests, which is exactly what makes the cross-forest attacks possible. Throughout this part, VM IDs `101`-`108` refer to the hosts in Part 2's VM table.
+
+Skipping the launcher means we install its two dependencies by hand: clone GOAD and put Ansible on the Proxmox host.
+
+```bash
+git clone https://github.com/Orange-Cyberdefense/GOAD /root/GOAD
+apt-get install -y ansible python3-pip
+pip3 install --break-system-packages pywinrm
+```
+
 ## Adapting IPs
 
 GOAD upstream uses specific IPs:

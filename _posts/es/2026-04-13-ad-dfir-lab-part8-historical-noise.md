@@ -18,6 +18,8 @@ Un laboratorio DFIR con solo ataques y sin ruido de base es un juguete didáctic
 
 Por eso existe la Fase 10: generar **dos años de historia corporativa simulada** por todo el bosque — logons en los DCs de cincuenta usuarios con horarios realistas, creación de ficheros en shares, historial de navegación, sesiones MSSQL, tareas programadas, prefetch, shellbags de usuario, todo lo que un dominio de dos años debería tener. Resultado final: un snapshot `noisy-ad-2years` que vive al lado de `clean-ad`.
 
+El mecanismo es el **viaje en el tiempo del reloj**: por cada día simulado, phase10 retrasa el reloj de cada VM a esa fecha, ejecuta una tanda de actividad para que Windows selle sus eventos de log con ella, luego adelanta el reloj un día y repite — caminando desde hace dos años hasta hoy. Congelar el reloj en el pasado tiene un extra: la ejecución no gasta las licencias de evaluación de Windows, que solo cuentan tiempo real transcurrido.
+
 Los dos snapshots sirven a propósitos distintos:
 
 - **`clean-ad`** → aprender cómo se ve cada TTP aislado. Cero distracción, determinista.

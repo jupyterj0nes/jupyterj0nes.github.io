@@ -27,7 +27,22 @@ For this lab we use a **Hetzner AX41-NVMe** from the [Server Auction](https://ww
 
 64 GB of RAM is enough to run all 9 lab VMs (35 GB allocated to VMs + 4 GB for Proxmox/ZFS), and the two NVMe drives allow us to set up RAID1 for redundancy.
 
-> **A note on configuration.** The scripts read everything server-specific — your public IP block, the uplink NIC, the ZFS pool name, the rescue image — from `config/lab.env`, so you don't have to dig through the code to adapt them. Copy `config/lab.env.example` to `config/lab.env`, fill in your values, and every `0X-*.sh` picks them up. The IPs below (`203.0.113.x`) are placeholders; yours will be your server's real ones.
+## Before you start
+
+Every phase below runs a script from this series' repo, which lives at `/root/lab` on the server. So get it there first — clone it from the rescue system, and again on the freshly installed system after Part 1 (Part 1 reinstalls the OS, which wipes the disk):
+
+```bash
+git clone https://github.com/jupyterj0nes/ad-dfir-lab /root/lab
+```
+
+The scripts read everything server-specific — your public IP block, the uplink NIC, the ZFS pool name, the rescue image — from `config/lab.env`, so you don't have to dig through the code to adapt them. Copy the example, fill in your values, and every `0X-*.sh` picks them up:
+
+```bash
+cp /root/lab/config/lab.env.example /root/lab/config/lab.env
+# then edit config/lab.env: set SERVER_SUBNET and anything that differs from the defaults
+```
+
+The IPs you'll see below (`203.0.113.x`) are placeholders; yours will be your server's real ones.
 
 ## Step 1: Rescue System
 
@@ -118,7 +133,7 @@ Proxmox installation takes about 3 minutes and includes the Proxmox kernel (6.8.
 
 ### VLAN-aware bridge
 
-For VMs to have networking, we need a bridge. Proxmox uses `vmbr0` as the main bridge. We configure it as **VLAN-aware** so we can assign different VLANs to each VM:
+A VLAN splits one physical network into several isolated virtual ones, each identified by a numeric tag. For VMs to have networking we need a bridge; Proxmox uses `vmbr0` as the main one, and we configure it as **VLAN-aware** so that single bridge can carry several VLANs — one segment per VM group:
 
 ```
 auto vmbr0
@@ -136,7 +151,7 @@ With `bridge-vlan-aware yes`, each VM can have its own VLAN tag. Domain VMs will
 
 ### ZFS for VM storage
 
-ZFS gives us instant snapshots, compression, and the ability to revert the entire lab to a clean state in seconds. We use the free LVM space:
+ZFS is a combined filesystem and volume manager: it stores the VM disks and, because it works copy-on-write, can freeze or roll back their exact state in an instant. That's why it gives us snapshots, compression, and the ability to revert the entire lab to a clean state in seconds. We use the free LVM space:
 
 ```bash
 # Create logical volume with 90% of free space
