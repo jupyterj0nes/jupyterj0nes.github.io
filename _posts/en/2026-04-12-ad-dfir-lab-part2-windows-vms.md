@@ -124,14 +124,42 @@ Evaluation ISOs don't need a product key. If you include a KMS retail key, the i
 
 ### Post-install automation
 
-In `FirstLogonCommands` we configure everything needed after installation:
+In `FirstLogonCommands` we configure everything we need once the install finishes:
 
-- Permanently disable firewall with `Set-NetFirewallProfile`
-- Enable WinRM for remote management
-- Install QEMU Guest Agent from the VirtIO ISO
-- Install VirtIO balloon driver
+```xml
+<FirstLogonCommands>
+  <!-- 1. Permanently disable the firewall -->
+  <SynchronousCommand wcm:action="add">
+    <Order>2</Order>
+    <CommandLine>powershell -Command "Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False"</CommandLine>
+  </SynchronousCommand>
+  <!-- 2. Enable WinRM for remote administration -->
+  <SynchronousCommand wcm:action="add">
+    <Order>4</Order>
+    <CommandLine>powershell -Command "Enable-PSRemoting -Force -SkipNetworkProfileCheck"</CommandLine>
+  </SynchronousCommand>
+  <!-- 3. Install the QEMU Guest Agent from the VirtIO ISO -->
+  <SynchronousCommand wcm:action="add">
+    <Order>7</Order>
+    <CommandLine>powershell -Command "$d = (Get-Volume | Where-Object {$_.FileSystemLabel -eq 'virtio-win'}).DriveLetter; if ($d) { Start-Process msiexec.exe -Wait -ArgumentList \"/i ${d}:\guest-agent\qemu-ga-x86_64.msi /qn\" }"</CommandLine>
+  </SynchronousCommand>
+</FirstLogonCommands>
+```
 
-The guest agent enables Proxmox to communicate with the VM: execute commands, get IPs, clean shutdown.
+The guest agent is what lets Proxmox talk to the VM: run commands, read its IP, do a clean shutdown.
+
+### The ISO trick
+
+How do we get `autounattend.xml` onto a CD-ROM? We build a tiny ISO:
+
+```bash
+apt-get install -y genisoimage
+TMPDIR=$(mktemp -d)
+cp autounattend-2019.xml ${TMPDIR}/autounattend.xml
+genisoimage -o autounattend-2019.iso -J -r ${TMPDIR}/
+```
+
+This few-KB ISO gets mounted as `ide3` and Windows Setup finds it automatically.
 
 ## Ubuntu: Cloud Image + Cloud-Init
 
@@ -202,7 +230,11 @@ sed -i 's|preseed/file=/cdrom/simple-cdd/default.preseed simple-cdd/profiles=kal
     /tmp/kali-iso/boot/grub/grub.cfg
 
 # Repack ISO
-xorriso -as mkisofs ... -o kali-preseed.iso /tmp/kali-iso
+xorriso -as mkisofs -r -J -joliet-long -l -cache-inodes \
+    -isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin \
+    -b isolinux/isolinux.bin -c isolinux/boot.cat \
+    -no-emul-boot -boot-load-size 4 -boot-info-table \
+    -o kali-preseed.iso /tmp/kali-iso
 ```
 
 ### Static IP and debconf answers
@@ -210,9 +242,12 @@ xorriso -as mkisofs ... -o kali-preseed.iso /tmp/kali-iso
 Without pfSense/DHCP on the network, we need a static IP. And Kali packages ask questions that need pre-answering:
 
 ```
+# Static network (VLAN 20)
 d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/get_ipaddress string 192.168.20.100
+d-i netcfg/get_netmask string 255.255.255.0
 d-i netcfg/get_gateway string 192.168.20.1
+d-i netcfg/get_nameservers string 8.8.8.8
 
 macchanger macchanger/automatically_run boolean false
 kismet-capture-common kismet-capture-common/install-setuid boolean true
@@ -231,6 +266,28 @@ qm set 108 --delete ide2
 qm set 108 --boot order=scsi0
 qm reboot 108
 ```
+
+## Temporary NAT
+
+Without pfSense configured yet, the VMs have no route to the internet. So Kali can download packages during the install, we set up NAT on the Proxmox host itself:
+
+```bash
+# Create VLAN interfaces on Proxmox
+ip link add link vmbr0 name vmbr0.10 type vlan id 10
+ip addr add 192.168.10.1/24 dev vmbr0.10
+ip link set vmbr0.10 up
+
+ip link add link vmbr0 name vmbr0.20 type vlan id 20
+ip addr add 192.168.20.1/24 dev vmbr0.20
+ip link set vmbr0.20 up
+
+# NAT
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -t nat -A POSTROUTING -s 192.168.10.0/24 -o vmbr0 -j MASQUERADE
+iptables -t nat -A POSTROUTING -s 192.168.20.0/24 -o vmbr0 -j MASQUERADE
+```
+
+This is temporary — in Part 3, pfSense takes over routing and NAT.
 
 ## QEMU Guest Agent: the last hurdle (and why it needs manual intervention)
 

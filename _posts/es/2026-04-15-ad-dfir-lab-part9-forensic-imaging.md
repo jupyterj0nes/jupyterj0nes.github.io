@@ -20,7 +20,7 @@ Pero un snapshot viviendo dentro de Proxmox no es una imagen forense. Es un bloc
 
 Así que la Parte 9 es el puente: **cómo sacar el estado del disco de cada VM desde el host Proxmox de Hetzner hasta tu máquina local de análisis como imagen forense**, con las tres restricciones habituales:
 
-1. **Consistencia** — la imagen debe representar un estado punto-en-el-tiempo único, no una mezcla smeared
+1. **Consistencia** — la imagen debe representar un estado punto-en-el-tiempo único, no una mezcla emborronada
 2. **Sin downtime** — el lab debe seguir corriendo; la imagen no puede forzar apagones de VMs
 3. **Presupuesto de disco ajustado** — el host Proxmox tiene espacio limitado; no puedes permitirte volcar 320 GB en local antes de transferirlos
 
@@ -42,7 +42,7 @@ scp /tmp/vm-106.raw yo@laptop:/mnt/casos/
 
 Tres pasos, tres problemas para nuestro lab:
 
-**Problema 1 — downtime forzado.** Apagar cada VM para imaginarla significa que el lab se cae. Si estás intentando simular un ejercicio de incident response o capturar estado mientras algo está corriendo, eso invalida el propósito.
+**Problema 1 — downtime forzado.** Apagar cada VM para adquirir su imagen significa que el lab se cae. Si estás intentando simular un ejercicio de incident response o capturar estado mientras algo está corriendo, eso invalida el propósito.
 
 **Problema 2 — staging intermedio.** `dd if=... of=/tmp/...` escribe la imagen raw completa al disco local de Proxmox primero. Para un zvol Windows de 50 GB, eso son 50 GB de storage temporal. Multiplicado por 7 VMs, necesitas 320 GB de scratch space en el host. La partición root de Proxmox en nuestro lab tiene ~13 GB libres. Esto la llenaría instantáneamente y bloquearía el host.
 
@@ -108,7 +108,7 @@ Así que la elección del formato no es una restricción de masstin — es por *
 | E01 default | ~5.5 GB | ~5 min | ✓ | Ligeramente más grande |
 | E01 max compression | ~5 GB | ~10 min | ✓ | Mismo tamaño que zstd, 3x más lento |
 
-`zstd -10` gana en todos los ejes excepto en metadatos de cadena de custodia. El matiz es que E01 tiene hashes SHA1 baked in como parte del formato del fichero, con metadata sobre la herramienta de adquisición, timestamps y operador. Si estás imaginando una máquina real que puede acabar en un juicio, eso importa. Para un lab de training, es ruido.
+`zstd -10` gana en todos los ejes excepto en metadatos de cadena de custodia. El matiz es que E01 tiene hashes SHA1 baked in como parte del formato del fichero, con metadata sobre la herramienta de adquisición, timestamps y operador. Si estás adquiriendo la imagen de una máquina real que puede acabar en un juicio, eso importa. Para un lab de training, es ruido.
 
 Me fui con raw + zstd por dos razones prácticas:
 
@@ -236,7 +236,7 @@ TOTAL                               320GB       60GB         ~42GB
 
 320 GB de `volsize`, 60 GB de `referenced`, ~42 GB comprimido. El ratio de compresión contra volsize es **~13%**, lo que significa que encogemos el tráfico del cable de "demasiado lento para ser práctico" a "acaba en un descanso de comida".
 
-## El benchmark real — las 7 VMs imaginadas en una sesión
+## El benchmark real — las 7 VMs adquiridas en una sesión
 
 Corrí el pipeline completo end-to-end el 2026-04-15, streameando cada VM por SSH desde Hetzner (`203.0.113.229`, Alemania) a un disco forense de mi laptop en España. El loop:
 
@@ -270,7 +270,7 @@ Tres observaciones del run real.
 
 ### El cuello de botella es la red, no la CPU
 
-Cada VM Windows rindió a **exactamente 13 MB/s** — eso son ~100 Mbit/s sostenidos. El clone es instantáneo, el dd lee ZFS a >1 GB/s (NVMe), y `zstd -T0 -10` multithreaded corre a ~500 MB/s en la CPU del host Proxmox. Así que la CPU está idle el 95% del dump. Lo único que está trabajando duro es el túnel SSH piping los bytes comprimidos por Internet hacia mi laptop.
+Cada VM Windows rindió a **exactamente 13 MB/s** — eso son ~100 Mbit/s sostenidos. El clone es instantáneo, el dd lee ZFS a >1 GB/s (NVMe), y `zstd -T0 -10` multithreaded corre a ~500 MB/s en la CPU del host Proxmox. Así que la CPU está idle el 95% del dump. Lo único que está trabajando duro es el túnel SSH canalizando los bytes comprimidos por Internet hacia mi laptop.
 
 Esto importa para tunear. **Subir zstd a `-19` NO haría el dump más rápido.** Solo haría el stream comprimido más pequeño, pero como ya estamos limitados por la velocidad de red y no por lo rápido que Proxmox puede empujar bytes, gastar ciclos extra de CPU en mejor compresión no ayuda al wall clock time en absoluto. Solo ayudaría en un enlace simétrico de 1 Gbit+ donde zstd se convierte en el bottleneck en vez del pipe.
 
@@ -354,7 +354,7 @@ Pero eso es la Parte 10. La Parte 9 acaba aquí, con un pipeline validado y un d
 
 ## Lo que viene
 
-La Parte 10 — "Fuego y Sangre: Escenarios de Ataque y Análisis Forense" — correrá ataques desde Kali sobre un rollback fresco de `noisy-ad-current`, re-imagenearemos con este pipeline, y dejaremos que masstin mastique el par antes/después para ver qué artefactos realmente cazan al atacante.
+La Parte 10 — "Fuego y Sangre: Escenarios de Ataque y Análisis Forense" — correrá ataques desde Kali sobre un rollback fresco de `noisy-ad-current`, re-adquiriremos con este pipeline, y dejaremos que masstin mastique el par antes/después para ver qué artefactos realmente cazan al atacante.
 
 El pipeline de imaging es la herramienta. Los ataques son lo que lo hace útil.
 
