@@ -272,8 +272,8 @@ Después del summary, masstin imprime una hint **"Load into graph (pick one):"**
 
 ```
         Load into graph (pick one):
-          Memgraph:  masstin -a load-memgraph -f C:/Users/c00pr/.../timeline.csv --database localhost:7687
-          Neo4j:     masstin -a load-neo4j   -f C:/Users/c00pr/.../timeline.csv --database bolt://localhost:7687 --user neo4j
+          Memgraph:  masstin -a load-memgraph -f C:/Users/analyst/.../timeline.csv --database localhost:7687
+          Neo4j:     masstin -a load-neo4j   -f C:/Users/analyst/.../timeline.csv --database bolt://localhost:7687 --user neo4j
 ```
 
 Las dos alternativas mostradas juntas, las dos rutas en forma larga, sin necesidad de buscar la sintaxis de neo4j por separado.

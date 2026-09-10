@@ -27,6 +27,8 @@ For this lab we use a **Hetzner AX41-NVMe** from the [Server Auction](https://ww
 
 64 GB of RAM is enough to run all 9 lab VMs (35 GB allocated to VMs + 4 GB for Proxmox/ZFS), and the two NVMe drives allow us to set up RAID1 for redundancy.
 
+> **A note on configuration.** The scripts read everything server-specific — your public IP block, the uplink NIC, the ZFS pool name, the rescue image — from `config/lab.env`, so you don't have to dig through the code to adapt them. Copy `config/lab.env.example` to `config/lab.env`, fill in your values, and every `0X-*.sh` picks them up. The IPs below (`203.0.113.x`) are placeholders; yours will be your server's real ones.
+
 ## Step 1: Rescue System
 
 When Hetzner delivers the server, the first step is to boot into the **Rescue System** — a minimal Linux loaded into RAM that lets you install the operating system on the disks.
