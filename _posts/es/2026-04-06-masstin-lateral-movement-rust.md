@@ -43,13 +43,6 @@ comments: true
 
 ![Masstin Logo](/assets/images/masstin-logo.png){: style="display:block; margin: 0 auto 2rem; max-width: 100%; width: 600px;" loading="lazy"}
 
-<video autoplay loop muted playsinline style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;" poster="/assets/images/masstin-memgraph-temporal-path.jpg">
-  <source src="/assets/video/masstin-memgraph-temporal-path.mp4" type="video/mp4">
-  Un timeline de masstin en Memgraph Lab: la hora de la intrusión y el camino temporal del atacante a la estación.
-</video>
-
-*Un timeline de masstin en Memgraph Lab: todos los logins de la hora en que entró el atacante, y después una consulta del catálogo devuelve el camino cronológicamente válido desde la IP del atacante hasta la estación. Caso DFIR Madness "Szechuan sauce".*
-
 ## El problema
 
 Un atacante ha comprometido tu red. Se ha movido lateralmente entre servidores Windows, máquinas Linux e infraestructura cloud. La evidencia está dispersa: EVTX de 50 máquinas, logs de auth de una docena de servidores Linux, datos de red de tu EDR. Necesitas reconstruir el camino del atacante — cada salto, cada credencial, cada intento fallido — y lo necesitas **ya**.
@@ -132,7 +125,6 @@ masstin -a parse-linux -d /evidence/linux-triage/ -o linux.csv
   parse-windows sobre 293 EVTX de muestra: descubrimiento, desglose por carpeta, duplicados eliminados, el CSV de 14 columnas.
 </video>
 
-
 ### Visualizar en base de datos de grafos
 
 ```bash
@@ -143,7 +135,12 @@ masstin -a load-memgraph -f full-timeline.csv --database localhost:7687
 masstin -a load-neo4j -f full-timeline.csv --database localhost:7687 --user neo4j
 ```
 
-![Grafo de movimiento lateral en Memgraph Lab](/assets/images/memgraph_output1.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
+<video autoplay loop muted playsinline style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;" poster="/assets/images/masstin-memgraph-temporal-path.jpg">
+  <source src="/assets/video/masstin-memgraph-temporal-path.mp4" type="video/mp4">
+  Un timeline de masstin en Memgraph Lab: la hora de la intrusión y el camino temporal del atacante a la estación.
+</video>
+
+*Un timeline de masstin en Memgraph Lab: todos los logins de la hora en que entró el atacante, y después una consulta del catálogo devuelve el camino cronológicamente válido desde la IP del atacante hasta la estación. Caso DFIR Madness "Szechuan sauce".*
 
 ### Reconstruir el camino del atacante
 
@@ -171,7 +168,6 @@ masstin -a graph-hunt-csv -f timeline.csv --investigation-from "2026-03-15 00:00
   <source src="/assets/video/masstin-graph-hunt-ranked.mp4" type="video/mp4">
   graph-hunt-csv sobre el timeline de Szechuan: la ejecución y después las conexiones ordenadas con su clase y su lugar en la cadena.
 </video>
-
 
 Cómo decide, y qué encontró en el conjunto público de LANL, está en el [artículo de graph-hunt](/es/tools/masstin-graph-hunt/).
 
