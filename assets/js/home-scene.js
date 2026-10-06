@@ -48,9 +48,13 @@
     var m2pts = subdivide([[0, 452], [260, 406], [520, 442], [780, 410], [1040, 440], [1320, 418]], 4, 28, 0.5, R, 384);
     var m3pts = subdivide([[0, 504], [320, 474], [640, 504], [960, 478], [1320, 490]], 4, 20, 0.5, R, 442);
     var tb = [], tm = [], tf = [], i;
-    for (i = 0; i < 1500; i++) tb.push(fir(R() * 1380 - 30, 282 + R() * 216, 11 + R() * 26, 7 + R() * 13));
-    for (i = 0; i < 700; i++) tm.push(fir(R() * 1380 - 30, 466 + R() * 150, 28 + R() * 102, 14 + R() * 28));
-    for (i = 0; i < 300; i++) tf.push(fir(R() * 1380 - 30, 702 + R() * 6, 60 + R() * 212, 28 + R() * 54));
+    // Fewer trees on phones — the mountain + graph are computed independently of the
+    // tree PRNG draws, so they stay identical; only the forest density drops.
+    var mob = (typeof window !== 'undefined') && window.matchMedia && window.matchMedia('(max-width: 760px)').matches;
+    var N1 = mob ? 460 : 1500, N2 = mob ? 240 : 700, N3 = mob ? 110 : 300;
+    for (i = 0; i < N1; i++) tb.push(fir(R() * 1380 - 30, 282 + R() * 216, 11 + R() * 26, 7 + R() * 13));
+    for (i = 0; i < N2; i++) tm.push(fir(R() * 1380 - 30, 466 + R() * 150, 28 + R() * 102, 14 + R() * 28));
+    for (i = 0; i < N3; i++) tf.push(fir(R() * 1380 - 30, 702 + R() * 6, 60 + R() * 212, 28 + R() * 54));
     var summit = m1pts[0];
     for (i = 1; i < m1pts.length; i++) if (m1pts[i][1] < summit[1]) summit = m1pts[i];
     var CH = [[300, 606, 'b', 'RED-01'], [360, 556, 'r', ''], [410, 502, 'b', 'helen'], [448, 452, 'g', ''], [470, 402, 'a', 'EVILPC$'], [452, 352, 'b', ''], [440, 300, 'r', '4741'], [434, 240, 'a', ''], [summit[0], summit[1], 'a', 'T1098']];
