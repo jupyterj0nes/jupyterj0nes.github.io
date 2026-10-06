@@ -64,6 +64,19 @@
   @media (prefers-reduced-motion: reduce) {
     .ember, .star, .tape-track, .cta-primary, .rise, .aurora, .scan, .lamp, .chain, .node, .graph, .car { animation: none }
   }
+  @media (max-width: 760px) {
+    .wia header { padding-left: 20px !important; padding-right: 20px !important; }
+    .wia section { padding-left: 20px !important; padding-right: 20px !important; }
+    .wia footer > div { padding-left: 20px !important; padding-right: 20px !important; }
+    .wia nav { gap: 9px 14px !important; font-size: 11px !important; }
+    .wia h1 { font-size: 42px !important; }
+    .hero { min-height: 560px !important; padding-top: 76px !important; padding-bottom: 84px !important; }
+    .hud-readout, .brackets { display: none !important; }
+    .wia article { padding: 30px 24px !important; }
+  }
+  @media (max-width: 400px) {
+    .wia h1 { font-size: 36px !important; }
+  }
 </style>
 </head>
 <body style="margin:0">
@@ -99,7 +112,7 @@
   </header>
 
   <!-- HERO -->
-  <section style="position: relative; padding: 108px 40px 150px; min-height: 760px; overflow: hidden">
+  <section class="hero" style="position: relative; padding: 108px 40px 150px; min-height: 760px; overflow: hidden">
     <svg viewBox="0 0 1320 680" preserveAspectRatio="xMidYMax slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0">
       <defs>
         <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--sky1)"></stop><stop offset="1" style="stop-color: var(--sky2)"></stop></linearGradient>
@@ -184,10 +197,10 @@
       </div>
     </div>
 
-    <div aria-hidden="true" style="position: absolute; inset: 22px; z-index: 2; pointer-events: none">
+    <div class="brackets" aria-hidden="true" style="position: absolute; inset: 22px; z-index: 2; pointer-events: none">
       <span style="position: absolute; top: 0; left: 0; width: 22px; height: 22px; border-top: 2px solid var(--amber); border-left: 2px solid var(--amber); opacity: .6"></span><span style="position: absolute; top: 0; right: 0; width: 22px; height: 22px; border-top: 2px solid var(--amber); border-right: 2px solid var(--amber); opacity: .6"></span><span style="position: absolute; bottom: 0; left: 0; width: 22px; height: 22px; border-bottom: 2px solid var(--amber); border-left: 2px solid var(--amber); opacity: .6"></span><span style="position: absolute; bottom: 0; right: 0; width: 22px; height: 22px; border-bottom: 2px solid var(--amber); border-right: 2px solid var(--amber); opacity: .6"></span>
     </div>
-    <div aria-hidden="true" style="position: absolute; right: 46px; bottom: 44px; z-index: 2; text-align: right; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: .14em; line-height: 1.95; color: var(--muted)">
+    <div class="hud-readout" aria-hidden="true" style="position: absolute; right: 46px; bottom: 44px; z-index: 2; text-align: right; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: .14em; line-height: 1.95; color: var(--muted)">
       <div style="color: var(--red)">&#9679; REC &middot; CASE//OPEN</div><div>42.5987&deg;N &middot; 5.5671&deg;W &mdash; LE&Oacute;N</div><div style="color: var(--faint)">EXP. 001 &middot; MACHINE-ACCOUNT-QUOTA</div>
     </div>
     <div aria-hidden="true" style="position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); text-align: center; z-index: 2">
@@ -211,7 +224,7 @@
         <h2 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(38px, 5vw, 58px); line-height: 1.04; letter-spacing: -0.01em; color: var(--ink); margin: 0">{% if lang == "en" %}Every case, three acts.{% else %}Cada caso, tres actos.{% endif %}</h2>
         <p style="font-size: 16px; line-height: 1.62; color: var(--body); max-width: 660px; margin: 18px auto 0">{% if lang == "en" %}There is no lab of mine to log into: I teach you to stand up your own <strong style="color: var(--ink); font-weight: 600">disposable range</strong> and add layers to it, so you attack, defend and investigate on it. Step by step.{% else %}No hay un laboratorio al que entrar: te enseño a <strong style="color: var(--ink); font-weight: 600">montar tu propio rango desechable</strong> y a subirle capas, para que ataques, defiendas e investigues sobre él. Paso a paso.{% endif %}</p>
       </div>
-      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 26px">
         <article class="panel glass" style="--glow: var(--red-glow); --glowbd: var(--red-glow); position: relative; padding: 40px 32px 36px; border-radius: 4px; overflow: hidden">
           <div aria-hidden="true" style="position: absolute; top: -70px; right: -70px; width: 220px; height: 220px; background: radial-gradient(circle, var(--red-glow), transparent 68%); pointer-events: none"></div>
           <span aria-hidden="true" style="position: absolute; top: 8px; right: 20px; font-family: 'Fraunces', serif; font-weight: 700; font-size: 120px; line-height: 1; color: var(--red); opacity: .10">I</span>
@@ -255,7 +268,7 @@
   <section style="padding: 96px 40px; background: var(--bg)">
     <div style="max-width: 1180px; margin: 0 auto">
       <h2 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(34px, 4.6vw, 50px); color: var(--ink); margin: 0 0 46px; letter-spacing: -0.01em">{% if lang == "en" %}Explore the archive{% else %}Explora el archivo{% endif %}</h2>
-      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 26px">
         <a href="{{ '/' | append: lang | append: '/cases/' | relative_url }}" class="sec glass" style="--glow: var(--amber-glow); display: block; position: relative; padding: 34px 30px; border-radius: 4px; overflow: hidden"><div style="display: flex; align-items: flex-start; justify-content: space-between"><span style="font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: .14em; color: var(--amber)">01</span><span class="go" style="color: var(--amber)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div><h3 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 27px; color: var(--ink); margin: 14px 0 10px">{{ t.nav.cases }}</h3><p style="font-size: 14px; line-height: 1.62; color: var(--body); margin: 0">{% if lang == "en" %}Real investigations, anonymized. Coming soon.{% else %}Investigaciones reales, anonimizadas. Próximamente.{% endif %}</p></a>
         <a href="#lab" class="sec glass" style="--glow: var(--blue-glow); display: block; position: relative; padding: 34px 30px; border-radius: 4px; overflow: hidden"><div style="display: flex; align-items: flex-start; justify-content: space-between"><span style="font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: .14em; color: var(--blue)">02</span><span class="go" style="color: var(--blue)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div><h3 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 27px; color: var(--ink); margin: 14px 0 10px">{% if lang == "en" %}The Lab{% else %}El Laboratorio{% endif %}</h3><p style="font-size: 14px; line-height: 1.62; color: var(--body); margin: 0 0 16px">{% if lang == "en" %}Stand up your disposable range and add layers: attack, hardening, forensics. Step by step.{% else %}Monta tu rango desechable y súbele capas: ataque, hardening y forense. Guía paso a paso.{% endif %}</p><div style="display: flex; gap: 7px"><span style="width: 12px; height: 12px; background: var(--red-bar); box-shadow: 0 0 10px var(--red-glow)"></span><span style="width: 12px; height: 12px; background: var(--green-bar); box-shadow: 0 0 10px var(--green-glow)"></span><span style="width: 12px; height: 12px; background: var(--blue-bar); box-shadow: 0 0 10px var(--blue-glow)"></span></div></a>
         <a href="{{ '/' | append: lang | append: '/tools/' | relative_url }}" class="sec glass" style="--glow: var(--green-glow); display: block; position: relative; padding: 34px 30px; border-radius: 4px; overflow: hidden"><div style="display: flex; align-items: flex-start; justify-content: space-between"><span style="font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: .14em; color: var(--green)">03</span><span class="go" style="color: var(--green)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div><h3 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 27px; color: var(--ink); margin: 14px 0 10px">{{ t.nav.tools }}</h3><p style="font-size: 14px; line-height: 1.62; color: var(--body); margin: 0">masstin, boromir, sabonis, vshadow-rs… {% if lang == "en" %}home-grown DFIR in Rust.{% else %}DFIR en Rust, hecho en casa.{% endif %}</p></a>
