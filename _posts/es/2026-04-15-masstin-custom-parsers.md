@@ -33,7 +33,7 @@ Lo que mantuvimos:
 - **Un fichero por combinación fabricante+formato.** `palo-alto-globalprotect.yaml` cubre el formato legacy del SYSTEM log. Un fichero separado cubrirá el log type dedicado `globalprotect` de PAN-OS 9.1+ cuando esté listo. Mezclar dos formatos en un mismo fichero es una trampa.
 - **El primer match gana.** Dentro de un fichero, los parsers se prueban en orden. El primero que reclama una línea produce exactamente un record y pasa a la siguiente. Barato, predecible, fácil de razonar.
 - **Las líneas rechazadas son ciudadanas de primera clase.** Cualquier línea que nada matchea va a un log de rechazos. `--dry-run` te muestra las primeras para que veas qué le falta a tu regla. `--debug` conserva una muestra junto al CSV de salida para análisis post-mortem.
-- **Cuatro extractores cubren el mundo real.** CSV para logs tabulares (Palo Alto, muchos exports cloud). Keyvalue para logs `key=value` (Fortinet, formatos tipo CEF-lite). Regex para prosa libre (OpenVPN, syslog legacy). JSON está planificado para v2.
+- **Cuatro extractores cubren el mundo real.** CSV para logs tabulares (Palo Alto, muchos exports cloud). Keyvalue para logs `key=value` (Fortinet, formatos tipo CEF-lite). Regex para prosa libre (OpenVPN, syslog legacy). JSON para logs de eventos NDJSON (un objeto por línea): campos escalares extraídos por ruta con puntos, planos (`EventID`, `TargetUserName`) o anidados (`winlog.event_id`).
 
 ---
 
@@ -83,7 +83,7 @@ parsers:
 Cuatro bloques por parser:
 
 - **`match`** — qué líneas reclama este parser. Combina `contains`, `contains_any` y `regex`.
-- **`extract`** — cómo sacar campos de la línea matcheada. Elige uno de `csv`, `regex`, `keyvalue`.
+- **`extract`** — cómo sacar campos de la línea matcheada. Elige uno de `csv`, `regex`, `keyvalue`, `json`.
 - **`sub_extract`** — segunda pasada opcional sobre un campo ya extraído. Esencial para formatos anidados como Palo Alto, donde la forma exterior es CSV pero los datos interesantes de usuario/IP viven dentro de uno de los campos exteriores como una frase narrativa seguida de `Key: value, Key: value`.
 - **`map`** — rellena las 14 columnas de `LogData` usando sustitución `${variable}`. Lo desconocido se queda vacío. Cualquier texto puede embeberse en cualquier campo.
 
@@ -189,7 +189,7 @@ IP de origen, nombre de usuario, tipo de autenticación, versión del SO — tod
 
 ## La biblioteca de reglas
 
-La biblioteca inicial trae **8 reglas completas con 31 sub-parsers** cubriendo los productos VPN, firewall y proxy más habituales. Cada regla se ha investigado contra la documentación oficial del fabricante y se ha validado contra líneas de ejemplo realistas que están commiteadas junto a cada regla en `<categoría>/samples/`.
+La biblioteca trae ya **9 reglas investigadas con 37 sub-parsers** cubriendo los productos VPN, firewall y proxy más habituales, más una regla JSON/SIEM. Cada regla se ha investigado contra la documentación oficial del fabricante y se ha validado contra líneas de ejemplo realistas que están commiteadas junto a cada regla en `<categoría>/samples/`.
 
 | Categoría | Regla | Parsers | Formato |
 |---|---|---|---|
@@ -201,8 +201,9 @@ La biblioteca inicial trae **8 reglas completas con 31 sub-parsers** cubriendo l
 | Firewall | [`firewall/cisco-asa.yaml`](https://github.com/jupyterj0nes/masstin/blob/main/rules/firewall/cisco-asa.yaml) | 6 | Auth AAA (`113004/5`), login permit/deny (`605004/5`), WebVPN (`716001/2`) |
 | Firewall | [`firewall/fortinet-fortigate.yaml`](https://github.com/jupyterj0nes/masstin/blob/main/rules/firewall/fortinet-fortigate.yaml) | 4 | `type=event subtype=system\|user` admin login, user auth |
 | Proxy | [`proxy/squid.yaml`](https://github.com/jupyterj0nes/masstin/blob/main/rules/proxy/squid.yaml) | 3 | `access.log` nativo — CONNECT tunnel, HTTP, TCP_DENIED |
+| JSON/SIEM | [`json/mordor.yaml`](https://github.com/jupyterj0nes/masstin/blob/main/rules/json/mordor.yaml) | 6 | NDJSON plano de Mordor / OTRF Security-Datasets (`type: json`) — Sysmon Event 3 en puertos de movimiento lateral, 4624/4625/4634/4647/4648/5140 |
 
-Ejecutar la biblioteca entera contra todos los ficheros de ejemplo a la vez produce:
+Ejecutar las ocho reglas de logs de texto contra sus ficheros de ejemplo (antes de añadir la regla JSON) produce:
 
 ```
 Loaded 8 rule file(s), 31 parsers total
@@ -276,11 +277,11 @@ Medidas reales contra la timeline combinada del DefCon DFIR CTF 2018 (178k event
       loopback_ip                  1
 ```
 
-Documentación completa en la [sección de filtrado del README](https://github.com/jupyterj0nes/masstin#noise-filtering---ignore-local-and---exclude-).
+Documentación completa en la [sección de filtrado de `docs/parsing.md`](https://github.com/jupyterj0nes/masstin/blob/main/docs/parsing.md#noise-filtering---ignore-local-and---exclude-).
 
 ## Qué sigue
 
-- **Extractores v2.** JSON con selectores al estilo jq. Ya planificado.
+- **Extractor JSON.** Publicado en v1.1.0 como `type: json` con selectores por ruta con puntos; `rules/json/mordor.yaml` es la primera regla construida sobre él.
 - **Map condicional.** Predicados tipo `when: ${action} == "fail"` para que un único parser pueda manejar variantes de línea de éxito y fallo del mismo evento cuando el formato lo hace más limpio que dos parsers.
 - **Más reglas.** Cisco ASA AnyConnect, Fortinet FortiGate, OpenVPN y Squid son las siguientes prioridades. Checkpoint, ZScaler, Cloudflare Access están en el backlog.
 - **Log type dedicado de PAN-OS 9.1+ `globalprotect`.** Una segunda regla de Palo Alto cubriendo el formato dedicado de 49+ columnas, en cuanto pueda validarla contra muestras reales.
@@ -346,6 +347,6 @@ Cada regla de la biblioteca se ha escrito a partir de la documentación oficial 
 | Página principal de masstin | [masstin](/es/tools/masstin-lateral-movement-rust/) |
 | Esquema de custom parsers | [`docs/custom-parsers.md`](https://github.com/jupyterj0nes/masstin/blob/main/docs/custom-parsers.md) |
 | Biblioteca de reglas | [`rules/`](https://github.com/jupyterj0nes/masstin/tree/main/rules) |
-| Tabla de referencias de la biblioteca | [`rules/README.md#references`](https://github.com/jupyterj0nes/masstin/blob/main/rules/README.md#references) |
+| Tabla de referencias de la biblioteca | [`rules/README.md`](https://github.com/jupyterj0nes/masstin/blob/main/rules/README.md) |
 | Formato CSV y clasificación de eventos | [Formato CSV](/es/tools/masstin-csv-format/) |
 | Visualización en grafo | [Memgraph](/es/tools/memgraph-visualization/) / [Neo4j](/es/tools/neo4j-cypher-visualization/) |

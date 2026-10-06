@@ -31,9 +31,9 @@ A diferencia de los eventos de logon en Security.evtx, los logs específicos de 
 
 Estos eventos se generan en la **máquina destino** (el servidor SMB que recibe las conexiones).
 
-### Event ID 1009 — Intento de conexión SMB
+### Event ID 1009 — Acceso anónimo denegado
 
-Se genera cuando un cliente intenta establecer una conexión SMB con el servidor. Este evento registra la fase inicial del protocolo, antes de la autenticación.
+Se genera cuando el servidor deniega el acceso anónimo (sesión nula) a un cliente. Registra un toque sin autenticar, no una conexión establecida, así que masstin lo escribe como `FAILED_LOGON`.
 
 | Campo | Descripción |
 |-------|------------|
@@ -53,7 +53,7 @@ Se genera cuando la autenticación SMB falla. Esto es distinto del 4625 de Secur
 | UserName | Cuenta con la que se intentó autenticar |
 | Status | Código de error (similar a los Sub Status del 4625) |
 
-> **Correlación:** Una ráfaga de 551 seguida de un acceso exitoso a un share (visible en el Event ID 31001 de SMBClient o en un 4624 tipo 3) indica que el atacante realizó fuerza bruta o password spraying exitoso.
+> **Correlación:** Una ráfaga de 551 seguida de un acceso exitoso a un share (visible en un 4624 tipo 3 de Security.evtx o en un 30807 de SMBClient/Connectivity) indica que el atacante realizó fuerza bruta o password spraying exitoso.
 
 ---
 
@@ -63,9 +63,9 @@ Se genera cuando la autenticación SMB falla. Esto es distinto del 4625 de Secur
 
 Estos eventos se generan en la **máquina origen** (el cliente SMB que inicia las conexiones). Son fundamentales para determinar desde qué máquina el atacante accedió a los shares remotos.
 
-### Event ID 31001 — Conexión a share remoto
+### Event ID 31001 — Fallo de autenticación contra un servidor remoto
 
-Se genera cuando el cliente SMB conecta exitosamente a un share de red.
+Se genera (nivel Error) cuando el cliente SMB no consigue autenticarse en un servidor. Masstin lo escribe como `FAILED_LOGON`, con el share en la columna `detail`.
 
 | Campo | Descripción |
 |-------|------------|
@@ -75,9 +75,9 @@ Se genera cuando el cliente SMB conecta exitosamente a un share de red.
 | Reason | Motivo/resultado de la conexión |
 
 > **Indicadores de movimiento lateral:**
-> - Acceso a `ADMIN$` o `C$`: típico de PsExec, Impacket y herramientas similares.
-> - Acceso a shares no estándar desde cuentas inesperadas: posible exfiltración.
-> - Múltiples conexiones a shares de diferentes servidores en corto tiempo: movimiento lateral activo.
+> - Intentos contra `ADMIN$` o `C$`: típico de PsExec, Impacket y herramientas similares.
+> - Intentos contra shares no estándar desde cuentas inesperadas: posible exfiltración.
+> - Múltiples fallos contra diferentes servidores en corto tiempo: prueba de credenciales durante un movimiento lateral activo.
 
 ---
 
@@ -116,9 +116,9 @@ Estos eventos cubren diferentes aspectos de la conectividad SMB:
 
 | Log | Event ID | Máquina | Descripción | Relevancia |
 |-----|:--------:|:-------:|-------------|-----------|
-| SMBServer/Security | 1009 | Destino | Intento de conexión | Alta — detecta enumeración |
+| SMBServer/Security | 1009 | Destino | Acceso anónimo denegado | Alta — detecta enumeración |
 | SMBServer/Security | 551 | Destino | Fallo de autenticación | Alta — fuerza bruta SMB |
-| SMBClient/Security | 31001 | Origen | Conexión a share exitosa | Alta — confirma acceso remoto |
+| SMBClient/Security | 31001 | Origen | Fallo de autenticación contra un servidor | Alta — nombra el destino desde el lado origen |
 | SMBClient/Connectivity | 30803 | Origen | TCP establecido | Media — confirma conectividad |
 | SMBClient/Connectivity | 30804 | Origen | TCP fallido | Media — detecta escaneo |
 | SMBClient/Connectivity | 30805 | Origen | Negociación SMB exitosa | Media — versión de protocolo |
@@ -146,29 +146,29 @@ Los eventos SMB no viven aislados. Para una investigación completa, correlació
 
 ### PsExec
 
-1. **Origen:** 31001 hacia `\\victima\ADMIN$` (copia del ejecutable)
-2. **Destino:** 1009 (conexión recibida)
+1. **Origen:** 30803 → 30805 → 30807 (sesión establecida con la víctima; la copia a `ADMIN$` va sobre ella)
+2. **Destino:** 1009 solo si antes hubo una sonda de sesión nula (acceso anónimo denegado)
 3. **Destino:** 4624 tipo 3 (logon de red)
 4. **Destino:** 7045 (instalación de servicio PSEXESVC)
 
 ### CrackMapExec / Impacket SMBExec
 
 1. **Origen:** 30803 → 30805 → 30807 (conexión TCP, negociación, sesión)
-2. **Origen:** 31001 hacia `\\victima\ADMIN$` o `\\victima\IPC$`
+2. **Origen:** 31001 hacia `\\victima\ADMIN$` o `\\victima\IPC$` con las credenciales que fallaron
 3. **Destino:** 4624 tipo 3 con `LogonProcessName: NtLmSsp`
 4. **Destino:** Posible 7045 (servicio temporal)
 
 ### Enumeración de shares
 
 1. **Origen:** Múltiples 30803 hacia diferentes IPs (escaneo puerto 445)
-2. **Origen:** Múltiples 31001 hacia diferentes shares del mismo servidor
+2. **Origen:** Múltiples 31001 (autenticación fallida) contra diferentes servidores
 3. **Destino:** Múltiples 1009 desde la misma IP origen
 
 ---
 
 ## Cómo masstin parsea los logs SMB
 
-[Masstin](/es/tools/masstin-lateral-movement-rust/) extrae los eventos de SMBServer y SMBClient automáticamente y los normaliza en la timeline CSV, incluyendo IP de origen, share accedido, cuenta utilizada y resultado de la conexión.
+[Masstin](/es/tools/masstin-lateral-movement-rust/) extrae los eventos de SMBServer y SMBClient automáticamente y los normaliza en la timeline CSV, incluyendo IP de origen, share accedido, cuenta utilizada y resultado de la conexión. 1009, 551 y 31001 acaban como `FAILED_LOGON` y los eventos de conectividad 30803-30808 como `CONNECT`; los registros escritos por las plantillas nuevas de 551/1009, sin el layout de campos legacy, se parsean en lugar de abortar la ejecución.
 
 ```bash
 masstin -a parse-windows -d /evidence/logs/ -o timeline.csv

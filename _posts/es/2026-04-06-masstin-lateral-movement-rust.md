@@ -16,10 +16,10 @@ comments: true
   "@type": "SoftwareApplication",
   "name": "masstin",
   "alternateName": "Masstin",
-  "description": "Masstin es una herramienta DFIR escrita en Rust que parsea EVTX de Windows, logs de Linux, bases UAL, exportaciones de Cortex XDR, logs personalizados e imagenes forenses (E01/dd/VMDK incluido streamOptimized) en una timeline unificada de movimiento lateral, con visualizacion en grafos Neo4j y Memgraph.",
+  "description": "Masstin es una herramienta DFIR escrita en Rust que parsea EVTX de Windows, logs de Linux, bases UAL, exportaciones de Cortex XDR, logs personalizados e imagenes forenses (E01/dd/VMDK incluido streamOptimized) en una timeline unificada de movimiento lateral, con visualizacion en grafos Neo4j y Memgraph y una caza estadistica de movimiento lateral (graph-hunt) que mide cada conexion contra la propia linea base de la red.",
   "url": "https://weinvestigateanything.com/es/tools/masstin-lateral-movement-rust/",
   "downloadUrl": "https://github.com/jupyterj0nes/masstin/releases/latest",
-  "softwareVersion": "0.13.0",
+  "softwareVersion": "1.1.0",
   "applicationCategory": "SecurityApplication",
   "applicationSubCategory": "Digital Forensics and Incident Response",
   "operatingSystem": "Windows, Linux, macOS",
@@ -60,11 +60,12 @@ Masstin parsea **todas** estas fuentes y las fusiona en una **única timeline cr
 | Característica | Descripción | Artículo |
 |----------------|-------------|----------|
 | **Parsing unificado cross-OS** | **Un solo comando `parse-image` auto-detecta el SO por partición** — NTFS recibe parsing Windows (EVTX + UAL + VSS), ext4 recibe parsing Linux (auth.log, wtmp, audit.log, **logs binarios de systemd-journald**, etc.) — todo fusionado en una timeline. Apunta a una carpeta con imágenes mixtas y obtén un único CSV. Cero pasos manuales. | [Imágenes forenses](/es/tools/masstin-vss-recovery/) |
+| **graph-hunt: detección estadística** | Cada conexión posterior al corte se mide contra la propia línea base de la red: p-valores, la tasa de falsos descubrimientos como único parámetro, clases de Hopper, reconstrucción de la cadena desde una semilla, informe para el analista. Corre directamente desde el CSV, sin base de datos ni plugins | [graph-hunt](/es/tools/masstin-graph-hunt/) |
 | Análisis multi-directorio | Analiza docenas de máquinas a la vez con múltiples flags `-d`, crítico para investigaciones de ransomware | [Parsear evidencia](#parsear-evidencia) |
 | Timeline multiplataforma | Windows EVTX + Linux SSH + datos EDR en una timeline — `parse-image` auto-fusiona entre sistemas operativos | [Windows](/es/artifacts/security-evtx-lateral-movement/) / [Linux](/es/artifacts/linux-forensic-artifacts/) / [Cortex](/es/artifacts/cortex-xdr-artifacts/) |
-| 32+ Event IDs de 11 fuentes EVTX + Scheduled Tasks XML | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS, WinRM, WMI-Activity + detección de tareas remotas — cubriendo RDP, SMB, Kerberos, NTLM, acceso a shares, PowerShell Remoting, WMI y Scheduled Tasks | [Security.evtx](/es/artifacts/security-evtx-lateral-movement/) / [RDP](/es/artifacts/terminal-services-evtx/) / [SMB](/es/artifacts/smb-evtx-events/) |
+| 33+ Event IDs de 12 fuentes EVTX + Scheduled Tasks XML | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS, WinRM, WMI-Activity, Sysmon (Event 3, conexiones de red) + detección de tareas remotas — cubriendo RDP, SMB, Kerberos, NTLM, acceso a shares, PowerShell Remoting, WMI y Scheduled Tasks | [Security.evtx](/es/artifacts/security-evtx-lateral-movement/) / [RDP](/es/artifacts/terminal-services-evtx/) / [SMB](/es/artifacts/smb-evtx-events/) |
 | Clasificación de eventos | Cada evento clasificado como `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF` o `CONNECT` | [Formato CSV — event_type](/es/tools/masstin-csv-format/) |
-| Descompresión recursiva | Extrae automáticamente paquetes ZIP/triage de forma recursiva, gestiona logs archivados con nombres duplicados, detecta contraseñas forenses comunes | [Artefactos Linux — soporte triage](/es/artifacts/linux-forensic-artifacts/) |
+| Descompresión recursiva | Extrae automáticamente paquetes ZIP/triage de forma recursiva (KAPE, Velociraptor, UAC, Cortex; tar / tar.gz en streaming, anidados entre sí), gestiona logs archivados con nombres duplicados, detecta contraseñas forenses comunes | [Artefactos Linux — soporte triage](/es/artifacts/linux-forensic-artifacts/) |
 | Linux: inferencia inteligente | Auto-detecta hostname, infiere año desde `dpkg.log`, soporta Debian (`auth.log`) y RHEL (`secure`), formatos RFC3164 y RFC5424 | [Artefactos Linux — inferencia](/es/artifacts/linux-forensic-artifacts/) |
 | **Logs binarios de systemd-journald** | **Lector en Rust puro para `/var/log/journal/*.journal[~]`** — modo compacto + descompresión zstd. Esencial en Ubuntu 22 / RHEL 8+ con SSSD + Active Directory, donde `/var/log/auth.log` está vacío porque PAM enruta la autenticación a través del journal. Recorre eventos sshd y aplica las mismas regex `Accepted`/`Failed password` que los logs de texto. Funciona en workstations DFIR con Windows sin libsystemd. | [Artefactos Linux — systemd-journald](/es/artifacts/linux-forensic-artifacts/#logs-binarios-de-systemd-journald--la-mitad-que-falta-en-el-linux-moderno) |
 | Visualización en grafos con reducción de ruido | Carga directa a Neo4j o Memgraph con agrupación de conexiones (fecha más temprana + recuento) y resolución automática IP-a-hostname | [Neo4j](/es/tools/neo4j-cypher-visualization/) / [Memgraph](/es/tools/memgraph-visualization/) |
@@ -93,7 +94,8 @@ Masstin parsea **todas** estas fuentes y las fusiona en una **única timeline cr
 |------------|----------|
 | Windows | [`masstin-windows.exe`](https://github.com/jupyterj0nes/masstin/releases/latest) |
 | Linux | [`masstin-linux`](https://github.com/jupyterj0nes/masstin/releases/latest) |
-| macOS | [`masstin-macos`](https://github.com/jupyterj0nes/masstin/releases/latest) |
+| macOS (Apple Silicon) | [`masstin-macos-arm64`](https://github.com/jupyterj0nes/masstin/releases/latest) |
+| macOS (Intel) | [`masstin-macos-x86_64`](https://github.com/jupyterj0nes/masstin/releases/latest) |
 
 Ve a [**Releases**](https://github.com/jupyterj0nes/masstin/releases) y descarga el binario para tu plataforma. Nada más.
 
@@ -145,6 +147,22 @@ RETURN path ORDER BY length(path) LIMIT 5
 
 ![Camino temporal en Memgraph](/assets/images/memgraph_temporal_path.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
+### Cazar sin saber qué buscar
+
+Con el timeline hecho, `graph-hunt-csv` responde a la pregunta que el analista trae el primer día: de todo lo que pasó después del compromiso, ¿qué es nuevo para esta red? Sin base de datos ni plugins: cada conexión de la ventana se mide contra la línea base, el único número que eliges es la tasa de falsos descubrimientos, y el informe explica cada hallazgo en palabras. Dale un host o una cuenta que ya sabes que es mala con `--seed` y reconstruye la cadena:
+
+```bash
+masstin -a graph-hunt-csv -f timeline.csv --investigation-from "2026-03-15 00:00:00" \
+        --seed 10.10.1.50 --report hunt.md -o hunt.csv
+```
+
+<video autoplay loop muted playsinline style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
+  <source src="/assets/video/masstin-graph-hunt-seed.mp4" type="video/mp4">
+  <img src="/assets/images/masstin-graph-hunt-seed.gif" alt="graph-hunt-csv reconstruyendo la cadena del atacante desde una IP semilla">
+</video>
+
+Cómo decide, y qué encontró en el conjunto público de LANL, está en el [artículo de graph-hunt](/es/tools/masstin-graph-hunt/).
+
 ---
 
 ## Acciones disponibles
@@ -159,14 +177,15 @@ RETURN path ORDER BY length(path) LIMIT 5
 | `parse-massive` | Como `parse-image` pero también incluye EVTX y logs sueltos de los directorios `-d` — útil cuando la evidencia es una mezcla de imágenes de disco y paquetes triage extraídos |
 | `carve-image` | **Último recurso.** Escanea el disco raw buscando chunks EVTX en espacio no asignado. Recupera eventos de movimiento lateral después de que logs + VSS hayan sido borrados. Usa `--carve-unalloc` para escanear solo espacio no asignado |
 | `parse-cortex-evtx-forensics` | Consulta la API de Cortex XDR para colecciones EVTX forenses de múltiples máquinas |
-| `parse-custom` | Parsea logs de texto arbitrarios (VPN, firewall, proxy, aplicación web) usando ficheros YAML de reglas. Trae tu propio formato de log — ver [parsers personalizados de masstin](/es/tools/masstin-custom-parsers/) |
+| `parse-custom` | Parsea logs de texto o JSON arbitrarios (VPN, firewall, proxy, aplicación web, Mordor / OTRF) usando ficheros YAML de reglas con extractores csv, regex, keyvalue y json. Trae tu propio formato de log — ver [parsers personalizados de masstin](/es/tools/masstin-custom-parsers/) |
 | `merge` | Combina múltiples CSVs en una única timeline cronológica |
 | `load-neo4j` | Sube la timeline a Neo4j para visualización en grafos |
 | `load-memgraph` | Sube la timeline a Memgraph para visualización en grafos en memoria |
 | `merge-neo4j-nodes` | Fusiona dos nodos `:host` del grafo después de cargar (por ejemplo, cuando una IP y un hostname no se unificaron automáticamente). No requiere APOC |
 | `merge-memgraph-nodes` | Igual que el anterior, para Memgraph. No requiere MAGE |
-| `graph-hunt` | **Detección automatizada de movimiento lateral en Memgraph.** Ejecuta 7 detectores (novel edge, chain motif, PageRank/betweenness spike, community bridge, credential rotation, rare logon type) contra un grafo ya cargado y emite un CSV de findings rankeado. Usa algoritmos MAGE (bundleados con Memgraph). Ver [post graph-hunt](/es/tools/masstin-graph-hunt/) |
-| `graph-hunt-neo4j` | **Los mismos 7 detectores contra Neo4j.** Usa el plugin Graph Data Science (GDS) 2.x — requiere Neo4j 5.x+ con GDS instalado vía la UI de Plugins de Neo4j Desktop. Soporta `--db <nombre>` para setups multi-database. Ver [post graph-hunt](/es/tools/masstin-graph-hunt/) |
+| `graph-hunt-csv` | **Caza estadística de movimiento lateral directamente desde el CSV del timeline.** Cada conexión posterior a `--investigation-from` se mide contra la línea base; Benjamini-Hochberg a `--alpha` decide; `--seed` reconstruye cadenas, `--report` escribe el informe para el analista, `--sigma` une los hits de Hayabusa / Chainsaw. Sin base de datos. Ver [post graph-hunt](/es/tools/masstin-graph-hunt/) |
+| `graph-hunt` | La misma caza sobre un grafo cargado en Memgraph con `--ungrouped`. Todo se calcula en memoria; no necesita MAGE |
+| `graph-hunt-neo4j` | La misma caza sobre Neo4j (`--db <nombre>` para bases con nombre). No necesita el plugin GDS |
 
 ### parse-windows vs parse-image vs parse-massive — qué procesa cada una
 
@@ -182,7 +201,7 @@ Las tres acciones del lado Windows se diferencian por **qué les metes**, no por
 | Bases de datos UAL (`LogFiles/Sum/*.mdb`) | ❌ | ✅ | ✅ |
 | Scheduled Tasks XML (`System32/Tasks/`) | ❌ | ✅ | ✅ |
 | MountPoints2 (hive de registro NTUSER.DAT) | ❌ | ✅ | ✅ |
-| Triage detection (KAPE / Velociraptor / Cortex XDR) con labels por fuente | ❌ | ❌ | ✅ |
+| Triage detection (KAPE / Velociraptor / UAC / Cortex XDR) con labels por fuente | ❌ | ❌ | ✅ |
 | Promoción de directorios `-d` como loose artifacts al pipeline | ❌ | ❌ | ✅ |
 
 Regla rápida:
@@ -220,7 +239,7 @@ En las tres, cualquier EVTX cuyo `Provider.Name` coincida con un canal que masst
 | User Access Logging (UAL) | [Historial de acceso a servidor desde bases de datos ESE](/es/tools/masstin-ual/) |
 | vshadow-rs — parser VSS en Rust puro | [vshadow-rs](/es/tools/vshadow-rs/) |
 | Detección de triages (KAPE / Velociraptor / Cortex) — reconocimiento automático de paquetes triage dentro de `parse-image` y `parse-massive` | [Detección de triages en masstin](/es/tools/masstin-triage-detection/) |
-| **graph-hunt** — detección automatizada de movimiento lateral sobre el grafo cargado (7 detectores, Memgraph MAGE y Neo4j GDS 2.x) | [graph-hunt en masstin](/es/tools/masstin-graph-hunt/) |
+| **graph-hunt** — detección estadística de movimiento lateral: p-valores contra la propia línea base de la red, tasa de falsos descubrimientos, clases de Hopper, cadenas desde semilla, informe para el analista; desde el CSV, Memgraph o Neo4j, sin plugins | [graph-hunt en masstin](/es/tools/masstin-graph-hunt/) |
 
 ### Bases de datos graficas
 

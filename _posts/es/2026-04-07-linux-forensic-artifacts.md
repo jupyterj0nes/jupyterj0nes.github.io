@@ -67,6 +67,8 @@ Apr  7 14:23:06 servidor sshd[12346]: Failed password for invalid user test from
 
 > **Detección de fuerza bruta:** Una ráfaga de `Failed password` seguida de un `Accepted password` indica fuerza bruta exitosa.
 
+Masstin escribe las líneas `Failed <método> for invalid user` como `SSH_FAILED` igual que cualquier otro fallo, expande el `message repeated N times: [ ... ]` de rsyslog en N eventos, y registra los toques previos a la autenticación (cierres `[preauth]`, `Did not receive identification string`) como filas `CONNECT` con event_id `SSH_PREAUTH`.
+
 ### Eventos de conexión y desconexión
 
 ```
@@ -75,7 +77,7 @@ Apr  7 14:45:30 servidor sshd[12345]: Disconnected from user admin 10.0.1.50 por
 Apr  7 14:45:30 servidor sshd[12345]: pam_unix(sshd:session): session closed for user admin
 ```
 
-Estos eventos permiten calcular la duración de la sesión y confirmar que la sesión se cerró de forma limpia.
+Estos eventos permiten calcular la duración de la sesión y confirmar que la sesión se cerró de forma limpia. Masstin empareja la línea `session closed` con su `Accepted` por el pid de sshd y escribe una fila `LOGOFF` (event_id `LOGOUT`) por cada sesión cerrada, con el pid en `logon_id` en ambas filas.
 
 ---
 
@@ -123,6 +125,8 @@ Tipos de registro relevantes para movimiento lateral:
 | USER_ACCT | Verificación de cuenta (existe, no expirada, etc.) |
 
 > **Ventaja de audit.log:** A diferencia de `/var/log/secure`, audit.log usa un formato estructurado con timestamps Unix precisos, lo que facilita la correlación temporal con otros artefactos.
+
+Masstin se queda solo con `USER_LOGIN` (un registro por conexión SSH; `USER_AUTH` se usa como fallback), descarta los registros de audit de una conexión que el log de sshd ya cubre — emparejados por pid — y toma los finales de sesión de `USER_END`.
 
 ---
 
@@ -269,7 +273,7 @@ Apr 12 18:20:53 LNX01-oldtown sshd[2141]: Accepted publickey for ubuntu from 192
 
 Si extraes `/var/log/auth.log` de una imagen forense ext4 y lo parseas con una herramienta clásica, concluirás "aquí no pasó nada" — y te perderás el 100% de la evidencia de movimiento lateral. Cualquier pipeline de DFIR que ignore el journal binario en Linux moderno tiene un punto ciego del tamaño de toda la huella SSH.
 
-Masstin gestiona esto de forma nativa: lee directamente los ficheros `.journal` y `.journal~`, decodifica el modo compacto y los data objects comprimidos con zstd, filtra por `_COMM=sshd` y aplica las mismas regex `Accepted (password|publickey)` / `Failed password` que usa sobre logs de texto. La implementación es **Rust puro** — sin binding a `libsystemd` — con lo cual también funciona cuando analizas evidencia Linux desde una **workstation DFIR con Windows**.
+Masstin gestiona esto de forma nativa: lee directamente los ficheros `.journal` y `.journal~`, decodifica el modo compacto y los data objects comprimidos con zstd, filtra por `_COMM=sshd` (y `sshd-session`, el proceso por conexión de OpenSSH 9.8+) y aplica las mismas regex `Accepted (password|publickey)` / `Failed password` que usa sobre logs de texto. La implementación es **Rust puro** — sin binding a `libsystemd` — con lo cual también funciona cuando analizas evidencia Linux desde una **workstation DFIR con Windows**.
 
 ---
 
@@ -290,7 +294,7 @@ Masstin gestiona esto de forma nativa: lee directamente los ficheros `.journal` 
 
 ## Cómo masstin parsea artefactos Linux
 
-[Masstin](/es/tools/masstin-lateral-movement-rust/) soporta el parseo de logs de autenticación Linux — ficheros de texto (`/var/log/auth.log`, `/var/log/secure`, `/var/log/audit/audit.log`), accounting binario (`utmp`/`wtmp`/`btmp`/`lastlog`) **y los logs binarios de systemd-journald** bajo `/var/log/journal/` — y normaliza cada evento al mismo formato CSV que utiliza para los artefactos Windows.
+[Masstin](/es/tools/masstin-lateral-movement-rust/) soporta el parseo de logs de autenticación Linux — ficheros de texto (`/var/log/auth.log`, `/var/log/secure`, `/var/log/audit/audit.log`), accounting binario (`utmp`/`wtmp`/`btmp`/`lastlog`, incluidos los rotados `wtmp-YYYYMMDD` / `btmp-YYYYMMDD[.gz]`) **y los logs binarios de systemd-journald** bajo `/var/log/journal/` — y normaliza cada evento al mismo formato CSV que utiliza para los artefactos Windows.
 
 ```bash
 # Directorio con logs extraidos
@@ -302,7 +306,9 @@ masstin -a parse-linux -d /evidence/triage_package/ -o timeline.csv
 
 ![Salida CLI de masstin parse-linux](/assets/images/masstin_cli_linux.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
-Masstin reporta de forma transparente todas las inferencias: identificación del hostname (desde `/etc/hostname`, `dmesg` o la cabecera syslog), inferencia del año (desde `dpkg.log`, `wtmp` o fecha de modificación del fichero) y extracción de ZIPs protegidos con contraseña.
+Masstin reporta de forma transparente todas las inferencias: identificación del hostname (desde `/etc/hostname`, `dmesg` o la cabecera syslog), inferencia del año (desde el sufijo de logrotate de los ficheros rotados, `dpkg.log`, `wtmp` o fecha de modificación del fichero), la zona horaria usada para convertir los timestamps RFC3164 a UTC y extracción de ZIPs protegidos con contraseña.
+
+Cada sesión cerrada produce una fila `LOGOFF` (event_id `LOGOUT`) emparejada con su login por el pid de sshd — desde wtmp (`DEAD_PROCESS`), el `session closed` de pam, journald o el `USER_END` de auditd — y `logon_id` lleva ese pid en todas las filas de Linux que lo tienen. `logon_type` es `SSH` en todas las filas de Linux.
 
 Esto permite crear timelines de movimiento lateral que cruzan las fronteras de sistema operativo: un atacante que se mueve de una workstation Windows a un servidor Linux vía SSH aparecerá en la misma timeline que sus movimientos RDP o SMB.
 
@@ -317,6 +323,7 @@ Los logs de Linux difieren según la distribución, pero masstin los maneja de f
 | **Debian, Ubuntu** (rsyslog clásico) | `/var/log/auth.log` | RFC3164 (syslog legacy) |
 | **RHEL, CentOS, Fedora, Rocky** | `/var/log/secure` | RFC3164 (syslog legacy) |
 | **Cualquiera (rsyslog estructurado)** | Variable | RFC5424 |
+| **Debian 13 / rsyslog `RSYSLOG_FileFormat`** | `/var/log/auth.log` | Timestamps ISO (`2026-09-25T10:11:12.123456+02:00 host sshd[1]: ...`) — se usa el offset del propio timestamp |
 | **Ubuntu 18+ / Debian 11+ / RHEL 8+** (stock, sin rsyslog) | `/var/log/journal/<id>/*.journal[~]` | **Binario (comprimido con zstd)** — parseado directamente |
 | **SSSD + Active Directory (Ubuntu 22, RHEL 9)** | `/var/log/journal/` + `/var/log/audit/audit.log` | Binario + texto estructurado |
 
@@ -328,7 +335,7 @@ Los logs de Linux difieren según la distribución, pero masstin los maneja de f
 Mar 16 08:25:22 app-1 sshd[4894]: Accepted password for user3 from 192.168.126.1 port 61474 ssh2
 ```
 
-Dado que RFC3164 no incluye el año, masstin lo infiere automáticamente de ficheros vecinos en el mismo directorio. El orden de prioridad es: `dpkg.log` (contiene fechas completas `YYYY-MM-DD`), `wtmp` (timestamps epoch con año), fecha de modificación del fichero, y año actual como último recurso. Masstin reporta qué infiere y de qué fuente lo obtiene, para que el analista siempre conozca la base de los timestamps.
+Dado que RFC3164 no incluye el año, masstin lo infiere automáticamente de ficheros vecinos en el mismo directorio. El orden de prioridad es: `dpkg.log` (contiene fechas completas `YYYY-MM-DD`), `wtmp` (timestamps epoch con año), fecha de modificación del fichero, y año actual como último recurso. Masstin reporta qué infiere y de qué fuente lo obtiene, para que el analista siempre conozca la base de los timestamps. Los ficheros rotados (`secure-20260301`, `auth.log.1.gz`) toman el año de su sufijo de logrotate, y una línea de diciembre en el fichero actual, sin rotar, se fecha en el año anterior cuando el año inferido la dejaría después de la última escritura del fichero. Los timestamps RFC3164 son además la hora local del host: masstin resuelve la zona desde `/etc/timezone`, `/etc/sysconfig/clock` o `/etc/localtime` y los convierte a UTC para que cuadren con wtmp, audit y journald.
 
 Lo mismo aplica a la identificación del hostname: masstin comprueba `/etc/hostname`, `dmesg`, `/etc/hosts`, y como fallback extrae el hostname de la propia cabecera syslog. Todas las inferencias se reportan de forma transparente en la salida.
 
@@ -342,7 +349,7 @@ Este formato se utiliza cuando se exporta el journal de systemd o cuando rsyslog
 
 ### Soporte de triage comprimido
 
-Al igual que `parse-windows`, `parse-linux` puede procesar paquetes de triage comprimidos directamente. Descomprime archivos ZIP de forma recursiva — incluyendo archivos **protegidos con contraseña** utilizando contraseñas forenses comunes (`cyberdefenders.org`, `infected`, `malware`, `password`). Cuando se detecta y desbloquea un archivo protegido, masstin notifica al usuario.
+Al igual que `parse-windows`, `parse-linux` puede procesar paquetes de triage comprimidos directamente. Descomprime archivos ZIP de forma recursiva — incluyendo archivos **protegidos con contraseña** utilizando contraseñas forenses comunes (`cyberdefenders.org`, `infected`, `malware`, `password`). Cuando se detecta y desbloquea un archivo protegido, masstin notifica al usuario. Los archivos `tar` / `tar.gz` / `tgz` también se recorren (en streaming, solo se desempaquetan los ficheros de log), anidados en cualquier combinación (zip → tar.gz, tar.gz → tar.gz), y las colecciones de UAC (Unix-like Artifacts Collector) se reconocen por su layout `uac.log` + `[root]/` o por su nombre `uac-<host>-<os>-<timestamp>` y se etiquetan `[TRIAGE: UAC]`, con el hostname tomado del nombre del fichero o del `/etc/hostname` recolectado.
 
 ---
 

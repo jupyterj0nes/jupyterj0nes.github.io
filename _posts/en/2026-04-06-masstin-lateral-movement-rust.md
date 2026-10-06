@@ -16,10 +16,10 @@ comments: true
   "@type": "SoftwareApplication",
   "name": "masstin",
   "alternateName": "Masstin",
-  "description": "Masstin is a Rust-based DFIR tool that parses Windows EVTX, Linux logs, UAL databases, Cortex XDR exports, custom logs and forensic disk images (E01/dd/VMDK including streamOptimized) into a unified lateral movement timeline, with Neo4j and Memgraph graph visualization.",
+  "description": "Masstin is a Rust-based DFIR tool that parses Windows EVTX, Linux logs, UAL databases, Cortex XDR exports, custom logs and forensic disk images (E01/dd/VMDK including streamOptimized) into a unified lateral movement timeline, with Neo4j and Memgraph graph visualization and a statistical lateral movement hunt (graph-hunt) that measures every connection against the network's own baseline.",
   "url": "https://weinvestigateanything.com/en/tools/masstin-lateral-movement-rust/",
   "downloadUrl": "https://github.com/jupyterj0nes/masstin/releases/latest",
-  "softwareVersion": "0.13.0",
+  "softwareVersion": "1.1.0",
   "applicationCategory": "SecurityApplication",
   "applicationSubCategory": "Digital Forensics and Incident Response",
   "operatingSystem": "Windows, Linux, macOS",
@@ -60,11 +60,12 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 | Feature | Description | Article |
 |---------|-------------|---------|
 | **Unified cross-OS image parsing** | **Single `parse-image` command auto-detects OS per partition** — NTFS gets Windows parsing (EVTX + UAL + VSS), ext4 gets Linux parsing (auth.log, wtmp, audit.log, **systemd-journald binary logs**, etc.) — all merged into one timeline. Point at a folder of mixed images and get a single CSV. Zero manual steps.  | [Forensic images](/en/tools/masstin-vss-recovery/) |
+| **graph-hunt: statistical detection** | Every connection after the cutoff is measured against the network's own baseline: p-values, the false discovery rate as the only parameter, Hopper classes, chain reconstruction from a seed, an analyst report. Runs straight from the CSV, no database or plugin needed | [graph-hunt](/en/tools/masstin-graph-hunt/) |
 | Multi-directory incident analysis | Analyze dozens of machines at once with multiple `-d` flags, critical for ransomware investigations | [Parse evidence](#parse-evidence) |
 | Cross-platform timeline | Windows EVTX + Linux SSH + EDR data in one timeline — `parse-image` auto-merges across OS boundaries | [Windows](/en/artifacts/security-evtx-lateral-movement/) / [Linux](/en/artifacts/linux-forensic-artifacts/) / [Cortex](/en/artifacts/cortex-xdr-artifacts/) |
-| 32+ Event IDs from 11 EVTX sources + Scheduled Tasks XML | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS, WinRM, WMI-Activity + remote task detection — covering RDP, SMB, Kerberos, NTLM, share access, PowerShell Remoting, WMI and Scheduled Tasks | [Security.evtx](/en/artifacts/security-evtx-lateral-movement/) / [RDP](/en/artifacts/terminal-services-evtx/) / [SMB](/en/artifacts/smb-evtx-events/) |
+| 33+ Event IDs from 12 EVTX sources + Scheduled Tasks XML | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS, WinRM, WMI-Activity, Sysmon (Event 3 network connections) + remote task detection — covering RDP, SMB, Kerberos, NTLM, share access, PowerShell Remoting, WMI and Scheduled Tasks | [Security.evtx](/en/artifacts/security-evtx-lateral-movement/) / [RDP](/en/artifacts/terminal-services-evtx/) / [SMB](/en/artifacts/smb-evtx-events/) |
 | Event classification | Every event classified as `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF` or `CONNECT` | [CSV Format — event_type](/en/tools/masstin-csv-format/) |
-| Recursive decompression | Auto-extracts ZIP/triage packages recursively, handles archived logs with duplicate filenames, auto-detects common forensic passwords | [Linux artifacts — triage support](/en/artifacts/linux-forensic-artifacts/) |
+| Recursive decompression | Auto-extracts ZIP/triage packages recursively (KAPE, Velociraptor, UAC, Cortex; tar / tar.gz streamed, nested in each other), handles archived logs with duplicate filenames, auto-detects common forensic passwords | [Linux artifacts — triage support](/en/artifacts/linux-forensic-artifacts/) |
 | Linux smart inference | Auto-detects hostname, infers year from `dpkg.log`, supports Debian (`auth.log`) and RHEL (`secure`), RFC3164 and RFC5424 formats | [Linux artifacts — inference](/en/artifacts/linux-forensic-artifacts/) |
 | **systemd-journald binary logs** | **Pure-Rust reader for `/var/log/journal/*.journal[~]`** — compact mode + zstd decompression. Essential on Ubuntu 22 / RHEL 8+ with SSSD + Active Directory, where `/var/log/auth.log` is empty because PAM routes auth through the journal. Walks sshd events and applies the same `Accepted`/`Failed password` regexes as text logs. Works on Windows analyst hosts without libsystemd. | [Linux artifacts — systemd-journald](/en/artifacts/linux-forensic-artifacts/#systemd-journald-binary-logs--the-missing-half-on-modern-linux) |
 | Graph visualization with noise reduction | Direct upload to Neo4j or Memgraph with connection grouping (earliest date + count) and automatic IP-to-hostname resolution | [Neo4j](/en/tools/neo4j-cypher-visualization/) / [Memgraph](/en/tools/memgraph-visualization/) |
@@ -93,7 +94,8 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 |----------|----------|
 | Windows | [`masstin-windows.exe`](https://github.com/jupyterj0nes/masstin/releases/latest) |
 | Linux | [`masstin-linux`](https://github.com/jupyterj0nes/masstin/releases/latest) |
-| macOS | [`masstin-macos`](https://github.com/jupyterj0nes/masstin/releases/latest) |
+| macOS (Apple Silicon) | [`masstin-macos-arm64`](https://github.com/jupyterj0nes/masstin/releases/latest) |
+| macOS (Intel) | [`masstin-macos-x86_64`](https://github.com/jupyterj0nes/masstin/releases/latest) |
 
 Go to [**Releases**](https://github.com/jupyterj0nes/masstin/releases) and download the binary for your platform. That's it.
 
@@ -145,6 +147,22 @@ RETURN path ORDER BY length(path) LIMIT 5
 
 ![Temporal path in Memgraph](/assets/images/memgraph_temporal_path.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
+### Hunt without knowing what to look for
+
+Once the timeline exists, `graph-hunt-csv` asks the question an analyst brings to the first day: of everything that happened after the compromise, what is new for this network? No database, no plugin: every window connection is measured against the baseline, the only number you choose is the false discovery rate, and the report explains each finding in words. Give it a known-bad host or account with `--seed` and it reconstructs the chain:
+
+```bash
+masstin -a graph-hunt-csv -f timeline.csv --investigation-from "2026-03-15 00:00:00" \
+        --seed 10.10.1.50 --report hunt.md -o hunt.csv
+```
+
+<video autoplay loop muted playsinline style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
+  <source src="/assets/video/masstin-graph-hunt-seed.mp4" type="video/mp4">
+  <img src="/assets/images/masstin-graph-hunt-seed.gif" alt="graph-hunt-csv reconstructing the attacker's chain from one seed IP">
+</video>
+
+How it decides, and what it found on the public LANL set, is in the [graph-hunt post](/en/tools/masstin-graph-hunt/).
+
 ---
 
 ## Available Actions
@@ -159,14 +177,15 @@ RETURN path ORDER BY length(path) LIMIT 5
 | `parse-massive` | Like `parse-image` but also includes loose EVTX and log files from `-d` directories — use when evidence is a mix of disk images and extracted triage packages |
 | `carve-image` | **Last resort recovery.** Scans raw disk for EVTX chunks in unallocated space. Recovers lateral movement events after logs + VSS are deleted. Use `--carve-unalloc` for unallocated-only scan |
 | `parse-cortex-evtx-forensics` | Query Cortex XDR API for forensic EVTX collections across multiple machines |
-| `parse-custom` | Parse arbitrary text logs (VPN, firewall, proxy, web app) using YAML rule files. Bring your own log format — see [masstin custom parsers](/en/tools/masstin-custom-parsers/) |
+| `parse-custom` | Parse arbitrary text or JSON logs (VPN, firewall, proxy, web app, Mordor / OTRF) using YAML rule files with csv, regex, keyvalue and json extractors. Bring your own log format — see [masstin custom parsers](/en/tools/masstin-custom-parsers/) |
 | `merge` | Combine multiple CSVs into a single chronological timeline |
 | `load-neo4j` | Upload timeline to Neo4j for graph visualization |
 | `load-memgraph` | Upload timeline to Memgraph for in-memory graph visualization |
 | `merge-neo4j-nodes` | Fuse two `:host` graph nodes after loading (e.g., when an IP and a hostname were not auto-unified). No APOC required |
 | `merge-memgraph-nodes` | Same as above, for Memgraph. No MAGE required |
-| `graph-hunt` | **Automated lateral movement detection on Memgraph.** Runs 7 detectors (novel edge, chain motif, PageRank/betweenness spike, community bridge, credential rotation, rare logon type) against an already-loaded graph and emits a ranked CSV of findings. Uses MAGE algorithms (bundled with Memgraph). See [graph-hunt post](/en/tools/masstin-graph-hunt/) |
-| `graph-hunt-neo4j` | **Same 7 detectors against Neo4j.** Uses the Graph Data Science (GDS) 2.x plugin — requires Neo4j 5.x+ with GDS installed via Neo4j Desktop's Plugins UI. Supports `--db <name>` for multi-database setups. See [graph-hunt post](/en/tools/masstin-graph-hunt/) |
+| `graph-hunt-csv` | **Statistical lateral movement hunt straight from the timeline CSV.** Every connection after `--investigation-from` is measured against the baseline; Benjamini-Hochberg at `--alpha` decides; `--seed` reconstructs chains, `--report` writes the analyst report, `--sigma` joins Hayabusa / Chainsaw hits. No database. See [graph-hunt post](/en/tools/masstin-graph-hunt/) |
+| `graph-hunt` | Same hunt on a graph loaded into Memgraph with `--ungrouped`. Everything is computed in memory; no MAGE needed |
+| `graph-hunt-neo4j` | Same hunt on Neo4j (`--db <name>` for named databases). No GDS plugin needed |
 
 ### parse-windows vs parse-image vs parse-massive — what each one actually processes
 
@@ -182,7 +201,7 @@ The three Windows-side actions differ by **what you feed them**, not by the pars
 | UAL databases (`LogFiles/Sum/*.mdb`) | ❌ | ✅ | ✅ |
 | Scheduled Tasks XML (`System32/Tasks/`) | ❌ | ✅ | ✅ |
 | MountPoints2 (NTUSER.DAT registry hive) | ❌ | ✅ | ✅ |
-| Triage detection (KAPE / Velociraptor / Cortex XDR) with per-source labels | ❌ | ❌ | ✅ |
+| Triage detection (KAPE / Velociraptor / UAC / Cortex XDR) with per-source labels | ❌ | ❌ | ✅ |
 | Loose-artifact promotion of `-d` directories into the pipeline | ❌ | ❌ | ✅ |
 
 Rule of thumb:
@@ -220,7 +239,7 @@ In all three, any EVTX whose `Provider.Name` matches a channel masstin knows is 
 | User Access Logging (UAL) | [Server access history from ESE databases](/en/tools/masstin-ual/) |
 | vshadow-rs — pure Rust VSS parser | [vshadow-rs](/en/tools/vshadow-rs/) |
 | Triage detection (KAPE / Velociraptor / Cortex) — automatic recognition of triage packages inside `parse-image` and `parse-massive` | [Triage detection in masstin](/en/tools/masstin-triage-detection/) |
-| **graph-hunt** — automated lateral movement detection on the loaded graph (7 detectors, both Memgraph MAGE and Neo4j GDS 2.x) | [graph-hunt in masstin](/en/tools/masstin-graph-hunt/) |
+| **graph-hunt** — statistical lateral movement detection: p-values against the network's own baseline, false discovery rate, Hopper classes, seed chains, analyst report; from the CSV, Memgraph or Neo4j, no plugins | [graph-hunt in masstin](/en/tools/masstin-graph-hunt/) |
 
 ### Graph Databases
 

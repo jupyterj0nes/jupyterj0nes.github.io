@@ -33,7 +33,7 @@ What we kept:
 - **One file per vendor+format combination.** `palo-alto-globalprotect.yaml` covers the legacy SYSTEM log format. A separate file will cover the PAN-OS 9.1+ dedicated `globalprotect` log type when it ships. Mixing two formats in one file is a trap.
 - **First match wins.** Inside a file, parsers are tried in order. The first one that claims a line produces exactly one record and moves on. Cheap, predictable, easy to reason about.
 - **Rejected lines are first-class citizens.** Any line nothing matches goes to a rejected log. `--dry-run` shows you the first few so you know what your rule is missing. `--debug` preserves a sample alongside the output CSV for post-mortem.
-- **Four extractors cover the real world.** CSV for tabular logs (Palo Alto, many cloud exports). Keyvalue for `key=value` logs (Fortinet, CEF-lite formats). Regex for free-form prose (OpenVPN, legacy syslog). JSON is planned for v2.
+- **Four extractors cover the real world.** CSV for tabular logs (Palo Alto, many cloud exports). Keyvalue for `key=value` logs (Fortinet, CEF-lite formats). Regex for free-form prose (OpenVPN, legacy syslog). JSON for NDJSON event logs (one object per line): scalar fields pulled by dot-path, flat (`EventID`, `TargetUserName`) or nested (`winlog.event_id`).
 
 ---
 
@@ -83,7 +83,7 @@ parsers:
 Four building blocks per parser:
 
 - **`match`** — which lines this parser claims. Combine `contains`, `contains_any` and `regex`.
-- **`extract`** — how to pull fields out of the matched line. Pick one of `csv`, `regex`, `keyvalue`.
+- **`extract`** — how to pull fields out of the matched line. Pick one of `csv`, `regex`, `keyvalue`, `json`.
 - **`sub_extract`** — optional second-pass extraction on a field extracted above. Essential for nested formats like Palo Alto, where the outer shape is CSV but the interesting user/IP data lives inside one of the outer fields as a narrative sentence followed by `Key: value, Key: value`.
 - **`map`** — fill the 14 columns of masstin's `LogData` using `${variable}` substitution. Anything unknown becomes empty. Any text can be embedded in any field.
 
@@ -189,7 +189,7 @@ Source IP, username, authentication type, OS version — all populated correctly
 
 ## The rule library
 
-The initial rule library ships with **8 complete rules and 31 sub-parsers** covering the most common VPN, firewall and proxy products. Every rule was researched against the vendor's official log format documentation and validated against realistic sample log lines committed alongside each rule in `<category>/samples/`.
+The rule library now ships with **9 researched rules and 37 sub-parsers** covering the most common VPN, firewall and proxy products, plus one JSON/SIEM rule. Every rule was researched against the vendor's official log format documentation and validated against realistic sample log lines committed alongside each rule in `<category>/samples/`.
 
 | Category | Rule | Parsers | Format |
 |---|---|---|---|
@@ -201,8 +201,9 @@ The initial rule library ships with **8 complete rules and 31 sub-parsers** cove
 | Firewall | [`firewall/cisco-asa.yaml`](https://github.com/jupyterj0nes/masstin/blob/main/rules/firewall/cisco-asa.yaml) | 6 | AAA auth (`113004/5`), login permit/deny (`605004/5`), WebVPN (`716001/2`) |
 | Firewall | [`firewall/fortinet-fortigate.yaml`](https://github.com/jupyterj0nes/masstin/blob/main/rules/firewall/fortinet-fortigate.yaml) | 4 | `type=event subtype=system\|user` admin login, user auth |
 | Proxy | [`proxy/squid.yaml`](https://github.com/jupyterj0nes/masstin/blob/main/rules/proxy/squid.yaml) | 3 | `access.log` native — CONNECT tunnel, HTTP, TCP_DENIED |
+| JSON/SIEM | [`json/mordor.yaml`](https://github.com/jupyterj0nes/masstin/blob/main/rules/json/mordor.yaml) | 6 | Mordor / OTRF Security-Datasets flat NDJSON (`type: json`) — Sysmon Event 3 on lateral-movement ports, 4624/4625/4634/4647/4648/5140 |
 
-Running the entire library against all sample files in one shot produces:
+Running the eight text-log rules against their sample files (before the JSON rule was added) produces:
 
 ```
 Loaded 8 rule file(s), 31 parsers total
@@ -275,11 +276,11 @@ Real measurements against the DefCon DFIR CTF 2018 combined timeline (178k event
       loopback_ip                  1
 ```
 
-Full documentation in the [README filtering section](https://github.com/jupyterj0nes/masstin#noise-filtering---ignore-local-and---exclude-).
+Full documentation in the [filtering section of `docs/parsing.md`](https://github.com/jupyterj0nes/masstin/blob/main/docs/parsing.md#noise-filtering---ignore-local-and---exclude-).
 
 ## What's next
 
-- **v2 extractors.** JSON with jq-style selectors. Already planned.
+- **JSON extractor.** Shipped in v1.1.0 as `type: json` with dot-path selectors; `rules/json/mordor.yaml` is the first rule built on it.
 - **Conditional map.** `when: ${action} == "fail"` style predicates so a single parser can handle both success and failure line variants of the same event when the format makes that cleaner than two parsers.
 - **More rules.** Cisco ASA AnyConnect, Fortinet FortiGate, OpenVPN and Squid are the next priorities. Checkpoint, ZScaler, Cloudflare Access are in the backlog.
 - **PAN-OS 9.1+ dedicated `globalprotect` log type.** A second Palo Alto rule covering the 49+ column dedicated format, once I can validate it against real samples.
@@ -345,6 +346,6 @@ Every rule in the library was written from the vendor's primary log format docum
 | Masstin main page | [masstin](/en/tools/masstin-lateral-movement-rust/) |
 | Custom parser schema | [`docs/custom-parsers.md`](https://github.com/jupyterj0nes/masstin/blob/main/docs/custom-parsers.md) |
 | Rules library | [`rules/`](https://github.com/jupyterj0nes/masstin/tree/main/rules) |
-| Rules library references table | [`rules/README.md#references`](https://github.com/jupyterj0nes/masstin/blob/main/rules/README.md#references) |
+| Rules library references table | [`rules/README.md`](https://github.com/jupyterj0nes/masstin/blob/main/rules/README.md) |
 | CSV format and event classification | [CSV format](/en/tools/masstin-csv-format/) |
 | Graph visualisation | [Memgraph](/en/tools/memgraph-visualization/) / [Neo4j](/en/tools/neo4j-cypher-visualization/) |

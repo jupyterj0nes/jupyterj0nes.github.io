@@ -31,9 +31,9 @@ Unlike logon events in Security.evtx, SMB-specific logs provide visibility into 
 
 These events are generated on the **destination machine** (the SMB server receiving connections).
 
-### Event ID 1009 — SMB Connection Attempt
+### Event ID 1009 — Anonymous Access Denied
 
-Generated when a client attempts to establish an SMB connection with the server. This event records the initial protocol phase, before authentication.
+Generated when the server denies anonymous (null session) access to a client. It records an unauthenticated touch, not an established connection, so masstin writes it as `FAILED_LOGON`.
 
 | Field | Description |
 |-------|-------------|
@@ -53,7 +53,7 @@ Generated when SMB authentication fails. This is distinct from Security.evtx 462
 | UserName | Account used in the authentication attempt |
 | Status | Error code (similar to 4625 Sub Status codes) |
 
-> **Correlation:** A burst of 551 events followed by successful share access (visible in SMBClient Event ID 31001 or a Security.evtx 4624 type 3) indicates the attacker performed successful brute force or password spraying.
+> **Correlation:** A burst of 551 events followed by successful share access (visible in a Security.evtx 4624 type 3 or an SMBClient/Connectivity 30807) indicates the attacker performed successful brute force or password spraying.
 
 ---
 
@@ -63,9 +63,9 @@ Generated when SMB authentication fails. This is distinct from Security.evtx 462
 
 These events are generated on the **source machine** (the SMB client initiating connections). They are essential for determining which machine the attacker used to access remote shares.
 
-### Event ID 31001 — Connection to Remote Share
+### Event ID 31001 — Failed Authentication to a Remote Server
 
-Generated when the SMB client successfully connects to a network share.
+Generated (level Error) when the SMB client fails to authenticate to a server. Masstin writes it as `FAILED_LOGON`, with the share in the `detail` column.
 
 | Field | Description |
 |-------|-------------|
@@ -75,9 +75,9 @@ Generated when the SMB client successfully connects to a network share.
 | Reason | Connection reason/result |
 
 > **Lateral movement indicators:**
-> - Access to `ADMIN$` or `C$`: typical of PsExec, Impacket, and similar tools.
-> - Access to non-standard shares from unexpected accounts: possible exfiltration.
-> - Multiple connections to shares on different servers in a short timeframe: active lateral movement.
+> - Attempts against `ADMIN$` or `C$`: typical of PsExec, Impacket, and similar tools.
+> - Attempts against non-standard shares from unexpected accounts: possible exfiltration.
+> - Multiple failures against different servers in a short timeframe: credential testing during active lateral movement.
 
 ---
 
@@ -116,9 +116,9 @@ These events cover different aspects of SMB connectivity:
 
 | Log | Event ID | Machine | Description | Relevance |
 |-----|:--------:|:-------:|-------------|-----------|
-| SMBServer/Security | 1009 | Destination | Connection attempt | High — detects enumeration |
+| SMBServer/Security | 1009 | Destination | Anonymous access denied | High — detects enumeration |
 | SMBServer/Security | 551 | Destination | Authentication failure | High — SMB brute force |
-| SMBClient/Security | 31001 | Source | Successful share connection | High — confirms remote access |
+| SMBClient/Security | 31001 | Source | Failed authentication to a server | High — names the target from the source side |
 | SMBClient/Connectivity | 30803 | Source | TCP established | Medium — confirms connectivity |
 | SMBClient/Connectivity | 30804 | Source | TCP failed | Medium — detects scanning |
 | SMBClient/Connectivity | 30805 | Source | SMB negotiation successful | Medium — protocol version |
@@ -146,29 +146,29 @@ SMB events don't exist in isolation. For a complete investigation, correlate the
 
 ### PsExec
 
-1. **Source:** 31001 to `\\victim\ADMIN$` (executable copy)
-2. **Destination:** 1009 (connection received)
+1. **Source:** 30803 -> 30805 -> 30807 (session to the victim established; the `ADMIN$` copy rides on it)
+2. **Destination:** 1009 only if a null-session probe preceded it (anonymous access denied)
 3. **Destination:** 4624 type 3 (network logon)
 4. **Destination:** 7045 (PSEXESVC service installation)
 
 ### CrackMapExec / Impacket SMBExec
 
 1. **Source:** 30803 -> 30805 -> 30807 (TCP, negotiation, session)
-2. **Source:** 31001 to `\\victim\ADMIN$` or `\\victim\IPC$`
+2. **Source:** 31001 towards `\\victim\ADMIN$` or `\\victim\IPC$` for the credentials that failed
 3. **Destination:** 4624 type 3 with `LogonProcessName: NtLmSsp`
 4. **Destination:** Possible 7045 (temporary service)
 
 ### Share Enumeration
 
 1. **Source:** Multiple 30803 to different IPs (port 445 scanning)
-2. **Source:** Multiple 31001 to different shares on the same server
+2. **Source:** Multiple 31001 (failed authentication) against different servers
 3. **Destination:** Multiple 1009 from the same source IP
 
 ---
 
 ## How Masstin Parses SMB Logs
 
-[Masstin](/en/tools/masstin-lateral-movement-rust/) extracts SMBServer and SMBClient events automatically and normalizes them into the CSV timeline, including source IP, accessed share, account used, and connection result.
+[Masstin](/en/tools/masstin-lateral-movement-rust/) extracts SMBServer and SMBClient events automatically and normalizes them into the CSV timeline, including source IP, accessed share, account used, and connection result. 1009, 551 and 31001 land as `FAILED_LOGON` and the 30803-30808 connectivity events as `CONNECT`; records written by newer 551/1009 templates without the legacy field layout are parsed instead of aborting the run.
 
 ```bash
 masstin -a parse-windows -d /evidence/logs/ -o timeline.csv

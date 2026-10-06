@@ -90,6 +90,10 @@ KAPE es el más complicado de los tres porque no impone ningún filename canóni
 
 La falta de un patrón de filename estricto en KAPE también hace la extracción de hostname poco fiable. El detector es **deliberadamente conservador**: solo devuelve un hostname cuando el filename del ZIP tiene una forma clara `<palabra>_<dígitos>...`, que es lo que obtienes de operadores usando `KAPE.exe ... --zip <hostname>_<timestamp>`. Para filenames ambiguos como `kape-output.zip` el detector simplemente no reporta host — mejor omitir información que inventarla.
 
+### UAC — añadido después para el lado Linux
+
+Desde v1.1.0 [UAC (Unix-like Artifacts Collector)](https://github.com/tclahr/uac) es también un layout reconocido. Sus archivos se detectan por `uac.log` en la raíz más el directorio de layout `[root]/` (o `live_response/`), o por el nombre de fichero obligatorio `uac-<host>-<os>-<YYYYMMDDhhmmss>.tar.gz`. El hostname sale del nombre del fichero; cuando UAC se ejecutó contra una imagen montada escribe `unknown`, así que masstin cae a `[root]/etc/hostname`, `/etc/sysconfig/network`, `uac.log`, `/etc/hosts` o la cabecera syslog de los logs recolectados. `parse-linux` recorre el tar.gz en streaming (solo desempaqueta los ficheros de log) y etiqueta el grupo como `[TRIAGE: UAC]`.
+
 ## Agrupación por fuente en el desglose
 
 La detección corre una vez por ZIP en tiempo de descubrimiento y el resultado se guarda en un `HashMap<zip_path, TriageInfo>`. Después, cuando cada EVTX individual se parsea y cuenta, masstin computa una **source label** para él:
@@ -242,7 +246,7 @@ La detección de triages y la agrupación por fuente aplican a **todas las actio
 - **`parse-windows`** — directamente. Recorre los directorios `-d`, encuentra EVTX sueltos + abre ZIPs, detecta triages, agrupa por fuente.
 - **`parse-image`** — hereda automáticamente. La action extrae EVTX de imágenes forenses a un directorio temporal cuya ruta contiene el marker `masstin_image_extract/`. El helper de source-label reconoce este marker y etiqueta cada EVTX extraído como `[IMAGE]  <nombre-imagen>`.
 - **`parse-massive`** — hereda vía parse-image. Carpetas de evidencia mixtas con imágenes + triages + EVTX sueltos quedan todas correctamente clasificadas.
-- **`parse-linux`** — mismo tratamiento. Los helpers de detección se reusan vía `crate::parse::detect_triage_type()` y el desglose por fuente usa el mismo helper `print_artifact_detail_grouped`. Los artefactos Linux dentro de colecciones Velociraptor o Cortex XDR (ambos soportan endpoints Linux) quedan correctamente atribuidos a su triage de origen.
+- **`parse-linux`** — mismo tratamiento. Los helpers de detección se reusan vía `crate::parse::detect_triage_type()` y el desglose por fuente usa el mismo helper `print_artifact_detail_grouped`. Los artefactos Linux dentro de colecciones Velociraptor o Cortex XDR (ambos soportan endpoints Linux) y dentro de tarballs de UAC quedan correctamente atribuidos a su triage de origen.
 
 Las source labels son consistentes entre todas las actions, así que un run de `parse-massive` contra una carpeta con una imagen E01, dos zips de triage, y un directorio de `auth.log` sueltos produce un único desglose coherente:
 
@@ -307,7 +311,7 @@ Si detectas un layout de triage que el detector se salta, o un patrón de hostna
 | Tema | Enlace |
 |------|--------|
 | Página principal de masstin | [masstin](/es/tools/masstin-lateral-movement-rust/) |
-| README — sección de detección de triages | [`README.md#triage-detection-and-per-source-breakdown`](https://github.com/jupyterj0nes/masstin#triage-detection-and-per-source-breakdown) |
-| Post de custom parsers (feature relacionada de v0.12) | [parse-custom + 8 reglas YAML](/es/tools/masstin-custom-parsers/) |
+| docs/parsing.md — sección de detección de triages | [`docs/parsing.md#triage-detection-and-per-source-breakdown`](https://github.com/jupyterj0nes/masstin/blob/main/docs/parsing.md#triage-detection-and-per-source-breakdown) |
+| Post de custom parsers (feature relacionada de v0.12) | [parse-custom + 9 reglas YAML](/es/tools/masstin-custom-parsers/) |
 | EVTX carving | [evtx-carving-unallocated](/es/tools/evtx-carving-unallocated/) |
 | Parseo de imágenes forenses + recuperación VSS | [masstin-vss-recovery](/es/tools/masstin-vss-recovery/) |

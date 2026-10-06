@@ -56,16 +56,15 @@ Masstin classifies every event into one of four categories:
 | 4625 | `FAILED_LOGON` | Failed logon | SubStatus code (e.g., `0xC000006A` = wrong password) |
 | 4634 | `LOGOFF` | Logoff | |
 | 4647 | `LOGOFF` | User-initiated logoff | |
-| 4648 | `SUCCESSFUL_LOGON` | Logon with explicit credentials (runas) | Process name |
+| 4648 | `SUCCESSFUL_LOGON` | Logon with explicit credentials (runas) — logged on the source host, so `dst_computer` is the `TargetServerName` | Process name |
 | 4768 | `SUCCESSFUL_LOGON` / `FAILED_LOGON` | Kerberos TGT request | Based on Status field |
 | 4769 | `SUCCESSFUL_LOGON` / `FAILED_LOGON` | Kerberos Service Ticket | Based on Status field |
 | 4770 | `SUCCESSFUL_LOGON` | Kerberos TGT renewal | |
 | 4771 | `FAILED_LOGON` | Kerberos pre-auth failure | |
 | 4776 | `SUCCESSFUL_LOGON` / `FAILED_LOGON` | NTLM authentication | Based on Status field |
-| 4778 | `SUCCESSFUL_LOGON` | Session reconnected | |
-| 4779 | `LOGOFF` | Session disconnected | |
+| 4778 | `SUCCESSFUL_LOGON` | Session reconnected (logon_type 10) | |
+| 4779 | `LOGOFF` | Session disconnected (logon_type 10) | |
 | 5140 | `SUCCESSFUL_LOGON` | Network share accessed | ShareName (e.g., `\\*\IPC$`) |
-| 5145 | `SUCCESSFUL_LOGON` | Network share object checked | ShareName\FileName |
 
 ### Terminal Services (RDP)
 
@@ -84,11 +83,10 @@ Masstin classifies every event into one of four categories:
 
 | Event ID | Source | event_type | Description | detail column |
 |---|---|---|---|---|
-| 1009 | SMBServer/Security | `SUCCESSFUL_LOGON` | SMB connection accepted | |
+| 1009 | SMBServer/Security | `FAILED_LOGON` | Server denied anonymous access to the client | |
 | 551 | SMBServer/Security | `FAILED_LOGON` | SMB authentication failed | |
-| 31001 | SMBClient/Security | `SUCCESSFUL_LOGON` | SMB share access | ShareName |
+| 31001 | SMBClient/Security | `FAILED_LOGON` | Client failed to authenticate to the server | ShareName |
 | 5140 | Security.evtx | `SUCCESSFUL_LOGON` | Network share accessed | ShareName (e.g., `\\*\IPC$`) |
-| 5145 | Security.evtx | `SUCCESSFUL_LOGON` | Network share object checked | ShareName\FileName |
 | 30803-30808 | SMBClient/Connectivity | `CONNECT` | SMB connectivity events | |
 
 ### WinRM and WMI
@@ -97,6 +95,12 @@ Masstin classifies every event into one of four categories:
 |---|---|---|---|---|
 | 6 | WinRM/Operational | `CONNECT` | PowerShell Remoting session initiated (source system) | `WinRM: <connection>` |
 | 5858 | WMI-Activity/Operational | `CONNECT` | Remote WMI execution (destination system, only when ClientMachine differs from Computer) | `WMI: <operation>` |
+
+### Sysmon
+
+| Event ID | Source | event_type | Description | detail column |
+|---|---|---|---|---|
+| 3 | Sysmon/Operational | `CONNECT` | Network connection on a lateral-movement service port (22, 135, 139, 445, 1433, 3306, 3389, 5900, 5985, 5986); the Sysmon host is the local endpoint and `Initiated` sets the direction | `Sysmon3 <protocol> <process> :<port>` |
 
 ### Scheduled Tasks
 
@@ -108,24 +112,31 @@ Masstin classifies every event into one of four categories:
 
 | Event ID | event_type | Description | detail column |
 |---|---|---|---|
-| `SSH_SUCCESS` | `SUCCESSFUL_LOGON` | SSH authentication succeeded | Auth method (password/publickey) |
+| `SSH_SUCCESS` | `SUCCESSFUL_LOGON` | SSH authentication succeeded (sshd log, journald, auditd `USER_LOGIN`) | Auth method (password/publickey) |
 | `SSH_FAILED` | `FAILED_LOGON` | SSH authentication failed | Auth method |
+| `SSH_PREAUTH` | `CONNECT` | Connection that ended before authenticating (`[preauth]` close, no identification string) | |
 | `SSH_CONNECT` | `CONNECT` | SSH connection (xinetd) | |
+| `LOGIN` | `SUCCESSFUL_LOGON` | wtmp / utmp login record | |
+| `FAILED_LOGIN` | `FAILED_LOGON` | btmp record | |
+| `LASTLOG` | `SUCCESSFUL_LOGON` | Last login per account (lastlog) | |
+| `LOGOUT` | `LOGOFF` | Session end paired with its login by sshd pid (wtmp, pam `session closed`, journald, auditd `USER_END`) | |
+
+`logon_type` is `SSH` on every Linux row.
 
 ### Cortex XDR
 
 | Source | event_type | Description |
 |---|---|---|
-| Network (ports 3389/445/22) | `CONNECT` | Network-level connection data |
+| Network (ports 22/445/3389/5985/5986 by default) | `CONNECT` | Network-level connection data |
 | EVTX Forensics | Same as Security.evtx | Classified by Event ID |
 
 ---
 
 ## The logon_id Column
 
-The `logon_id` field contains the session identifier extracted from the `TargetLogonId` field in Security.evtx events (4624, 4634, 4647, 4648). This enables session correlation: matching a logon event with its corresponding logoff to determine session duration.
+The `logon_id` field contains the session identifier extracted from the `TargetLogonId` field in Security.evtx events (4624, 4634, 4647, 4648; `LogonID` on 4778/4779). This enables session correlation: matching a logon event with its corresponding logoff to determine session duration.
 
-For Terminal Services events, the `SessionId` is used when available. For Linux, Cortex, and SMB events, this field is empty.
+For Terminal Services events, the `SessionId` is used when available. On Linux rows it carries the sshd process id (`sshd[pid]`, journald `_PID`, auditd `pid=`, wtmp `ut_pid`), the same on a login and on its `LOGOFF`. For Cortex and SMB events, this field is empty.
 
 ---
 
@@ -138,8 +149,8 @@ The `detail` column provides additional context that varies by event type:
 | 4624, 4648 | Process name that initiated the logon |
 | 4625 | SubStatus hex code indicating failure reason |
 | 5140 | ShareName (e.g., `\\*\IPC$`, `\\*\C$`, `\\*\SYSVOL`) |
-| 5145 | ShareName\RelativeTargetName |
 | SMB 31001 | ShareName |
+| Sysmon 3 | Protocol, initiating process and service port |
 | SSH events | Authentication method (`password`, `publickey`) |
 | Cortex Network | Command line of the process that generated the connection |
 | Other events | Empty |
@@ -152,7 +163,7 @@ The `detail` column provides additional context that varies by event type:
 | `0xC0000064` | User does not exist |
 | `0xC0000072` | Account disabled |
 | `0xC0000234` | Account locked out |
-| `0xC0000070` | Logon outside allowed hours |
+| `0xC0000070` | Workstation restriction |
 | `0xC000006D` | Bad username or authentication info |
 | `0xC0000071` | Expired password |
 | `0xC0000224` | Password must change at next logon |
