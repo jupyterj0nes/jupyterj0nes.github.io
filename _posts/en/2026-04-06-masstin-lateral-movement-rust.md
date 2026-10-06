@@ -43,6 +43,13 @@ comments: true
 
 ![Masstin Logo](/assets/images/masstin-logo.png){: style="display:block; margin: 0 auto 2rem; max-width: 100%; width: 600px;" loading="lazy"}
 
+<video autoplay loop muted playsinline style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;" poster="/assets/images/masstin-memgraph-temporal-path.jpg">
+  <source src="/assets/video/masstin-memgraph-temporal-path.mp4" type="video/mp4">
+  A masstin timeline in Memgraph Lab: the hour of the intrusion, then the temporal path from the attacker to the workstation.
+</video>
+
+*A masstin timeline in Memgraph Lab: every login of the hour the attacker came in, then one query from the catalogue returns the chronologically valid path from the attacker's IP to the workstation. DFIR Madness "Szechuan sauce" case.*
+
 ## The problem
 
 An attacker has compromised your network. They've moved laterally across Windows servers, Linux machines, and cloud infrastructure. Your evidence is scattered: EVTX files from 50 machines, Linux auth logs from a dozen servers, network data from your EDR. You need to reconstruct the attacker's path — every hop, every credential used, every failed attempt — and you need it **now**.
@@ -120,7 +127,11 @@ masstin -a parse-windows -d /evidence/DC01 -d /evidence/SRV-FILE -o windows.csv
 masstin -a parse-linux -d /evidence/linux-triage/ -o linux.csv
 ```
 
-![Masstin CLI output](/assets/images/masstin_cli_output.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
+<video autoplay loop muted playsinline style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
+  <source src="/assets/video/masstin-parse-windows.mp4" type="video/mp4">
+  parse-windows over 293 EVTX samples: discovery, per-folder breakdown, duplicates removed, the 14-column CSV.
+</video>
+
 
 ### Visualize in a graph database
 
@@ -157,9 +168,10 @@ masstin -a graph-hunt-csv -f timeline.csv --investigation-from "2026-03-15 00:00
 ```
 
 <video autoplay loop muted playsinline style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
-  <source src="/assets/video/masstin-graph-hunt-seed.mp4" type="video/mp4">
-  <img src="/assets/images/masstin-graph-hunt-seed.gif" alt="graph-hunt-csv reconstructing the attacker's chain from one seed IP">
+  <source src="/assets/video/masstin-graph-hunt-ranked.mp4" type="video/mp4">
+  graph-hunt-csv on the Szechuan timeline: the run, then the ranked connections with their class and their place in the chain.
 </video>
+
 
 How it decides, and what it found on the public LANL set, is in the [graph-hunt post](/en/tools/masstin-graph-hunt/).
 
