@@ -1,118 +1,306 @@
 ---
-layout: default
 ---
 {% assign lang = page.lang | default: "es" %}
 {% assign t = site.data.translations[lang] %}
+{% assign other = "en" %}{% if lang == "en" %}{% assign other = "es" %}{% endif %}
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-site-verification" content="WpPIZ-Cka80W9yAU4N4mrwuQ_l9sPqBdzlyEVMcI6HU">
+  <title>{{ site.title }}</title>
+  <meta name="description" content="{{ t.meta.description | default: site.description }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Libre+Franklin:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  {% seo %}
+  {% feed_meta %}
+<style>
+  html, body { margin: 0; }
+  .wia a { color: inherit; text-decoration: none; }
+  .wia {
+    --amber:#e3a44f; --red-bar:#c8102e; --green-bar:#2f9e6b; --blue-bar:#4a7bd4; --tape:#f3ead9;
+    --bg:#090e18; --bg2:#0f1826; --sec:#070c15; --line:#1d2a3e; --glass:rgba(16,24,40,.5); --glassbd:rgba(255,255,255,.07);
+    --ink:#f6eedd; --body:#c3cdda; --muted:#9aa8bb; --faint:#6f7e91; --head2:#fff1cf; --road:#222c3e; --scrim:rgba(9,13,22,.82);
+    --red:#ef6a7d; --green:#58c98f; --blue:#7aa6f2;
+    --red-glow:rgba(239,106,125,.30); --green-glow:rgba(88,201,143,.28); --blue-glow:rgba(122,166,242,.30); --amber-glow:rgba(227,164,79,.40);
+    --sky1:#0b1426; --sky2:#070b13; --ridge1:#1a2a46; --ridge1t:#2c4164; --ridge2:#131f38; --ridge2t:#213350; --ridge3:#0c1526; --ridge3t:#18243e; --tree:#0a111e; --treefront:#05090f; --snow:#dbe7f5; --auroraO:0.72;
+    --moon:#f3ead9; --staro:0.7; --moono:0.95; --rayo:0.55;
+  }
+  .glass { background: var(--glass); border: 1px solid var(--glassbd); -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px); }
+  @keyframes fogdrift { from { transform: translateX(-3%) } to { transform: translateX(3%) } }
+  @keyframes ember { 0% { transform: translate(0,0); opacity: 0 } 12% { opacity: 1 } 85% { opacity: 1 } 100% { transform: translate(16px,-170px); opacity: 0 } }
+  @keyframes twk { 0%,100% { opacity: .2 } 50% { opacity: 1 } }
+  @keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+  @keyframes bob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(8px) } }
+  @keyframes rise { from { opacity: 0; transform: translateY(26px) } to { opacity: 1; transform: translateY(0) } }
+  @keyframes ctaGlow { 0%,100% { box-shadow: 0 0 0 rgba(227,164,79,0) } 50% { box-shadow: 0 8px 34px var(--amber-glow) } }
+  .ember { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 8px 2px var(--amber-glow); animation: ember 11s ease-in-out infinite; pointer-events: none }
+  .star { animation: twk 4s ease-in-out infinite }
+  .tape-track { display: inline-flex; white-space: nowrap; animation: marquee 30s linear infinite; will-change: transform }
+  .cta-primary { animation: ctaGlow 4s ease-in-out infinite }
+  .panel { transition: transform .35s cubic-bezier(.2,.7,.3,1), box-shadow .35s ease, border-color .35s ease }
+  .panel:hover { transform: translateY(-10px); box-shadow: 0 26px 70px -12px var(--glow), 0 0 0 1px var(--glowbd) }
+  .sec { transition: transform .3s cubic-bezier(.2,.7,.3,1), box-shadow .3s ease }
+  .sec:hover { transform: translateY(-7px); box-shadow: 0 22px 54px -16px var(--glow) }
+  .sec .go { transition: transform .3s ease }
+  .sec:hover .go { transform: translateX(6px) }
+  .rise { animation: rise .95s cubic-bezier(.2,.7,.3,1) both }
+  @keyframes auroradrift { 0%,100% { transform: translateX(-28px) } 50% { transform: translateX(28px) } }
+  .aurora { animation: auroradrift 28s ease-in-out infinite; transform-origin: center }
+  @keyframes scanmove { 0% { transform: translateY(0); opacity: 0 } 8% { opacity: .55 } 88% { opacity: .55 } 100% { transform: translateY(360px); opacity: 0 } }
+  .scan { animation: scanmove 7s linear infinite }
+  @keyframes breathe { 0% { opacity: 0 } 20% { opacity: 1 } 46% { opacity: 1 } 72% { opacity: 0 } 100% { opacity: 0 } }
+  .lamp { animation: breathe 9s ease-in-out infinite }
+  @keyframes flow { to { stroke-dashoffset: -20 } }
+  @keyframes gnode { 0%,69% { opacity: 0 } 73% { opacity: 1 } 80% { opacity: 1 } 86% { opacity: 0 } 100% { opacity: 0 } }
+  @keyframes cline { 0%,67% { opacity: 0 } 72% { opacity: .5 } 83% { opacity: .5 } 89% { opacity: 0 } 100% { opacity: 0 } }
+  .graph { opacity: 1 }
+  .chain { stroke-width: 1.2; stroke-dasharray: 4 6; opacity: 0; animation: cline 26s ease-in-out infinite, flow 2.6s linear infinite }
+  .node { opacity: 0; animation: gnode 26s ease-in-out infinite }
+  @keyframes drive { 0% { transform: translate(0,0) scale(1); opacity: 0 } 8% { opacity: 1 } 76% { opacity: .8 } 100% { transform: translate(-14px,-96px) scale(.36); opacity: 0 } }
+  .car { transform-box: fill-box; transform-origin: center; animation: drive 40s linear infinite }
+  @media (prefers-reduced-motion: reduce) {
+    .ember, .star, .tape-track, .cta-primary, .rise, .aurora, .scan, .lamp, .chain, .node, .graph, .car { animation: none }
+  }
+</style>
+</head>
+<body style="margin:0">
 
-<section class="hero">
-  <div class="container">
-    <div class="hero-badge">
-      <span class="badge-q">?</span>
-      <span class="badge-q">?</span>
-      <span class="badge-q">?</span>
-    </div>
-    <div class="terminal-window">
-      <div class="terminal-header">
-        <span class="three-questions">
-          <span class="q">?</span><span class="q">?</span><span class="q">?</span>
-        </span>
-        <span class="terminal-title">root@wia:~#</span>
+<div class="wia" style="position: relative; width: 100%; background: var(--bg); color: var(--body); font-family: 'Libre Franklin', system-ui, sans-serif; overflow: hidden; -webkit-font-smoothing: antialiased">
+
+  <div aria-hidden="true" style="display: flex; height: 4px; position: relative; z-index: 5">
+    <span style="flex: 1; background: var(--red-bar)"></span><span style="flex: 1; background: var(--green-bar)"></span><span style="flex: 1; background: var(--blue-bar)"></span>
+  </div>
+
+  <!-- NAV -->
+  <header class="glass" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 26px; padding: 18px 40px; border-left: 0; border-right: 0; border-top: 0; position: relative; z-index: 5">
+    <a href="{{ '/' | append: lang | append: '/' | relative_url }}" style="display: flex; align-items: center; gap: 12px">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" style="color: var(--amber); filter: drop-shadow(0 0 5px var(--amber-glow))" aria-hidden="true">
+        <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.85"><path d="M11 5 q -2.4 -2.6 0 -5"></path><path d="M16 5 q -2.4 -2.6 0 -5"></path></g>
+        <path d="M4.5 11 h16 v5 a8 8 0 0 1 -8 8 a8 8 0 0 1 -8 -8 Z" fill="currentColor"></path>
+        <path d="M20.5 12.5 h2.6 a3.4 3.4 0 0 1 0 6.8 H20.5" fill="none" stroke="currentColor" stroke-width="2"></path>
+        <path d="M3 27.5 h19" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+      </svg>
+      <span style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 19px; letter-spacing: .04em; color: var(--ink)">We Investigate Anything</span>
+    </a>
+    <nav style="display: flex; flex-wrap: wrap; align-items: center; gap: 20px; font-size: 12.5px; letter-spacing: .13em; text-transform: uppercase">
+      <a href="{{ '/' | append: lang | append: '/cases/' | relative_url }}" style="color: var(--body)">{{ t.nav.cases }}</a>
+      <a href="#lab" style="color: var(--ink); border-bottom: 2px solid var(--amber); padding-bottom: 3px">{% if lang == "en" %}The Lab{% else %}El Laboratorio{% endif %}</a>
+      <a href="{{ '/' | append: lang | append: '/tools/' | relative_url }}" style="color: var(--body)">{{ t.nav.tools }}</a>
+      <a href="{{ '/' | append: lang | append: '/artifacts/' | relative_url }}" style="color: var(--body)">{{ t.nav.artifacts }}</a>
+      <a href="{{ '/' | append: lang | append: '/leon/' | relative_url }}" style="color: var(--body)">{{ t.nav.leon }}</a>
+      <a href="{{ '/' | append: lang | append: '/about/' | relative_url }}" style="color: var(--body)">{{ t.nav.about }}</a>
+      <span style="font-family: 'Space Mono', monospace; font-size: 12px; color: var(--faint); padding-left: 6px; border-left: 1px solid var(--line)">
+        <a href="{{ '/' | append: other | append: '/' | relative_url }}" style="color: var(--amber)">{{ t.nav.lang_switch }}</a>
+      </span>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section style="position: relative; padding: 108px 40px 150px; min-height: 760px; overflow: hidden">
+    <svg viewBox="0 0 1320 680" preserveAspectRatio="xMidYMax slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--sky1)"></stop><stop offset="1" style="stop-color: var(--sky2)"></stop></linearGradient>
+        <radialGradient id="moonglow" cx="50%" cy="50%" r="50%"><stop offset="0" style="stop-color: var(--moon)" stop-opacity="0.95"></stop><stop offset="0.45" style="stop-color: var(--amber)" stop-opacity="0.18"></stop><stop offset="1" style="stop-color: var(--amber)" stop-opacity="0"></stop></radialGradient>
+        <linearGradient id="r1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--ridge1t)"></stop><stop offset="1" style="stop-color: var(--ridge1)"></stop></linearGradient>
+        <linearGradient id="r2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--ridge2t)"></stop><stop offset="1" style="stop-color: var(--ridge2)"></stop></linearGradient>
+        <linearGradient id="r3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--ridge3t)"></stop><stop offset="1" style="stop-color: var(--ridge3)"></stop></linearGradient>
+        <linearGradient id="auG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--green)" stop-opacity="0.6"></stop><stop offset="1" style="stop-color: var(--green)" stop-opacity="0"></stop></linearGradient>
+        <linearGradient id="auB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--blue)" stop-opacity="0.55"></stop><stop offset="1" style="stop-color: var(--blue)" stop-opacity="0"></stop></linearGradient>
+        <linearGradient id="auR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--red)" stop-opacity="0.45"></stop><stop offset="1" style="stop-color: var(--red)" stop-opacity="0"></stop></linearGradient>
+        <linearGradient id="snow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--snow)"></stop><stop offset="0.055" style="stop-color: var(--snow)"></stop><stop offset="0.17" style="stop-color: var(--ridge1t)"></stop><stop offset="1" style="stop-color: var(--ridge1)"></stop></linearGradient>
+        <linearGradient id="mshade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000814" stop-opacity="0.34"></stop><stop offset="0.5" stop-color="#000814" stop-opacity="0"></stop></linearGradient>
+        <radialGradient id="lampglow" cx="50%" cy="50%" r="50%"><stop offset="0" style="stop-color: var(--amber)" stop-opacity="0.55"></stop><stop offset="0.5" style="stop-color: var(--amber)" stop-opacity="0.16"></stop><stop offset="1" style="stop-color: var(--amber)" stop-opacity="0"></stop></radialGradient>
+        <filter id="softblur" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="32"></feGaussianBlur></filter>
+        <clipPath id="m1clip"><path id="clipPath1" d=""></path></clipPath>
+      </defs>
+      <rect width="1320" height="680" fill="url(#sky)"></rect>
+      <g style="opacity: var(--staro)" fill="#f3ead9">
+        <circle class="star" cx="160" cy="80" r="1.2" style="animation-delay:.2s"></circle><circle class="star" cx="300" cy="130" r="1" style="animation-delay:1.1s"></circle><circle class="star" cx="470" cy="66" r="1.4" style="animation-delay:.6s"></circle><circle class="star" cx="640" cy="110" r="1" style="animation-delay:1.8s"></circle><circle class="star" cx="820" cy="74" r="1.2" style="animation-delay:.9s"></circle><circle class="star" cx="240" cy="190" r="1" style="animation-delay:2.3s"></circle><circle class="star" cx="560" cy="200" r="1.3" style="animation-delay:1.4s"></circle><circle class="star" cx="900" cy="150" r="1" style="animation-delay:.4s"></circle><circle class="star" cx="120" cy="150" r="0.9" style="animation-delay:2.9s"></circle><circle class="star" cx="720" cy="56" r="0.9" style="animation-delay:1.6s"></circle><circle class="star" cx="1000" cy="96" r="1.1" style="animation-delay:.8s"></circle><circle class="star" cx="400" cy="112" r="0.9" style="animation-delay:2.1s"></circle>
+      </g>
+      <g class="aurora" filter="url(#softblur)" style="opacity: var(--auroraO)">
+        <ellipse cx="520" cy="152" rx="440" ry="82" fill="url(#auG)" transform="rotate(-8 520 152)"></ellipse>
+        <ellipse cx="930" cy="124" rx="370" ry="66" fill="url(#auB)" transform="rotate(7 930 124)"></ellipse>
+        <ellipse cx="250" cy="190" rx="310" ry="58" fill="url(#auR)" transform="rotate(-5 250 190)"></ellipse>
+      </g>
+      <circle cx="1090" cy="160" r="180" fill="url(#moonglow)"></circle>
+      <circle cx="1090" cy="160" r="46" style="fill: var(--moon); opacity: var(--moono)"></circle>
+      <path id="m1" style="fill: url(#snow)" d=""></path>
+      <rect x="0" y="0" width="1320" height="680" fill="url(#mshade)" clip-path="url(#m1clip)"></rect>
+      <path id="m1line" fill="none" style="stroke: var(--moon); opacity: 0.22" stroke-width="1.4" d=""></path>
+      <g clip-path="url(#m1clip)">
+        <g style="stroke: var(--blue); opacity: 0.12" stroke-width="1" fill="none">
+          <path d="M-20 250 Q 330 240 660 250 T 1340 250"></path><path d="M-20 300 Q 330 290 660 300 T 1340 300"></path><path d="M-20 350 Q 330 340 660 350 T 1340 350"></path><path d="M-20 400 Q 330 390 660 400 T 1340 400"></path><path d="M-20 450 Q 330 440 660 450 T 1340 450"></path>
+        </g>
+        <rect class="scan" x="0" y="120" width="1320" height="2" style="fill: var(--blue); opacity: 0.5"></rect>
+      </g>
+      <rect x="0" y="322" width="1320" height="150" style="fill: var(--sky2); opacity: 0.44"></rect>
+      <path id="m2" style="fill: url(#r2)" d=""></path>
+      <rect x="0" y="430" width="1320" height="92" style="fill: var(--sky2); opacity: 0.2"></rect>
+      <path id="m3" style="fill: url(#r3)" d=""></path>
+      <g clip-path="url(#m1clip)"><g id="treesBack"></g></g>
+      <g id="treesMid"></g>
+      <g id="treesFront"></g>
+      <circle class="lamp" cx="806" cy="452" r="26" fill="url(#lampglow)"></circle>
+      <circle class="lamp" cx="806" cy="452" r="2.4" fill="#ffe7b0"></circle>
+      <path d="M598 692 C 594 606 650 520 636 452 L651 452 C 674 520 722 606 718 692 Z" style="fill: var(--road); opacity: .88"></path>
+      <path d="M660 692 C 652 606 648 520 643 452" fill="none" style="stroke: var(--amber); opacity: .26" stroke-width="1.4" stroke-dasharray="5 9"></path>
+      <g class="car">
+        <path d="M657 544 L641 454 L673 454 Z" style="fill: var(--amber); opacity: .12" filter="url(#softblur)"></path>
+        <rect x="646" y="548" width="20" height="9" rx="3" style="fill: #0a0f16"></rect>
+        <circle cx="650" cy="556" r="1.4" style="fill: #ff5a4d"></circle><circle cx="662" cy="556" r="1.4" style="fill: #ff5a4d"></circle>
+        <circle cx="651" cy="548" r="1" style="fill: #fff2c8"></circle><circle cx="661" cy="548" r="1" style="fill: #fff2c8"></circle>
+      </g>
+      <g class="graph">
+        <polyline id="chain" class="chain" points="" fill="none" style="stroke: var(--amber); opacity: .44"></polyline>
+        <g id="gnodes"></g>
+        <g id="glabels"></g>
+      </g>
+    </svg>
+
+    <div aria-hidden="true" style="position: absolute; top: -160px; right: 70px; width: 300px; height: 980px; transform: rotate(21deg); transform-origin: top center; background: linear-gradient(to bottom, var(--amber-glow), transparent 66%); filter: blur(36px); opacity: var(--rayo); z-index: 1; pointer-events: none"></div>
+    <div aria-hidden="true" style="position: absolute; top: -140px; right: 250px; width: 150px; height: 860px; transform: rotate(15deg); transform-origin: top center; background: linear-gradient(to bottom, var(--amber-glow), transparent 58%); filter: blur(26px); opacity: var(--rayo); z-index: 1; pointer-events: none"></div>
+    <div aria-hidden="true" style="position: absolute; left: -5%; bottom: 150px; width: 110%; height: 150px; z-index: 1; pointer-events: none; background: linear-gradient(90deg, transparent, var(--sky2), transparent); opacity: .5; animation: fogdrift 16s ease-in-out infinite alternate"></div>
+    <div aria-hidden="true" style="position: absolute; left: -5%; bottom: 70px; width: 110%; height: 120px; z-index: 1; pointer-events: none; background: linear-gradient(90deg, transparent, var(--bg), transparent); opacity: .6; animation: fogdrift 24s ease-in-out infinite alternate-reverse"></div>
+    <span class="ember" style="left: 12%; bottom: 120px; animation-delay: 0s; animation-duration: 10s"></span><span class="ember" style="left: 23%; bottom: 90px; animation-delay: 3s; animation-duration: 13s"></span><span class="ember" style="left: 38%; bottom: 140px; animation-delay: 6s; animation-duration: 11s"></span><span class="ember" style="left: 54%; bottom: 100px; animation-delay: 1.5s; animation-duration: 12s"></span><span class="ember" style="left: 67%; bottom: 150px; animation-delay: 4.5s; animation-duration: 14s"></span><span class="ember" style="left: 80%; bottom: 110px; animation-delay: 2s; animation-duration: 10.5s"></span><span class="ember" style="left: 90%; bottom: 95px; animation-delay: 7s; animation-duration: 13.5s"></span>
+    <div aria-hidden="true" style="position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(100deg, var(--scrim) 0%, var(--scrim) 24%, transparent 60%)"></div>
+
+    <div style="position: relative; z-index: 2; max-width: 880px">
+      <p class="rise" style="font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: .26em; text-transform: uppercase; color: var(--blue); margin: 0 0 28px; animation-delay: .05s">
+        <span style="display: inline-block; width: 8px; height: 8px; background: var(--red-bar); margin-right: 5px"></span><span style="display: inline-block; width: 8px; height: 8px; background: var(--green-bar); margin-right: 5px"></span><span style="display: inline-block; width: 8px; height: 8px; background: var(--blue-bar); margin-right: 12px"></span>{% if lang == "en" %}DFIR field notes · an investigator's diary{% else %}Notas de campo DFIR · diario de un investigador{% endif %}
+      </p>
+      <h1 class="rise" style="font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(56px, 8vw, 104px); line-height: 0.98; letter-spacing: -0.015em; color: var(--ink); margin: 0 0 26px; text-shadow: 0 2px 40px rgba(0,0,0,.25); animation-delay: .15s">
+        We Investigate<br><span style="background: linear-gradient(100deg, var(--amber), var(--head2)); -webkit-background-clip: text; background-clip: text; color: transparent; font-style: italic">Anything.</span>
+      </h1>
+      <p class="rise" style="font-size: 21px; line-height: 1.6; color: var(--body); max-width: 660px; margin: 0 0 20px; animation-delay: .28s">
+        {% if lang == "en" %}Every intrusion is a case. We walk it three times — once as the <span style="color: var(--red); font-weight: 600">attacker</span>, once as the <span style="color: var(--green); font-weight: 600">defender</span>, and once as the <span style="color: var(--blue); font-weight: 600">detective</span> who reads what the disk, the registry and the directory never meant to confess.{% else %}Cada intrusión es un caso. Lo recorremos tres veces — una como <span style="color: var(--red); font-weight: 600">atacante</span>, una como <span style="color: var(--green); font-weight: 600">defensor</span>, y una como el <span style="color: var(--blue); font-weight: 600">detective</span> que lee lo que el disco, el registro y el directorio nunca quisieron confesar.{% endif %}
+      </p>
+      <p class="rise" style="font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; font-size: 25px; color: var(--amber); margin: 0 0 42px; animation-delay: .4s">{% if lang == "en" %}&ldquo;The logs are not what they seem.&rdquo;{% else %}&laquo;Los logs no son lo que parecen.&raquo;{% endif %}</p>
+      <div class="rise" style="display: flex; flex-wrap: wrap; gap: 16px; animation-delay: .52s">
+        <a href="#lab" class="cta-primary" style="display: inline-flex; align-items: center; gap: 10px; background: var(--amber); color: #0b1220; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; font-size: 14px; padding: 16px 28px; border-radius: 2px">{% if lang == "en" %}Build your lab{% else %}Monta tu laboratorio{% endif %} <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0b1220" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
+        <a href="{{ '/' | append: lang | append: '/tools/' | relative_url }}" class="glass" style="display: inline-flex; align-items: center; gap: 10px; color: var(--ink); letter-spacing: .07em; text-transform: uppercase; font-size: 14px; padding: 16px 28px; border-radius: 2px">{% if lang == "en" %}The tools{% else %}Las herramientas{% endif %}</a>
       </div>
-      <div class="terminal-body">
-        <p class="typing-line">
-          <span class="prompt">root@wia:~$</span> <span class="cmd">whoami</span>
-        </p>
-        <h1 class="glitch" data-text="{{ site.title }}">{{ site.title }}</h1>
-        <p class="typing-line">
-          <span class="prompt">root@wia:~$</span> <span class="cmd">cat /etc/motd</span>
-        </p>
-        <p class="hero-subtitle">{{ t.home.subtitle }}</p>
-        <p class="hero-intro">{{ t.home.intro }}</p>
-        <p class="typing-line hex-dump">
-          <span class="hex-offset">0x0000:</span>
-          <span class="hex-data">57 65 20 49 6e 76 65 73 74 69 67 61 74 65</span>
-          <span class="hex-ascii">|We.Investigate|</span>
-        </p>
-        <p class="typing-line hex-dump">
-          <span class="hex-offset">0x000e:</span>
-          <span class="hex-data">41 6e 79 74 68 69 6e 67</span>
-          <span class="hex-ascii">|Anything........|</span>
-        </p>
-        <p class="typing-line">
-          <span class="prompt">root@wia:~$</span> <span class="cmd blink">_</span>
-        </p>
+    </div>
+
+    <div aria-hidden="true" style="position: absolute; inset: 22px; z-index: 2; pointer-events: none">
+      <span style="position: absolute; top: 0; left: 0; width: 22px; height: 22px; border-top: 2px solid var(--amber); border-left: 2px solid var(--amber); opacity: .6"></span><span style="position: absolute; top: 0; right: 0; width: 22px; height: 22px; border-top: 2px solid var(--amber); border-right: 2px solid var(--amber); opacity: .6"></span><span style="position: absolute; bottom: 0; left: 0; width: 22px; height: 22px; border-bottom: 2px solid var(--amber); border-left: 2px solid var(--amber); opacity: .6"></span><span style="position: absolute; bottom: 0; right: 0; width: 22px; height: 22px; border-bottom: 2px solid var(--amber); border-right: 2px solid var(--amber); opacity: .6"></span>
+    </div>
+    <div aria-hidden="true" style="position: absolute; right: 46px; bottom: 44px; z-index: 2; text-align: right; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: .14em; line-height: 1.95; color: var(--muted)">
+      <div style="color: var(--red)">&#9679; REC &middot; CASE//OPEN</div><div>42.5987&deg;N &middot; 5.5671&deg;W &mdash; LE&Oacute;N</div><div style="color: var(--faint)">EXP. 001 &middot; MACHINE-ACCOUNT-QUOTA</div>
+    </div>
+    <div aria-hidden="true" style="position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); text-align: center; z-index: 2">
+      <span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .3em; color: var(--muted); display: block; margin-bottom: 7px">{% if lang == "en" %}EXPLORE{% else %}EXPLORA{% endif %}</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--amber); animation: bob 1.9s ease-in-out infinite"><path d="M6 9l6 6 6-6"></path></svg>
+    </div>
+  </section>
+
+  <!-- MANIFIESTO -->
+  <section style="padding: 96px 40px; background: var(--bg); border-top: 1px solid var(--line)">
+    <div style="max-width: 1000px; margin: 0 auto; text-align: center">
+      <p style="font-family: 'Fraunces', serif; font-weight: 400; font-size: clamp(28px, 4vw, 44px); line-height: 1.32; color: var(--ink); margin: 0">{% if lang == "en" %}No screenshots without context. Every technique is <span style="color: var(--red)">executed</span>, <span style="color: var(--green)">mitigated</span> and <span style="color: var(--blue)">investigated</span> on a real lab — and we teach you to read the trace raw.{% else %}No creemos en capturas de pantalla sin contexto. Cada técnica se <span style="color: var(--red)">ejecuta</span>, se <span style="color: var(--green)">mitiga</span> y se <span style="color: var(--blue)">investiga</span> sobre un laboratorio real &mdash; y te enseñamos a leer el rastro en crudo.{% endif %}</p>
+    </div>
+  </section>
+
+  <!-- EL LABORATORIO : tres actos -->
+  <section id="lab" style="padding: 20px 40px 100px; background: var(--sec); position: relative">
+    <div style="max-width: 1180px; margin: 0 auto">
+      <div style="text-align: center; margin-bottom: 58px">
+        <p style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: .28em; text-transform: uppercase; color: var(--muted); margin: 0 0 16px">{% if lang == "en" %}The Lab{% else %}El Laboratorio{% endif %}</p>
+        <h2 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(38px, 5vw, 58px); line-height: 1.04; letter-spacing: -0.01em; color: var(--ink); margin: 0">{% if lang == "en" %}Every case, three acts.{% else %}Cada caso, tres actos.{% endif %}</h2>
+        <p style="font-size: 16px; line-height: 1.62; color: var(--body); max-width: 660px; margin: 18px auto 0">{% if lang == "en" %}There is no lab of mine to log into: I teach you to stand up your own <strong style="color: var(--ink); font-weight: 600">disposable range</strong> and add layers to it, so you attack, defend and investigate on it. Step by step.{% else %}No hay un laboratorio al que entrar: te enseño a <strong style="color: var(--ink); font-weight: 600">montar tu propio rango desechable</strong> y a subirle capas, para que ataques, defiendas e investigues sobre él. Paso a paso.{% endif %}</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px">
+        <article class="panel glass" style="--glow: var(--red-glow); --glowbd: var(--red-glow); position: relative; padding: 40px 32px 36px; border-radius: 4px; overflow: hidden">
+          <div aria-hidden="true" style="position: absolute; top: -70px; right: -70px; width: 220px; height: 220px; background: radial-gradient(circle, var(--red-glow), transparent 68%); pointer-events: none"></div>
+          <span aria-hidden="true" style="position: absolute; top: 8px; right: 20px; font-family: 'Fraunces', serif; font-weight: 700; font-size: 120px; line-height: 1; color: var(--red); opacity: .10">I</span>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--red); position: relative; filter: drop-shadow(0 0 10px var(--red-glow))" aria-hidden="true"><path d="M14.5 3.5l6 6-11 11H3.5v-6z"></path><path d="M11 7l6 6"></path></svg>
+          <p style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--red); margin: 20px 0 10px; position: relative">{% if lang == "en" %}Act I · Red{% else %}Acto I · Rojo{% endif %}</p>
+          <h3 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 30px; color: var(--ink); margin: 0 0 14px; position: relative">{% if lang == "en" %}The Crime{% else %}El Crimen{% endif %}</h3>
+          <p style="font-size: 15px; line-height: 1.68; color: var(--body); margin: 0; position: relative">{% if lang == "en" %}We run the attack on a disposable Active Directory range and watch it land — the real command, the real foothold, nothing staged.{% else %}Lanzamos el ataque en un rango de Active Directory desechable y lo vemos aterrizar &mdash; el comando real, el acceso real, nada preparado.{% endif %}</p>
+        </article>
+        <article class="panel glass" style="--glow: var(--green-glow); --glowbd: var(--green-glow); position: relative; padding: 40px 32px 36px; border-radius: 4px; overflow: hidden">
+          <div aria-hidden="true" style="position: absolute; top: -70px; right: -70px; width: 220px; height: 220px; background: radial-gradient(circle, var(--green-glow), transparent 68%); pointer-events: none"></div>
+          <span aria-hidden="true" style="position: absolute; top: 8px; right: 20px; font-family: 'Fraunces', serif; font-weight: 700; font-size: 120px; line-height: 1; color: var(--green); opacity: .10">II</span>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--green); position: relative; filter: drop-shadow(0 0 10px var(--green-glow))" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path><path d="M9 12l2 2 4-4"></path></svg>
+          <p style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--green); margin: 20px 0 10px; position: relative">{% if lang == "en" %}Act II · Green{% else %}Acto II · Verde{% endif %}</p>
+          <h3 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 30px; color: var(--ink); margin: 0 0 14px; position: relative">{% if lang == "en" %}The Defense{% else %}La Defensa{% endif %}</h3>
+          <p style="font-size: 15px; line-height: 1.68; color: var(--body); margin: 0; position: relative">{% if lang == "en" %}One control, applied to the live range, and the same command dies. Attack, harden, re-attack — the defense proven, not asserted.{% else %}Un control, aplicado al rango en vivo, y el mismo comando muere. Atacar, endurecer, re-atacar &mdash; la defensa demostrada, no afirmada.{% endif %}</p>
+        </article>
+        <article class="panel glass" style="--glow: var(--blue-glow); --glowbd: var(--blue-glow); position: relative; padding: 40px 32px 36px; border-radius: 4px; overflow: hidden">
+          <div aria-hidden="true" style="position: absolute; top: -70px; right: -70px; width: 220px; height: 220px; background: radial-gradient(circle, var(--blue-glow), transparent 68%); pointer-events: none"></div>
+          <span aria-hidden="true" style="position: absolute; top: 8px; right: 20px; font-family: 'Fraunces', serif; font-weight: 700; font-size: 120px; line-height: 1; color: var(--blue); opacity: .10">III</span>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--blue); position: relative; filter: drop-shadow(0 0 10px var(--blue-glow))" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+          <p style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--blue); margin: 20px 0 10px; position: relative">{% if lang == "en" %}Act III · Blue{% else %}Acto III · Azul{% endif %}</p>
+          <h3 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 30px; color: var(--ink); margin: 0 0 14px; position: relative">{% if lang == "en" %}The Investigation{% else %}La Investigación{% endif %}</h3>
+          <p style="font-size: 15px; line-height: 1.68; color: var(--body); margin: 0; position: relative">{% if lang == "en" %}We acquire the disk, mount it cold and read the native artifacts — registry, MFT, the directory itself. Only the evidence, and how to read it.{% else %}Adquirimos el disco, lo montamos en frío y leemos los artefactos nativos &mdash; registro, MFT, el propio directorio. Solo la evidencia, y cómo se lee.{% endif %}</p>
+        </article>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section class="categories-grid">
-  <div class="container">
-    <div class="grid-4">
-      <a href="{{ '/' | append: lang | append: '/artifacts/' | relative_url }}" class="category-card">
-        <div class="card-icon">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
-          </svg>
-        </div>
-        <h3>{{ t.categories.artifacts }}</h3>
-        <p class="card-desc">Windows EVTX, Linux logs, Winlogbeat, Cortex XDR</p>
-      </a>
-      <a href="{{ '/' | append: lang | append: '/tools/' | relative_url }}" class="category-card">
-        <div class="card-icon">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
-            <line x1="14" y1="4" x2="10" y2="20"/>
-          </svg>
-        </div>
-        <h3>{{ t.categories.tools }}</h3>
-        <p class="card-desc">Masstin, Sabonis, Persistence Boromir</p>
-      </a>
-      <a href="{{ '/' | append: lang | append: '/cases/' | relative_url }}" class="category-card">
-        <div class="card-icon">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="13" y2="11"/>
-          </svg>
-        </div>
-        <h3>{{ t.categories.cases }}</h3>
-        <p class="card-desc">Investigations, CTF write-ups, incident walkthroughs</p>
-      </a>
-      <a href="{{ '/' | append: lang | append: '/leon/' | relative_url }}" class="category-card card-leon">
-        <div class="card-icon">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-            <circle cx="12" cy="10" r="3"/>
-          </svg>
-        </div>
-        <h3>{{ t.categories.leon }}</h3>
-        <p class="card-desc">Cybersecurity hub, events, routes & gastronomy</p>
-      </a>
+  <!-- CINTA POLICIAL -->
+  <div aria-hidden="true">
+    <div style="height: 8px; background-image: repeating-linear-gradient(135deg, var(--red-bar) 0 18px, var(--tape) 18px 36px)"></div>
+    <div style="background: var(--red-bar); overflow: hidden; padding: 12px 0; box-shadow: inset 0 0 40px rgba(0,0,0,.25)">
+      <div class="tape-track" style="font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: .34em; text-transform: uppercase; color: #f3ead9">
+        {% if lang == "en" %}<span>CRIME SCENE&nbsp;&nbsp;·&nbsp;&nbsp;DO NOT CROSS&nbsp;&nbsp;·&nbsp;&nbsp;WE INVESTIGATE ANYTHING&nbsp;&nbsp;·&nbsp;&nbsp;CRIME SCENE&nbsp;&nbsp;·&nbsp;&nbsp;DO NOT CROSS&nbsp;&nbsp;·&nbsp;&nbsp;WE INVESTIGATE ANYTHING&nbsp;&nbsp;·&nbsp;&nbsp;</span><span>CRIME SCENE&nbsp;&nbsp;·&nbsp;&nbsp;DO NOT CROSS&nbsp;&nbsp;·&nbsp;&nbsp;WE INVESTIGATE ANYTHING&nbsp;&nbsp;·&nbsp;&nbsp;CRIME SCENE&nbsp;&nbsp;·&nbsp;&nbsp;DO NOT CROSS&nbsp;&nbsp;·&nbsp;&nbsp;WE INVESTIGATE ANYTHING&nbsp;&nbsp;·&nbsp;&nbsp;</span>{% else %}<span>ESCENA DEL CRIMEN&nbsp;&nbsp;·&nbsp;&nbsp;NO CRUZAR&nbsp;&nbsp;·&nbsp;&nbsp;WE INVESTIGATE ANYTHING&nbsp;&nbsp;·&nbsp;&nbsp;ESCENA DEL CRIMEN&nbsp;&nbsp;·&nbsp;&nbsp;NO CRUZAR&nbsp;&nbsp;·&nbsp;&nbsp;WE INVESTIGATE ANYTHING&nbsp;&nbsp;·&nbsp;&nbsp;</span><span>ESCENA DEL CRIMEN&nbsp;&nbsp;·&nbsp;&nbsp;NO CRUZAR&nbsp;&nbsp;·&nbsp;&nbsp;WE INVESTIGATE ANYTHING&nbsp;&nbsp;·&nbsp;&nbsp;ESCENA DEL CRIMEN&nbsp;&nbsp;·&nbsp;&nbsp;NO CRUZAR&nbsp;&nbsp;·&nbsp;&nbsp;WE INVESTIGATE ANYTHING&nbsp;&nbsp;·&nbsp;&nbsp;</span>{% endif %}
+      </div>
     </div>
+    <div style="height: 8px; background-image: repeating-linear-gradient(135deg, var(--red-bar) 0 18px, var(--tape) 18px 36px)"></div>
   </div>
-</section>
 
-<section class="latest-posts">
-  <div class="container">
-    <h2 class="section-title"><span class="prompt">#</span> {{ t.home.latest_posts }}</h2>
-    <div class="posts-list">
-      {% assign posts = site.posts | where: "lang", lang %}
-      {% for post in posts limit:5 %}
-      <article class="post-preview">
-        <div class="post-meta">
-          <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y-%m-%d" }}</time>
-          <span class="post-category">{{ post.category }}</span>
-          {% assign words = post.content | number_of_words %}
-          {% assign read_time = words | divided_by: 200 | plus: 1 %}
-          <span class="read-time">{{ read_time }} {{ t.post.read_time }}</span>
-        </div>
-        <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
-        <p>{{ post.excerpt | strip_html | truncate: 160 }}</p>
-        <a href="{{ post.url | relative_url }}" class="read-more">{{ t.home.read_more }} →</a>
-      </article>
-      {% endfor %}
+  <!-- EXPLORA -->
+  <section style="padding: 96px 40px; background: var(--bg)">
+    <div style="max-width: 1180px; margin: 0 auto">
+      <h2 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(34px, 4.6vw, 50px); color: var(--ink); margin: 0 0 46px; letter-spacing: -0.01em">{% if lang == "en" %}Explore the archive{% else %}Explora el archivo{% endif %}</h2>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px">
+        <a href="{{ '/' | append: lang | append: '/cases/' | relative_url }}" class="sec glass" style="--glow: var(--amber-glow); display: block; position: relative; padding: 34px 30px; border-radius: 4px; overflow: hidden"><div style="display: flex; align-items: flex-start; justify-content: space-between"><span style="font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: .14em; color: var(--amber)">01</span><span class="go" style="color: var(--amber)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div><h3 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 27px; color: var(--ink); margin: 14px 0 10px">{{ t.nav.cases }}</h3><p style="font-size: 14px; line-height: 1.62; color: var(--body); margin: 0">{% if lang == "en" %}Real investigations, anonymized. Coming soon.{% else %}Investigaciones reales, anonimizadas. Próximamente.{% endif %}</p></a>
+        <a href="#lab" class="sec glass" style="--glow: var(--blue-glow); display: block; position: relative; padding: 34px 30px; border-radius: 4px; overflow: hidden"><div style="display: flex; align-items: flex-start; justify-content: space-between"><span style="font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: .14em; color: var(--blue)">02</span><span class="go" style="color: var(--blue)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div><h3 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 27px; color: var(--ink); margin: 14px 0 10px">{% if lang == "en" %}The Lab{% else %}El Laboratorio{% endif %}</h3><p style="font-size: 14px; line-height: 1.62; color: var(--body); margin: 0 0 16px">{% if lang == "en" %}Stand up your disposable range and add layers: attack, hardening, forensics. Step by step.{% else %}Monta tu rango desechable y súbele capas: ataque, hardening y forense. Guía paso a paso.{% endif %}</p><div style="display: flex; gap: 7px"><span style="width: 12px; height: 12px; background: var(--red-bar); box-shadow: 0 0 10px var(--red-glow)"></span><span style="width: 12px; height: 12px; background: var(--green-bar); box-shadow: 0 0 10px var(--green-glow)"></span><span style="width: 12px; height: 12px; background: var(--blue-bar); box-shadow: 0 0 10px var(--blue-glow)"></span></div></a>
+        <a href="{{ '/' | append: lang | append: '/tools/' | relative_url }}" class="sec glass" style="--glow: var(--green-glow); display: block; position: relative; padding: 34px 30px; border-radius: 4px; overflow: hidden"><div style="display: flex; align-items: flex-start; justify-content: space-between"><span style="font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: .14em; color: var(--green)">03</span><span class="go" style="color: var(--green)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div><h3 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 27px; color: var(--ink); margin: 14px 0 10px">{{ t.nav.tools }}</h3><p style="font-size: 14px; line-height: 1.62; color: var(--body); margin: 0">masstin, boromir, sabonis, vshadow-rs… {% if lang == "en" %}home-grown DFIR in Rust.{% else %}DFIR en Rust, hecho en casa.{% endif %}</p></a>
+        <a href="{{ '/' | append: lang | append: '/artifacts/' | relative_url }}" class="sec glass" style="--glow: var(--blue-glow); display: block; position: relative; padding: 34px 30px; border-radius: 4px; overflow: hidden"><div style="display: flex; align-items: flex-start; justify-content: space-between"><span style="font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: .14em; color: var(--blue)">04</span><span class="go" style="color: var(--blue)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div><h3 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 27px; color: var(--ink); margin: 14px 0 10px">{{ t.nav.artifacts }}</h3><p style="font-size: 14px; line-height: 1.62; color: var(--body); margin: 0">{% if lang == "en" %}What trace each action leaves on Windows and Linux — and how to read it raw.{% else %}Qué rastro deja cada acción en Windows y Linux &mdash; y cómo leerlo en crudo.{% endif %}</p></a>
+        <a href="{{ '/' | append: lang | append: '/leon/' | relative_url }}" class="sec glass" style="--glow: var(--green-glow); display: block; position: relative; padding: 34px 30px; border-radius: 4px; overflow: hidden"><div style="display: flex; align-items: flex-start; justify-content: space-between"><span style="font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: .14em; color: var(--green)">05</span><span class="go" style="color: var(--green)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div><h3 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 27px; color: var(--ink); margin: 14px 0 10px">{{ t.nav.leon }}</h3><p style="font-size: 14px; line-height: 1.62; color: var(--body); margin: 0">{% if lang == "en" %}The city and its own: events, Facendera Hacking, forest routes and good food.{% else %}La ciudad y los suyos: eventos, Facendera Hacking, rutas de bosque y buena mesa.{% endif %}</p></a>
+        <a href="{{ '/' | append: lang | append: '/about/' | relative_url }}" class="sec glass" style="--glow: var(--amber-glow); display: block; position: relative; padding: 34px 30px; border-radius: 4px; overflow: hidden"><div style="display: flex; align-items: flex-start; justify-content: space-between"><span style="font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: .14em; color: var(--muted)">06</span><span class="go" style="color: var(--amber)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div><h3 style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 27px; color: var(--ink); margin: 14px 0 10px">{{ t.nav.about }}</h3><p style="font-size: 14px; line-height: 1.62; color: var(--body); margin: 0">{% if lang == "en" %}Who investigates, why, and the lore behind it all.{% else %}Quién investiga, por qué, y el lore que hay detrás de todo esto.{% endif %}</p></a>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
+
+  <!-- CAFÉ / COOP -->
+  <section style="padding: 72px 40px; background: var(--sec); border-top: 1px solid var(--line); text-align: center">
+    <div style="max-width: 760px; margin: 0 auto">
+      <svg width="92" height="100" viewBox="0 0 150 166" style="margin: 0 auto 24px; display: block; filter: drop-shadow(0 0 10px var(--amber-glow))" aria-hidden="true">
+        <g style="fill: var(--amber)"><circle cx="60" cy="40" r="23"></circle><path d="M60 63 C 42 63 31 73 27 92 L21 166 L99 166 L93 92 C 89 73 78 63 60 63 Z"></path><path d="M82 102 C 99 96 111 86 114 73" fill="none" stroke="var(--amber)" stroke-width="15" stroke-linecap="round"></path><path d="M98 59 h28 v13 a14 14 0 0 1 -14 13 a14 14 0 0 1 -14 -13 Z"></path></g>
+        <path d="M126 61 a8 8 0 0 1 0 14" fill="none" stroke="var(--amber)" stroke-width="3.5"></path>
+        <g style="stroke: var(--amber); fill: none; opacity: .7" stroke-width="2.6" stroke-linecap="round"><path d="M107 53 q -5 -7 0 -14 q 5 -6 0 -13"></path><path d="M119 53 q -5 -7 0 -14 q 5 -6 0 -13"></path></g>
+      </svg>
+      <p style="font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; font-size: clamp(26px, 3.6vw, 38px); line-height: 1.3; color: var(--ink); margin: 0 0 14px">&laquo;A damn fine cup of coffee.&raquo;</p>
+      <p style="font-family: 'Space Mono', monospace; font-size: 12.5px; letter-spacing: .12em; color: var(--muted); margin: 0">{% if lang == "en" %}Agent Cooper · the philosophy of the case: calm, good coffee and good humor under pressure.{% else %}Agent Cooper · la filosofía del caso: calma, buen café y buen humor bajo presión.{% endif %}</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="position: relative; background: var(--sec); border-top: 1px solid var(--line)">
+    <svg viewBox="0 0 1320 46" preserveAspectRatio="none" aria-hidden="true" style="display: block; width: 100%; height: 40px"><path style="fill: var(--treefront)" d="M0 46 L36 16 L72 46 L112 10 L150 46 L190 20 L228 46 L270 12 L310 46 L348 18 L388 46 L430 10 L470 46 L510 22 L548 46 L590 14 L630 46 L672 20 L712 46 L752 10 L792 46 L834 18 L874 46 L916 12 L956 46 L998 22 L1038 46 L1078 14 L1118 46 L1160 20 L1200 46 L1242 10 L1282 46 L1320 16 L1320 46 Z"></path></svg>
+    <div style="padding: 48px 40px 58px">
+      <div style="max-width: 1180px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px">
+        <div style="display: flex; align-items: center; gap: 14px">
+          <svg width="30" height="30" viewBox="0 0 32 32" fill="none" style="color: var(--amber); filter: drop-shadow(0 0 6px var(--amber-glow))" aria-hidden="true"><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.85"><path d="M11 5 q -2.4 -2.6 0 -5"></path><path d="M16 5 q -2.4 -2.6 0 -5"></path></g><path d="M4.5 11 h16 v5 a8 8 0 0 1 -8 8 a8 8 0 0 1 -8 -8 Z" fill="currentColor"></path><path d="M20.5 12.5 h2.6 a3.4 3.4 0 0 1 0 6.8 H20.5" fill="none" stroke="currentColor" stroke-width="2"></path><path d="M3 27.5 h19" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+          <div><p style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 18px; letter-spacing: .03em; color: var(--ink); margin: 0">We Investigate Anything</p><p style="font-family: 'Space Mono', monospace; font-size: 12px; color: var(--muted); margin: 4px 0 0">{% if lang == "en" %}Damn fine DFIR · from León{% else %}DFIR de la buena · desde León{% endif %}</p></div>
+        </div>
+        <p style="font-family: 'Space Mono', monospace; font-size: 12px; color: var(--faint); margin: 0">weinvestigateanything.com &middot; <a href="{{ '/es/' | relative_url }}" style="color: var(--faint)">ES</a> &middot; <a href="{{ '/en/' | relative_url }}" style="color: var(--faint)">EN</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <svg aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; opacity: .05; mix-blend-mode: overlay">
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"></feTurbulence></filter>
+    <rect width="100%" height="100%" filter="url(#grain)"></rect>
+  </svg>
+
+</div>
+
+<script src="{{ '/assets/js/home-scene.js' | relative_url }}"></script>
+<script data-goatcounter="https://weinvestigateanything.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
