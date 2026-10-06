@@ -157,16 +157,16 @@ RETURN path ORDER BY length(path) LIMIT 5
 
 ### Cazar sin saber qué buscar
 
-Con el timeline hecho, `graph-hunt-csv` responde a la pregunta que el analista trae el primer día: de todo lo que pasó después del compromiso, ¿qué es nuevo para esta red? Sin base de datos ni plugins: cada conexión de la ventana se mide contra la línea base, el único número que eliges es la tasa de falsos descubrimientos, y el informe explica cada hallazgo en palabras. Dale un host o una cuenta que ya sabes que es mala con `--seed` y reconstruye la cadena:
+Con el timeline hecho, `graph-hunt-csv` responde a la pregunta que el analista trae el primer día: de todo lo que pasó después del compromiso, ¿qué es nuevo para esta red? Sin base de datos ni plugins: cada conexión de la ventana se mide contra la línea base, el único número que eliges es la tasa de falsos descubrimientos, y el informe explica cada hallazgo en palabras. Sin ninguna pista: en el conjunto público de Los Álamos (21 millones de logins, 749 eventos del equipo rojo etiquetados) la máquina del equipo rojo sale en el puesto 1 y 204 conexiones superan la tasa de falsos descubrimientos del 5 %. Los 22 minutos de ejecución están recortados en la grabación.
 
 ```bash
 masstin -a graph-hunt-csv -f timeline.csv --investigation-from "2026-03-15 00:00:00" \
-        --seed 10.10.1.50 --report hunt.md -o hunt.csv
+        --report hunt.md -o hunt.csv
 ```
 
 <video autoplay loop muted playsinline style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
-  <source src="/assets/video/masstin-graph-hunt-ranked.mp4" type="video/mp4">
-  graph-hunt-csv sobre el timeline de Szechuan: la ejecución y después las conexiones ordenadas con su clase y su lugar en la cadena.
+  <source src="/assets/video/masstin-graph-hunt-lanl.mp4" type="video/mp4">
+  graph-hunt-csv sobre el conjunto público de LANL, sin semilla: 21 millones de logins, 204 conexiones significativas, la máquina del equipo rojo en el puesto 1.
 </video>
 
 Cómo decide, y qué encontró en el conjunto público de LANL, está en el [artículo de graph-hunt](/es/tools/masstin-graph-hunt/).

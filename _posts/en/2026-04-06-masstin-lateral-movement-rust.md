@@ -157,16 +157,16 @@ RETURN path ORDER BY length(path) LIMIT 5
 
 ### Hunt without knowing what to look for
 
-Once the timeline exists, `graph-hunt-csv` asks the question an analyst brings to the first day: of everything that happened after the compromise, what is new for this network? No database, no plugin: every window connection is measured against the baseline, the only number you choose is the false discovery rate, and the report explains each finding in words. Give it a known-bad host or account with `--seed` and it reconstructs the chain:
+Once the timeline exists, `graph-hunt-csv` asks the question an analyst brings to the first day: of everything that happened after the compromise, what is new for this network? No database, no plugin: every window connection is measured against the baseline, the only number you choose is the false discovery rate, and the report explains each finding in words. No hint needed: on the public Los Alamos set (21 million logins, 749 labelled red-team events) the red-team machine comes out at rank 1 and 204 connections survive the 5 % false discovery rate. The 22-minute run is cut in the recording.
 
 ```bash
 masstin -a graph-hunt-csv -f timeline.csv --investigation-from "2026-03-15 00:00:00" \
-        --seed 10.10.1.50 --report hunt.md -o hunt.csv
+        --report hunt.md -o hunt.csv
 ```
 
 <video autoplay loop muted playsinline style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
-  <source src="/assets/video/masstin-graph-hunt-ranked.mp4" type="video/mp4">
-  graph-hunt-csv on the Szechuan timeline: the run, then the ranked connections with their class and their place in the chain.
+  <source src="/assets/video/masstin-graph-hunt-lanl.mp4" type="video/mp4">
+  graph-hunt-csv on the public LANL set, no seed: 21 million logins, 204 significant connections, the red-team machine at rank 1.
 </video>
 
 How it decides, and what it found on the public LANL set, is in the [graph-hunt post](/en/tools/masstin-graph-hunt/).
