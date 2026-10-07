@@ -1,0 +1,36 @@
+---
+layout: default
+---
+{% assign lang = page.lang | default: "es" %}
+{% assign t = site.data.translations[lang] %}
+
+<article class="post-full case-file">
+  <div class="container container-narrow">
+    <header class="post-header">
+      <div class="case-banner">
+        <span class="case-tag">{% if lang == "en" %}CASE FILE{% else %}EXPEDIENTE{% endif %}</span>
+        {% if page.case_id %}<span class="case-id">{{ page.case_id }}</span>{% endif %}
+        {% if page.status %}<span class="case-status">{{ page.status }}</span>{% endif %}
+      </div>
+
+      <h1 class="post-title">{{ page.title }}</h1>
+      {% if page.description %}
+      <p class="post-description">{{ page.description }}</p>
+      {% endif %}
+
+      <dl class="case-meta">
+        {% if page.sector %}<div><dt>{% if lang == "en" %}Sector{% else %}Sector{% endif %}</dt><dd>{{ page.sector }}</dd></div>{% endif %}
+        {% if page.timeframe %}<div><dt>{% if lang == "en" %}Timeframe{% else %}Periodo{% endif %}</dt><dd>{{ page.timeframe }}</dd></div>{% endif %}
+        {% if page.vector %}<div><dt>{% if lang == "en" %}Initial vector{% else %}Vector inicial{% endif %}</dt><dd>{{ page.vector }}</dd></div>{% endif %}
+        {% if page.severity %}<div><dt>{% if lang == "en" %}Severity{% else %}Severidad{% endif %}</dt><dd class="sev sev-{{ page.severity | slugify }}">{{ page.severity }}</dd></div>{% endif %}
+      </dl>
+    </header>
+
+    <div class="post-content case-content">
+      {{ content }}
+    </div>
+
+    {% include share.html %}
+    {% include giscus.html %}
+  </div>
+</article>

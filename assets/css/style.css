@@ -571,6 +571,61 @@ a:hover { color: #f2c27e; }
 }
 
 /* ============================================
+   CASE FILE (layout: case)
+   ============================================ */
+.case-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.case-tag {
+  color: #0b1120;
+  background: var(--amber);
+  padding: 0.22rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 700;
+}
+.case-id { color: var(--muted); }
+.case-status {
+  color: var(--green);
+  border: 1px solid rgba(88, 201, 143, 0.35);
+  padding: 0.18rem 0.55rem;
+  border-radius: 4px;
+}
+.case-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 2.2rem;
+  margin-top: 1.4rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--line);
+}
+.case-meta div { min-width: 0; }
+.case-meta dt {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 0.2rem;
+}
+.case-meta dd {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+.case-meta dd.sev { font-weight: 700; }
+.sev-alta, .sev-high, .sev-critica, .sev-critical { color: var(--red); }
+.sev-media, .sev-medium { color: var(--amber); }
+.sev-baja, .sev-low { color: var(--green); }
+
+/* ============================================
    CATEGORY / POST LISTS
    ============================================ */
 .posts-list { padding-bottom: 4rem; }
