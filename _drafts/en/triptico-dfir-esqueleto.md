@@ -20,9 +20,11 @@ comments: true
 
 > One technique, three acts. We **execute** it (🔴), we **mitigate** it (🟢) and we **investigate** it (🔵) — and we learn to read the trace raw.
 
-## The scenario
+## Starting point
 
-[[Which lab, which hosts are involved, which user we start from and the goal. 2–3 sentences. No screenshots without context.]]
+This case runs on the blog's lab. The **deployment is not explained here** — follow the matching guide in [The Lab]({{ '/en/laboratorio/' | relative_url }}) ([[link the specific article: manual build or RangeForge deploy]]).
+
+**Initial state (only what's specific to this technique):** [[attacker host · compromised starting user · objective]]. We never attack as the analyst.
 
 ---
 

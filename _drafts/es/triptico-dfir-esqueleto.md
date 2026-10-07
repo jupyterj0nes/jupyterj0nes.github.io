@@ -20,9 +20,11 @@ comments: true
 
 > Una técnica, tres actos. La **ejecutamos** (🔴), la **mitigamos** (🟢) y la **investigamos** (🔵) — y aprendemos a leer el rastro en crudo.
 
-## El escenario
+## Punto de partida
 
-[[Qué laboratorio, qué hosts entran en juego, con qué usuario partimos y cuál es el objetivo. 2–3 frases. Nada de capturas sin contexto.]]
+Este caso corre sobre el laboratorio del blog. El **despliegue no se explica aquí** — sigue la guía correspondiente en [El Laboratorio]({{ '/es/laboratorio/' | relative_url }}) ([[enlaza al artículo concreto: montaje manual o despliegue con RangeForge]]).
+
+**Estado inicial (solo lo específico de esta técnica):** [[host atacante · usuario comprometido de partida · objetivo]]. Nunca atacamos como el analista.
 
 ---
 
