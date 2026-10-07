@@ -2,7 +2,9 @@
 layout: post
 title: "AD DFIR Lab — Part 2: The Seven Kingdoms — Deploying Windows VMs with Unattended Install"
 date: 2026-04-12 12:00:00 +0100
-category: cases
+category: laboratorio
+redirect_from:
+  - /es/cases/ad-dfir-lab-part2-windows-vms/
 lang: es
 ref: case-ad-dfir-lab-part2
 tags: [dfir, proxmox, windows, autounattend, virtio, lab]

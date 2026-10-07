@@ -2,7 +2,9 @@
 layout: post
 title: "AD DFIR Lab — Part 3: Beyond the Wall — pfSense, VLANs and Network Segmentation"
 date: 2026-04-12 15:00:00 +0100
-category: cases
+category: laboratorio
+redirect_from:
+  - /en/cases/ad-dfir-lab-part3-pfsense/
 lang: en
 ref: case-ad-dfir-lab-part3
 tags: [dfir, pfsense, vlan, network, lab, proxmox]

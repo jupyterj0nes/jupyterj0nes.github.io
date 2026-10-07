@@ -2,7 +2,9 @@
 layout: post
 title: "AD DFIR Lab — Part 4: Crowning the Domain Controllers — Active Directory con GOAD"
 date: 2026-04-13 10:00:00 +0100
-category: cases
+category: laboratorio
+redirect_from:
+  - /es/cases/ad-dfir-lab-part4-goad/
 lang: es
 ref: case-ad-dfir-lab-part4
 tags: [dfir, active-directory, goad, ansible, kerberos, lab]

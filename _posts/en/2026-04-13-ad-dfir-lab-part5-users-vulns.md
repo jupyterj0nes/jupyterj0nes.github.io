@@ -2,7 +2,9 @@
 layout: post
 title: "AD DFIR Lab — Part 5: The Smallfolk — Users, Groups and Vulnerabilities in GOAD"
 date: 2026-04-13 11:00:00 +0100
-category: cases
+category: laboratorio
+redirect_from:
+  - /en/cases/ad-dfir-lab-part5-users-vulns/
 lang: en
 ref: case-ad-dfir-lab-part5
 tags: [dfir, active-directory, goad, kerberoasting, asrep, adcs, acl, lab]

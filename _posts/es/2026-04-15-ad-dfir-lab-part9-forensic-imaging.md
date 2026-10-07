@@ -2,7 +2,9 @@
 layout: post
 title: "AD DFIR Lab — Parte 9: Recolectando la Evidencia — Pipeline de Imagen Forense"
 date: 2026-04-15 02:00:00 +0100
-category: cases
+category: laboratorio
+redirect_from:
+  - /es/cases/ad-dfir-lab-part9-forensic-imaging/
 lang: es
 ref: case-ad-dfir-lab-part9
 tags: [dfir, lab, forensics, zfs, zstd, masstin, proxmox]

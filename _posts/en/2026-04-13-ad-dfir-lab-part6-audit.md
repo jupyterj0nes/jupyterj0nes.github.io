@@ -2,7 +2,9 @@
 layout: post
 title: "AD DFIR Lab — Part 6: Ravens and Whispers — Audit Configuration with Sysmon and auditd"
 date: 2026-04-13 12:00:00 +0100
-category: cases
+category: laboratorio
+redirect_from:
+  - /en/cases/ad-dfir-lab-part6-audit/
 lang: en
 ref: case-ad-dfir-lab-part6
 tags: [dfir, sysmon, auditd, audit-policy, powershell-logging, lab]

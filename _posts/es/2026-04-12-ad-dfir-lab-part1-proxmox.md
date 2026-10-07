@@ -2,7 +2,9 @@
 layout: post
 title: "AD DFIR Lab — Part 1: From Bare Metal to Proxmox"
 date: 2026-04-12 11:00:00 +0100
-category: cases
+category: laboratorio
+redirect_from:
+  - /es/cases/ad-dfir-lab-part1-proxmox/
 lang: es
 ref: case-ad-dfir-lab-part1
 tags: [dfir, proxmox, hetzner, zfs, lab, instalacion]

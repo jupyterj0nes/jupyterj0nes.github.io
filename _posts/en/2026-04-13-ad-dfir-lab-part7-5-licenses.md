@@ -2,7 +2,9 @@
 layout: post
 title: "AD DFIR Lab — Part 7.5: Keeping the Kingdoms Alive — Eval Licenses and Lab Longevity"
 date: 2026-04-13 14:00:00 +0100
-category: cases
+category: laboratorio
+redirect_from:
+  - /en/cases/ad-dfir-lab-part7-5-licenses/
 lang: en
 ref: case-ad-dfir-lab-part7-5
 tags: [dfir, lab, windows, licensing, proxmox, telegram]

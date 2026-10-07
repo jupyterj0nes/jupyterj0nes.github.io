@@ -2,7 +2,9 @@
 layout: post
 title: "AD DFIR Lab — Part 7: The Night King Rises — Kali como plataforma de ataque"
 date: 2026-04-13 13:00:00 +0100
-category: cases
+category: laboratorio
+redirect_from:
+  - /es/cases/ad-dfir-lab-part7-kali/
 lang: es
 ref: case-ad-dfir-lab-part7
 tags: [dfir, kali, impacket, bloodhound, certipy, lab]

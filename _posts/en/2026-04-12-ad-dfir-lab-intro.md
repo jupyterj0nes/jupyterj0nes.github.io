@@ -2,7 +2,9 @@
 layout: post
 title: "The Iron Throne of DFIR — Building an Active Directory Lab for Forensic Training"
 date: 2026-04-12 10:00:00 +0100
-category: cases
+category: laboratorio
+redirect_from:
+  - /en/cases/ad-dfir-lab-intro/
 lang: en
 ref: case-ad-dfir-lab-intro
 tags: [dfir, active-directory, lab, proxmox, goad, hetzner, forensics]

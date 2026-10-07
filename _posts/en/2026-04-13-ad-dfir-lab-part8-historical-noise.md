@@ -2,7 +2,9 @@
 layout: post
 title: "AD DFIR Lab — Part 8: A Day in the Realm — Generating Two Years of Historical Noise"
 date: 2026-04-13 18:30:00 +0100
-category: cases
+category: laboratorio
+redirect_from:
+  - /en/cases/ad-dfir-lab-part8-historical-noise/
 lang: en
 ref: case-ad-dfir-lab-part8
 tags: [dfir, lab, active-directory, forensics, python, proxmox]
