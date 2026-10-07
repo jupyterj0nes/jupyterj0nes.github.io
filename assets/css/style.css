@@ -809,4 +809,17 @@ a:hover { color: #f2c27e; }
   .page-content, .post-content { font-size: 1rem; }
   .post-nav { flex-direction: column; }
   .post-nav a { max-width: 100%; }
+
+  /* Tables: on phones, scroll the table inside its own box instead of
+     letting wide columns get clipped by body overflow-x:hidden. */
+  .page-content table,
+  .post-content table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .page-content th, .post-content th { white-space: nowrap; }
 }
