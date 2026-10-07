@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Mobile dropdown accordions
   document.querySelectorAll('.nav-dropdown .dropdown-trigger').forEach(function(trigger) {
     trigger.addEventListener('click', function(e) {
-      if (window.innerWidth > 640) return;
+      if (window.innerWidth > 760) return;
 
       e.preventDefault();
 
