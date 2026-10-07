@@ -7,7 +7,7 @@ ref: about
 permalink: /es/about/
 ---
 
-## $ whoami
+## Quién soy
 
 **Antonio (Toño) Díaz Castaño** — Principal Consultant en Digital Forensics & Incident Response en **Unit 42, Palo Alto Networks**. Más de 15 años en ciberseguridad. Desde León, investigando incidentes a nivel global.
 
@@ -15,7 +15,7 @@ permalink: /es/about/
 
 ---
 
-## $ cat /proc/career
+## Trayectoria
 
 ### Unit 42 — Palo Alto Networks
 **Principal Consultant - DFIR** *(2024 - Presente)*
@@ -39,7 +39,7 @@ Investigación doctoral sobre criptografía aplicada a smartphones. Diseñé e i
 
 ---
 
-## $ cat /etc/education
+## Formación
 
 | Año | Institución | Titulación |
 |-----|-------------|------------|
@@ -50,13 +50,13 @@ Investigación doctoral sobre criptografía aplicada a smartphones. Diseñé e i
 
 ---
 
-## $ ls /etc/certs/
+## Certificaciones
 
 **5 certificaciones GIAC** en áreas de DFIR, respuesta a incidentes y análisis forense.
 
 ---
 
-## $ cat /etc/skills
+## Especialidades
 
 | Área | Detalle |
 |------|---------|
@@ -71,7 +71,7 @@ Investigación doctoral sobre criptografía aplicada a smartphones. Diseñé e i
 
 ---
 
-## $ cat /etc/purpose
+## Por qué este sitio
 
 Este sitio nace de la convicción de que **falta contenido DFIR de calidad en español**. Hay mucho material excelente en inglés, pero en español la oferta es limitada. We Investigate Anything quiere ser esa referencia.
 
@@ -81,7 +81,7 @@ Me gusta la novela negra y policíaca, sobre todo el proceso investigativo que l
 
 ---
 
-## $ cat /proc/tools
+## Herramientas
 
 Herramientas que he creado o a las que contribuyo:
 
@@ -93,7 +93,7 @@ Herramientas que he creado o a las que contribuyo:
 
 ---
 
-## $ find / -name "contacto"
+## Contacto
 
 - GitHub: [jupyterj0nes](https://github.com/jupyterj0nes)
 - LinkedIn: [Antonio Díaz Castaño](https://www.linkedin.com/in/antoniodiazcastano/)

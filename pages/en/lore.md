@@ -7,7 +7,7 @@ ref: lore
 permalink: /en/lore/
 ---
 
-## $ cat /var/log/origin_story.log
+## The origin story
 
 It all started with three kids, a haunted house turned into a headquarters, and a sign that read:
 
@@ -42,7 +42,7 @@ I'm one of those kids who grew up reading The Three Investigators' cases and end
 
 This site is my digital headquarters. My junkyard with secret passages. And you're invited in.
 
-<div style="text-align: center; margin-top: 2rem; font-family: var(--font-mono); color: var(--accent-green);">
+<div style="text-align: center; margin-top: 2rem; font-family: var(--font-mono); color: var(--amber);">
   <p>「 ? ? ? 」</p>
-  <p style="font-size: 0.8rem; color: var(--text-dim);">The three question marks — the mark of The Three Investigators</p>
+  <p style="font-size: 0.8rem; color: var(--faint);">The three question marks — the mark of The Three Investigators</p>
 </div>

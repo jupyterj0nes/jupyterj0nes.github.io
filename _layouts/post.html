@@ -48,7 +48,7 @@ layout: default
     <header class="post-header">
       <div class="post-meta">
         <time datetime="{{ page.date | date_to_xmlschema }}">
-          <span class="prompt">$</span> {{ t.post.published }}: {{ page.date | date: "%Y-%m-%d %H:%M" }}
+          {{ t.post.published }}: {{ page.date | date: "%Y-%m-%d %H:%M" }}
         </time>
         <span class="post-category">{{ page.category }}</span>
         {% assign words = content | number_of_words %}

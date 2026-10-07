@@ -7,7 +7,7 @@ ref: lore
 permalink: /es/lore/
 ---
 
-## $ cat /var/log/origin_story.log
+## El origen
 
 Todo empezó con tres chavales, una casa encantada reconvertida en cuartel general y un letrero que decía:
 
@@ -42,7 +42,7 @@ Soy uno de esos chavales que creció leyendo los casos de los Tres Investigadore
 
 Este sitio es mi cuartel general digital. Mi desguace con pasadizos secretos. Y tú estás invitado a entrar.
 
-<div style="text-align: center; margin-top: 2rem; font-family: var(--font-mono); color: var(--accent-green);">
+<div style="text-align: center; margin-top: 2rem; font-family: var(--font-mono); color: var(--amber);">
   <p>「 ? ? ? 」</p>
-  <p style="font-size: 0.8rem; color: var(--text-dim);">Las tres interrogaciones — la marca de los Tres Investigadores</p>
+  <p style="font-size: 0.8rem; color: var(--faint);">Las tres interrogaciones — la marca de los Tres Investigadores</p>
 </div>

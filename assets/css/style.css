@@ -615,16 +615,30 @@ a:hover { color: #f2c27e; }
   margin-top: 0.4rem;
 }
 
-/* Empty state */
-.empty-state { padding: 3rem 0; }
+/* Intro block above a category's post list */
+.category-intro { margin-bottom: 2.6rem; }
+.category-intro > :last-child { margin-bottom: 0; }
+
+/* Empty state (e.g. Cases, before the first case ships) */
+.empty-state {
+  padding: 2.5rem 0 3.5rem;
+  border-left: 2px solid var(--line);
+  padding-left: 1.4rem;
+}
 .terminal-text {
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-  color: var(--body);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
 }
 .terminal-text .prompt { color: var(--amber); }
-.dimmed { color: var(--faint); }
+.dimmed {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: 0.95rem;
+  color: var(--faint);
+}
 
 /* ============================================
    FOOTER

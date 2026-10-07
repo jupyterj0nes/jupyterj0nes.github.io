@@ -7,7 +7,7 @@ ref: about
 permalink: /en/about/
 ---
 
-## $ whoami
+## Who I am
 
 **Antonio (Toño) Díaz Castaño** — Principal Consultant in Digital Forensics & Incident Response at **Unit 42, Palo Alto Networks**. 15+ years in cybersecurity. Based in León, investigating incidents worldwide.
 
@@ -15,7 +15,7 @@ permalink: /en/about/
 
 ---
 
-## $ cat /proc/career
+## Career
 
 ### Unit 42 — Palo Alto Networks
 **Principal Consultant - DFIR** *(2024 - Present)*
@@ -39,7 +39,7 @@ Doctoral research on cryptography applied to smartphones. Designed and implement
 
 ---
 
-## $ cat /etc/education
+## Education
 
 | Year | Institution | Degree |
 |------|-------------|--------|
@@ -50,13 +50,13 @@ Doctoral research on cryptography applied to smartphones. Designed and implement
 
 ---
 
-## $ ls /etc/certs/
+## Certifications
 
 **5 GIAC certifications** in DFIR, incident response, and forensic analysis areas.
 
 ---
 
-## $ cat /etc/skills
+## Skills
 
 | Area | Detail |
 |------|--------|
@@ -71,7 +71,7 @@ Doctoral research on cryptography applied to smartphones. Designed and implement
 
 ---
 
-## $ cat /etc/purpose
+## Why this site
 
 This site was born from the conviction that **there's a lack of quality DFIR content in Spanish**. There's plenty of excellent material in English, but in Spanish the offering is limited. We Investigate Anything aims to be that reference.
 
@@ -81,7 +81,7 @@ I enjoy noir and detective fiction, especially the investigative process that le
 
 ---
 
-## $ cat /proc/tools
+## Tools
 
 Tools I've created or contribute to:
 
@@ -93,7 +93,7 @@ Tools I've created or contribute to:
 
 ---
 
-## $ find / -name "contact"
+## Contact
 
 - GitHub: [jupyterj0nes](https://github.com/jupyterj0nes)
 - LinkedIn: [Antonio Díaz Castaño](https://www.linkedin.com/in/antoniodiazcastano/)

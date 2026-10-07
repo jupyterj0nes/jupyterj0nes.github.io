@@ -7,7 +7,7 @@ ref: leon
 permalink: /en/leon/
 ---
 
-## $ cat /etc/leon.conf
+## The city and its own
 
 León is not just a province with a stunning cathedral and life-changing gastronomy. It's also one of **Spain's main cybersecurity hubs**, and this section is dedicated to everything that makes it special.
 

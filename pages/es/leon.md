@@ -7,7 +7,7 @@ ref: leon
 permalink: /es/leon/
 ---
 
-## $ cat /etc/leon.conf
+## La ciudad y los suyos
 
 León no es solo una provincia con una catedral impresionante y una gastronomía que te cambia la vida. Es también uno de los **principales hubs de ciberseguridad de España**, y esta sección está dedicada a todo lo que la hace especial.
 
