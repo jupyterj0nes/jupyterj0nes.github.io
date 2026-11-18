@@ -48,6 +48,18 @@ The CSV that will be written (next to the evidence by default) and what to do wi
 
 If the evidence is on a share that must not be modified, this is the moment to change the output path.
 
+### If you already have a timeline open
+
+In a case, evidence usually arrives in deliveries: two servers today, one more machine's triage the day after tomorrow. When you ingest with a timeline already open, the wizard proposes **adding the new evidence to that timeline** instead of writing another one.
+
+[![Step 3 with a timeline open: the wizard proposes adding the new evidence to the open timeline and shows the command, with a button to write a timeline of its own](/assets/images/viewer/i-append.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/i-append.webp)
+
+The new rows join the ones that were there, everything is sorted, and what was already there is not written twice. What matters is what does **not** change: the rows you already had keep your verdicts, your notes and their hunt. In the test behind the screenshot, a timeline of 28,672 rows with 23 marked went to 32,464, with the 23 marks in place.
+
+The hunt has not seen the new rows. If the timeline carried one, it has to be run again.
+
+If you would rather have two separate files, **Write a timeline of its own instead** goes back to the earlier behaviour.
+
 ## Step 4: running
 
 [![Last step, finished: the three phases ticked, the breakdown by folder with each machine's events, and the closing summary with 3,792 events](/assets/images/viewer/i-step4.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/i-step4.webp)

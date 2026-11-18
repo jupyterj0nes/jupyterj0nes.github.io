@@ -48,6 +48,18 @@ El CSV que se va a escribir (por defecto, junto a la evidencia) y qué hacer con
 
 Si la evidencia está en un recurso que no debe modificarse, este es el momento de cambiar la ruta de salida.
 
+### Si ya tienes una timeline abierta
+
+Lo normal en un caso es que la evidencia llegue por entregas: hoy dos servidores, pasado mañana el triage de una máquina más. Cuando ingieres con una timeline ya abierta, el asistente propone **añadir la evidencia nueva a esa timeline** en lugar de escribir otra.
+
+[![El paso 3 con una timeline abierta: el asistente propone añadir la evidencia nueva a la timeline abierta y enseña el comando, con un botón para escribir una timeline propia](/assets/images/viewer/i-append.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/i-append.webp)
+
+Las filas nuevas se suman a las que había, todo se ordena y lo que ya estaba no se escribe dos veces. Lo que importa es lo que **no** cambia: las filas que ya tenías conservan tus veredictos, tus notas y su hunt. En la prueba de la captura, una timeline de 28 672 filas con 23 marcadas pasó a 32 464, con las 23 marcas en su sitio.
+
+A las filas nuevas el hunt no las ha visto. Si la timeline lo llevaba, hay que volver a pasarlo.
+
+Si prefieres dos ficheros separados, **Write a timeline of its own instead** vuelve al comportamiento de antes.
+
 ## Paso 4: en marcha
 
 [![Último paso, terminado: las tres fases con su marca, el desglose por carpeta con los eventos de cada máquina y el resumen final con 3 792 eventos](/assets/images/viewer/i-step4.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/i-step4.webp)
