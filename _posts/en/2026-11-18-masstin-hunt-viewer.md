@@ -41,12 +41,11 @@ The wizard suggests the last third of the timeline and tells you how many refere
 
 ### 2. What you already know
 
-[![Second step: one box for the machines, addresses or accounts already known to be compromised and another for Hayabusa or Chainsaw results](/assets/images/hunt/h-w2.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/hunt/h-w2.webp)
+[![Second step: one box for the machines, addresses or accounts already known to be compromised](/assets/images/hunt/h-w2.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/hunt/h-w2.webp)
 
-Optional, and both boxes can stay empty.
+Optional: it can stay empty.
 
-- **Known compromised.** Machines, addresses or accounts you already know are bad. With those the hunt rebuilds the chain starting from them. I cover it in [the seeds article](/en/tools/masstin-hunt-seeds/).
-- **Sigma hits.** The output of Hayabusa or Chainsaw. If a Sigma rule fired on a machine while a session was open on it, that corroborates the connection and the report names the rule.
+In **Known compromised** you type the machines, addresses or accounts you already know are bad. With those the hunt rebuilds the chain starting from them. I cover it in [the seeds article](/en/tools/masstin-hunt-seeds/).
 
 ### 3. How strict
 
@@ -130,6 +129,6 @@ The viewer does not write over it without asking. A dialog tells you what the ea
 
 - **It needs a past.** With a single reference day it will not start. With a week it works, and with a month it works better.
 - **It finds what is new, not what is bad.** An administrator trying out a new server is on the list, and rightly so. You decide. This scenario has one: `adm.nora` logging on from the jump server to a partner machine that account had never reached. It comes out significant, and the class the hunt gives it is "habitual credential on a new connection", which is exactly what it is.
-- **It does not see what was done inside.** masstin sees logons, not processes. That is what the Sigma results of step 2 are for, or the rest of the evidence.
+- **It does not see what was done inside.** masstin sees logons, not processes. That is what the rest of the evidence is for.
 
 How to read the detail of what it writes is in [the next article](/en/tools/masstin-hunt-report/).

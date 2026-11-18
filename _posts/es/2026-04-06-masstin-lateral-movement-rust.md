@@ -215,7 +215,7 @@ Cómo decide, y qué encontró en el conjunto público de LANL, está en el [art
 | `load-memgraph` | Sube la timeline a Memgraph para visualización en grafos en memoria |
 | `merge-neo4j-nodes` | Fusiona dos nodos `:host` del grafo después de cargar (por ejemplo, cuando una IP y un hostname no se unificaron automáticamente). No requiere APOC |
 | `merge-memgraph-nodes` | Igual que el anterior, para Memgraph. No requiere MAGE |
-| `graph-hunt-csv` | **Caza estadística de movimiento lateral directamente desde el CSV del timeline.** Cada conexión posterior a `--investigation-from` se mide contra la línea base; Benjamini-Hochberg a `--alpha` decide; `--seed` reconstruye cadenas, `--report` escribe el informe para el analista, `--sigma` une los hits de Hayabusa / Chainsaw. Sin base de datos. Ver [post graph-hunt](/es/tools/masstin-graph-hunt/) |
+| `graph-hunt-csv` | **Caza estadística de movimiento lateral directamente desde el CSV del timeline.** Cada conexión posterior a `--investigation-from` se mide contra la línea base; Benjamini-Hochberg a `--alpha` decide; `--seed` reconstruye cadenas, `--report` escribe el informe para el analista. Sin base de datos. Ver [post graph-hunt](/es/tools/masstin-graph-hunt/) |
 | `graph-hunt` | La misma caza sobre un grafo cargado en Memgraph con `--ungrouped`. Todo se calcula en memoria; no necesita MAGE |
 | `graph-hunt-neo4j` | La misma caza sobre Neo4j (`--db <nombre>` para bases con nombre). No necesita el plugin GDS |
 

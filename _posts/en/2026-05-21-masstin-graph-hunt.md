@@ -83,7 +83,7 @@ account, result, events, logs, signature, why_unusual, evidence, chain, campaign
 
 With `--report hunt.md` you also get one story per origin that has a significant connection: whether it existed in the baseline and what it usually did, what it did in the window in chronological phases, why each phase is unusual with the count behind every statement, who owns the accounts it used for the first time, its causal paths, the origins it moves with, and three paragraphs I found myself writing by hand on every case before they were generated: *could be benign if*, *to rule that out*, and *events to pull* (the raw Windows or Linux events that settle it, chosen from the log families that recorded the origin). On Neo4j each origin ends with a Browser query that draws exactly that subgraph.
 
-Two more inputs, both optional. `--seed` is what the video shows: hosts, IPs or accounts you already know are bad, followed through the sessions they opened until the end of the day, with a certainty on every hop and a Cypher query that draws the chain. `--sigma` takes the JSON output of [Hayabusa](https://github.com/Yamato-Security/hayabusa) or [Chainsaw](https://github.com/WithSecureLabs/chainsaw): a rule that fired on a machine while a login session was open on it becomes one more measured signal of that connection, and the explanation names the rule, the time and the level. masstin does not detect PsExec or WMI itself; it joins what those tools found to the login that made it possible.
+One more input, optional. `--seed` is what the video shows: hosts, IPs or accounts you already know are bad, followed through the sessions they opened until the end of the day, with a certainty on every hop and a Cypher query that draws the chain. masstin sees logins, not what was done inside the machine: PsExec, WMI or a service install are for other tools to find.
 
 ## Does it work
 
@@ -104,7 +104,7 @@ What it does not catch is also in the table: the second red-team machine made on
 
 ## When not to use it
 
-Two days of logs is not a baseline; the Szechuan run above says so itself. A single host's triage has no network to compare against. And an attacker who makes one login with the victim's own account from the victim's own workstation has done nothing new for the network; that is what the seed reconstruction and the Sigma corroboration are for.
+Two days of logs is not a baseline; the Szechuan run above says so itself. A single host's triage has no network to compare against. And an attacker who makes one login with the victim's own account from the victim's own workstation has done nothing new for the network; that is what the seed reconstruction is for.
 
 ## Try it
 

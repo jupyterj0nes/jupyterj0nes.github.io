@@ -215,7 +215,7 @@ How it decides, and what it found on the public LANL set, is in the [graph-hunt 
 | `load-memgraph` | Upload timeline to Memgraph for in-memory graph visualization |
 | `merge-neo4j-nodes` | Fuse two `:host` graph nodes after loading (e.g., when an IP and a hostname were not auto-unified). No APOC required |
 | `merge-memgraph-nodes` | Same as above, for Memgraph. No MAGE required |
-| `graph-hunt-csv` | **Statistical lateral movement hunt straight from the timeline CSV.** Every connection after `--investigation-from` is measured against the baseline; Benjamini-Hochberg at `--alpha` decides; `--seed` reconstructs chains, `--report` writes the analyst report, `--sigma` joins Hayabusa / Chainsaw hits. No database. See [graph-hunt post](/en/tools/masstin-graph-hunt/) |
+| `graph-hunt-csv` | **Statistical lateral movement hunt straight from the timeline CSV.** Every connection after `--investigation-from` is measured against the baseline; Benjamini-Hochberg at `--alpha` decides; `--seed` reconstructs chains, `--report` writes the analyst report. No database. See [graph-hunt post](/en/tools/masstin-graph-hunt/) |
 | `graph-hunt` | Same hunt on a graph loaded into Memgraph with `--ungrouped`. Everything is computed in memory; no MAGE needed |
 | `graph-hunt-neo4j` | Same hunt on Neo4j (`--db <name>` for named databases). No GDS plugin needed |
 

@@ -41,12 +41,11 @@ El asistente propone el último tercio de la timeline y te dice cuántos días d
 
 ### 2. Lo que ya sabes
 
-[![Segundo paso: una caja para las máquinas, direcciones o cuentas que ya se saben comprometidas y otra para los resultados de Hayabusa o Chainsaw](/assets/images/hunt/h-w2.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/hunt/h-w2.webp)
+[![Segundo paso: una caja para las máquinas, direcciones o cuentas que ya se saben comprometidas](/assets/images/hunt/h-w2.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/hunt/h-w2.webp)
 
-Opcional, y las dos cajas pueden quedarse vacías.
+Opcional: puede quedarse vacío.
 
-- **Known compromised.** Máquinas, direcciones o cuentas que ya sabes que son malas. Con eso el hunt reconstruye la cadena a partir de ellas. Lo cuento en [el artículo de las semillas](/es/tools/masstin-hunt-seeds/).
-- **Sigma hits.** La salida de Hayabusa o Chainsaw. Si una regla Sigma saltó en una máquina mientras había una sesión abierta en ella, eso corrobora la conexión y el informe nombra la regla.
+En **Known compromised** escribes las máquinas, direcciones o cuentas que ya sabes que son malas. Con eso el hunt reconstruye la cadena a partir de ellas. Lo cuento en [el artículo de las semillas](/es/tools/masstin-hunt-seeds/).
 
 ### 3. Cómo de estricto
 
@@ -130,6 +129,6 @@ El visor no lo pisa sin preguntar. Un diálogo te dice con qué parámetros se p
 
 - **Necesita pasado.** Con un solo día de referencia no arranca. Con una semana funciona, y con un mes mejor.
 - **Encuentra lo nuevo, no lo malo.** Un administrador que estrena servidor sale en la lista, y está bien que salga. Tú decides. En este escenario hay uno: `adm.nora` entrando desde el servidor de salto a una máquina del socio a la que nunca había ido. Sale como significativo y la clase que le pone el hunt es «credencial habitual en una conexión nueva», que es justo lo que es.
-- **No ve lo que hizo dentro.** masstin ve logons, no procesos. Para eso están los resultados de Sigma del paso 2, o el resto de la evidencia.
+- **No ve lo que hizo dentro.** masstin ve logons, no procesos. Para eso está el resto de la evidencia.
 
 Cómo leer el detalle de lo que escribe está en [el artículo siguiente](/es/tools/masstin-hunt-report/).

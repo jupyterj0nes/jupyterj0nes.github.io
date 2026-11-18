@@ -83,7 +83,7 @@ account, result, events, logs, signature, why_unusual, evidence, chain, campaign
 
 Con `--report hunt.md` tienes además una historia por cada origen con alguna conexión significativa: si existía en la línea base y qué solía hacer, qué hizo en la ventana por fases cronológicas, por qué cada fase es inusual con el conteo detrás de cada afirmación, de quién son las cuentas que usó por primera vez, sus caminos causales, los orígenes con los que se mueve, y tres párrafos que me descubrí escribiendo a mano en cada caso antes de que se generasen: *podría ser benigno si*, *para descartarlo*, y *eventos que pedir* (los eventos crudos de Windows o Linux que lo zanjan, elegidos según las familias de log que registraron al origen). En Neo4j cada origen termina con una consulta para el Browser que dibuja exactamente ese subgrafo.
 
-Dos entradas más, ambas opcionales. `--seed` es lo que enseña el vídeo: hosts, IPs o cuentas que ya sabes que son malas, seguidas por las sesiones que abrieron hasta el final del día, con una certeza en cada salto y una consulta Cypher que dibuja la cadena. `--sigma` toma la salida JSON de [Hayabusa](https://github.com/Yamato-Security/hayabusa) o [Chainsaw](https://github.com/WithSecureLabs/chainsaw): una regla que saltó en una máquina mientras había una sesión de login abierta en ella se convierte en una señal medida más de esa conexión, y la explicación nombra la regla, la hora y el nivel. masstin no detecta PsExec ni WMI por sí mismo; une lo que esas herramientas encontraron al login que lo hizo posible.
+Una entrada más, opcional. `--seed` es lo que enseña el vídeo: hosts, IPs o cuentas que ya sabes que son malas, seguidas por las sesiones que abrieron hasta el final del día, con una certeza en cada salto y una consulta Cypher que dibuja la cadena. masstin ve logins, no lo que se hizo dentro de la máquina: PsExec, WMI o la instalación de un servicio los encuentran otras herramientas.
 
 ## ¿Funciona?
 
@@ -104,7 +104,7 @@ Lo que no caza también está en la tabla: la segunda máquina del equipo rojo h
 
 ## Cuándo no usarlo
 
-Dos días de logs no son una línea base; la ejecución de Szechuan de arriba lo dice ella misma. El triaje de un solo host no tiene red con la que comparar. Y un atacante que hace un login con la cuenta de la víctima desde la estación de la víctima no ha hecho nada nuevo para la red; para eso están la reconstrucción desde semilla y la corroboración con Sigma.
+Dos días de logs no son una línea base; la ejecución de Szechuan de arriba lo dice ella misma. El triaje de un solo host no tiene red con la que comparar. Y un atacante que hace un login con la cuenta de la víctima desde la estación de la víctima no ha hecho nada nuevo para la red; para eso está la reconstrucción desde semilla.
 
 ## Pruébalo
 
