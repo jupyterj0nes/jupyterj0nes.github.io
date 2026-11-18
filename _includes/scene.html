@@ -1,0 +1,44 @@
+{%- comment -%}
+  The home page's night scene (sky, stars, aurora, moon, the massif) as a
+  backdrop behind the top of every inner page. Painted by home-scene.js,
+  which fills in the mountain paths; purely decorative.
+{%- endcomment -%}
+<div class="tribar" aria-hidden="true"><span></span><span></span><span></span></div>
+<div class="scene" aria-hidden="true">
+  <svg viewBox="0 0 1320 430" preserveAspectRatio="xMidYMin slice">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--sky1)"></stop><stop offset="1" style="stop-color: var(--sky2)"></stop></linearGradient>
+      <radialGradient id="moonglow" cx="50%" cy="50%" r="50%"><stop offset="0" style="stop-color: var(--moon)" stop-opacity="0.95"></stop><stop offset="0.45" style="stop-color: var(--amber)" stop-opacity="0.18"></stop><stop offset="1" style="stop-color: var(--amber)" stop-opacity="0"></stop></radialGradient>
+      <linearGradient id="r2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--ridge2t)"></stop><stop offset="1" style="stop-color: var(--ridge2)"></stop></linearGradient>
+      <linearGradient id="r3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--ridge3t)"></stop><stop offset="1" style="stop-color: var(--ridge3)"></stop></linearGradient>
+      <linearGradient id="auG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--green)" stop-opacity="0.6"></stop><stop offset="1" style="stop-color: var(--green)" stop-opacity="0"></stop></linearGradient>
+      <linearGradient id="auB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--blue)" stop-opacity="0.55"></stop><stop offset="1" style="stop-color: var(--blue)" stop-opacity="0"></stop></linearGradient>
+      <linearGradient id="auR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--red)" stop-opacity="0.45"></stop><stop offset="1" style="stop-color: var(--red)" stop-opacity="0"></stop></linearGradient>
+      <linearGradient id="snow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color: var(--snow)"></stop><stop offset="0.055" style="stop-color: var(--snow)"></stop><stop offset="0.17" style="stop-color: var(--ridge1t)"></stop><stop offset="1" style="stop-color: var(--ridge1)"></stop></linearGradient>
+      <filter id="softblur" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="32"></feGaussianBlur></filter>
+      <clipPath id="m1clip"><path id="clipPath1" d=""></path></clipPath>
+    </defs>
+    <rect width="1320" height="680" fill="url(#sky)"></rect>
+    <g style="opacity: var(--staro)" fill="#f3ead9">
+      <circle class="star" cx="160" cy="80" r="1.2" style="animation-delay:.2s"></circle><circle class="star" cx="300" cy="130" r="1" style="animation-delay:1.1s"></circle><circle class="star" cx="470" cy="66" r="1.4" style="animation-delay:.6s"></circle><circle class="star" cx="640" cy="110" r="1" style="animation-delay:1.8s"></circle><circle class="star" cx="820" cy="74" r="1.2" style="animation-delay:.9s"></circle><circle class="star" cx="240" cy="190" r="1" style="animation-delay:2.3s"></circle><circle class="star" cx="560" cy="200" r="1.3" style="animation-delay:1.4s"></circle><circle class="star" cx="900" cy="150" r="1" style="animation-delay:.4s"></circle><circle class="star" cx="120" cy="150" r="0.9" style="animation-delay:2.9s"></circle><circle class="star" cx="720" cy="56" r="0.9" style="animation-delay:1.6s"></circle><circle class="star" cx="1000" cy="96" r="1.1" style="animation-delay:.8s"></circle><circle class="star" cx="400" cy="112" r="0.9" style="animation-delay:2.1s"></circle><circle class="star" cx="1230" cy="70" r="1.1" style="animation-delay:1.3s"></circle><circle class="star" cx="60" cy="52" r="1" style="animation-delay:2.6s"></circle>
+    </g>
+    <g class="aurora" filter="url(#softblur)" style="opacity: var(--auroraO)">
+      <ellipse cx="520" cy="152" rx="440" ry="82" fill="url(#auG)" transform="rotate(-8 520 152)"></ellipse>
+      <ellipse cx="930" cy="124" rx="370" ry="66" fill="url(#auB)" transform="rotate(7 930 124)"></ellipse>
+      <ellipse cx="250" cy="190" rx="310" ry="58" fill="url(#auR)" transform="rotate(-5 250 190)"></ellipse>
+    </g>
+    <circle cx="1130" cy="128" r="150" fill="url(#moonglow)"></circle>
+    <circle cx="1130" cy="128" r="34" style="fill: var(--moon); opacity: var(--moono)"></circle>
+    <path id="m1" style="fill: url(#snow)" d=""></path>
+    <path id="m1line" fill="none" style="stroke: var(--moon); opacity: 0.22" stroke-width="1.4" d=""></path>
+    <g clip-path="url(#m1clip)">
+      <g style="stroke: var(--blue); opacity: 0.12" stroke-width="1" fill="none">
+        <path d="M-20 250 Q 330 240 660 250 T 1340 250"></path><path d="M-20 300 Q 330 290 660 300 T 1340 300"></path><path d="M-20 350 Q 330 340 660 350 T 1340 350"></path><path d="M-20 400 Q 330 390 660 400 T 1340 400"></path>
+      </g>
+      <g id="treesBack"></g>
+    </g>
+    <path id="m2" style="fill: url(#r2)" d=""></path>
+    <path id="m3" style="fill: url(#r3)" d=""></path>
+  </svg>
+  <div class="scene-fade"></div>
+</div>

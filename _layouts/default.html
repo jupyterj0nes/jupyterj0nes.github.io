@@ -4,11 +4,14 @@
   {% include head.html %}
 </head>
 <body>
+  {% include scene.html %}
   {% include header.html %}
   <main class="site-content">
     {{ content }}
   </main>
   {% include footer.html %}
+  <script>window.WIA_SCENE_LIGHT = true;</script>
+  <script src="{{ '/assets/js/home-scene.js' | relative_url }}"></script>
   <script src="{{ '/assets/js/main.js' | relative_url }}"></script>
   <script data-goatcounter="https://weinvestigateanything.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>

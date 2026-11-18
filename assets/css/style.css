@@ -38,6 +38,13 @@
   --font-sans: 'Libre Franklin', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'Space Mono', 'JetBrains Mono', 'Consolas', monospace;
 
+  /* Night scene (shared with the home page) */
+  --sky1: #0b1426; --sky2: #070b13;
+  --ridge1: #1a2a46; --ridge1t: #2c4164; --ridge2: #131f38; --ridge2t: #213350;
+  --ridge3: #0c1526; --ridge3t: #18243e; --tree: #0a111e; --treefront: #05090f;
+  --snow: #dbe7f5; --moon: #f3ead9; --auroraO: 0.95; --staro: 0.7; --moono: 0.95;
+  --red-bar: #c8102e; --green-bar: #2f9e6b; --blue-bar: #4a7bd4;
+
   --container-width: 1180px;
   --container-narrow: 820px;
 }
@@ -1018,4 +1025,112 @@ a:hover { color: #f2c27e; }
 @media (max-width: 760px) {
   .post-hero { height: 170px; border-radius: 10px; }
   .post-hero-text { height: 110px; }
+}
+
+
+/* ============================================
+   NIGHT SCENE behind the top of every inner page
+   ============================================ */
+.tribar {
+  position: fixed; top: 0; left: 0; right: 0; height: 3px;
+  display: flex; z-index: 1001;
+}
+.tribar span { flex: 1; }
+.tribar span:nth-child(1) { background: var(--red-bar); }
+.tribar span:nth-child(2) { background: var(--green-bar); }
+.tribar span:nth-child(3) { background: var(--blue-bar); }
+
+.scene {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 620px;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.scene-fade {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, rgba(9, 14, 24, 0) 0%, rgba(9, 14, 24, 0.30) 48%, var(--bg) 97%),
+    linear-gradient(100deg, rgba(9, 13, 22, 0.55) 0%, rgba(9, 13, 22, 0.25) 40%, transparent 70%);
+}
+.site-content, .site-footer { position: relative; z-index: 1; }
+
+@keyframes twk { 0%, 100% { opacity: .2 } 50% { opacity: 1 } }
+@keyframes auroradrift { 0%, 100% { transform: translateX(-28px) } 50% { transform: translateX(28px) } }
+.scene .star { animation: twk 4s ease-in-out infinite; }
+.scene .aurora { animation: auroradrift 28s ease-in-out infinite; transform-origin: center; }
+@media (prefers-reduced-motion: reduce) {
+  .scene .star, .scene .aurora { animation: none; }
+}
+
+/* Title block reads over the scene */
+.page-title, .post-title { text-shadow: 0 2px 22px rgba(4, 8, 16, 0.85); }
+.page-description, .post-description { text-shadow: 0 1px 14px rgba(4, 8, 16, 0.9); }
+
+/* Kicker above page titles, as on the home page */
+.page-header::before {
+  content: "";
+  display: block;
+  width: 46px; height: 8px; margin-bottom: 1.1rem;
+  background: linear-gradient(90deg, var(--red-bar) 0 33.3%, var(--green-bar) 33.3% 66.6%, var(--blue-bar) 66.6% 100%);
+  -webkit-mask: linear-gradient(90deg, #000 0 10px, transparent 10px 18px, #000 18px 28px, transparent 28px 36px, #000 36px 46px);
+          mask: linear-gradient(90deg, #000 0 10px, transparent 10px 18px, #000 18px 28px, transparent 28px 36px, #000 36px 46px);
+}
+
+/* ============================================
+   HUB: groups as glass panels, entries that react
+   ============================================ */
+.hub-group:not(.hub-sub) {
+  margin-top: 2.6rem;
+  padding: 1.7rem 1.9rem 1.2rem;
+  background: var(--glass);
+  border: 1px solid var(--glassbd);
+  border-radius: 10px;
+  -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px);
+  position: relative;
+  overflow: hidden;
+}
+.hub-group:not(.hub-sub)::before {
+  content: "";
+  position: absolute; top: -90px; right: -90px; width: 260px; height: 260px;
+  background: radial-gradient(circle, var(--amber-glow), transparent 68%);
+  opacity: 0.35; pointer-events: none;
+}
+.hub-group:not(.hub-sub):nth-of-type(3n+1)::before { background: radial-gradient(circle, var(--blue-glow), transparent 68%); }
+.hub-group:not(.hub-sub):nth-of-type(3n+2)::before { background: radial-gradient(circle, var(--green-glow), transparent 68%); }
+.hub-group.hub-sub {
+  margin: 0.9rem 0 0;
+  padding: 1.1rem 1.9rem 0.7rem;
+  background: rgba(16, 24, 40, 0.32);
+  border: 1px solid var(--glassbd);
+  border-left: 3px solid var(--amber);
+  border-radius: 8px;
+}
+.hub-list li {
+  padding: 0.7rem 0.8rem;
+  margin: 0 -0.8rem;
+  border-radius: 6px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.hub-group > h2:first-child, .hub-group > h3:first-child { margin-top: 0; }
+.hub-list li:hover { background: rgba(227, 164, 79, 0.06); transform: translateX(4px); }
+.hub-list li.hub-soon:hover { background: none; transform: none; }
+
+/* ============================================
+   FOOTER tree line, as on the home page
+   ============================================ */
+.site-footer { position: relative; margin-top: 5rem; }
+.site-footer::before {
+  content: "";
+  position: absolute; left: 0; right: 0; top: -40px; height: 40px;
+  background: var(--sec);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 330 46' preserveAspectRatio='none'%3E%3Cpath d='M0 46 L36 16 L72 46 L112 10 L150 46 L190 20 L228 46 L270 12 L310 46 L330 30 L330 46 Z'/%3E%3C/svg%3E") repeat-x bottom / 330px 40px;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 330 46' preserveAspectRatio='none'%3E%3Cpath d='M0 46 L36 16 L72 46 L112 10 L150 46 L190 20 L228 46 L270 12 L310 46 L330 30 L330 46 Z'/%3E%3C/svg%3E") repeat-x bottom / 330px 40px;
+}
+
+@media (max-width: 760px) {
+  .scene { height: 420px; }
+  .hub-group:not(.hub-sub) { padding: 1.2rem 1.1rem 0.8rem; }
+  .hub-group.hub-sub { padding: 0.9rem 1.1rem 0.5rem; }
 }

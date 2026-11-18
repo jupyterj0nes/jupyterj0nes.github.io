@@ -52,6 +52,7 @@
     // tree PRNG draws, so they stay identical; only the forest density drops.
     var mob = (typeof window !== 'undefined') && window.matchMedia && window.matchMedia('(max-width: 760px)').matches;
     var N1 = mob ? 460 : 1500, N2 = mob ? 240 : 700, N3 = mob ? 110 : 300;
+    if (typeof window !== 'undefined' && window.WIA_SCENE_LIGHT) { N1 = mob ? 0 : 520; N2 = 0; N3 = 0; }
     for (i = 0; i < N1; i++) tb.push(fir(R() * 1380 - 30, 282 + R() * 216, 11 + R() * 26, 7 + R() * 13));
     for (i = 0; i < N2; i++) tm.push(fir(R() * 1380 - 30, 466 + R() * 150, 28 + R() * 102, 14 + R() * 28));
     for (i = 0; i < N3; i++) tf.push(fir(R() * 1380 - 30, 702 + R() * 6, 60 + R() * 212, 28 + R() * 54));
@@ -64,17 +65,19 @@
     return { m1: ptsPath(m1pts, true), m1line: ptsPath(m1pts, false), m2: ptsPath(m2pts, true), m3: ptsPath(m3pts, true), tb: tb, tm: tm, tf: tf, gnodes: gnodes, chainPts: chainPts };
   }
   function g(id) { return document.getElementById(id); }
+  function A(id, k, v) { var e = g(id); if (e) e.setAttribute(k, v); }
+  function H(id, h) { var e = g(id); if (e) e.innerHTML = h; }
   function paint() {
     if (!g('m1')) return;
     var s = buildScene();
-    g('m1').setAttribute('d', s.m1); g('clipPath1').setAttribute('d', s.m1); g('m1line').setAttribute('d', s.m1line);
-    g('m2').setAttribute('d', s.m2); g('m3').setAttribute('d', s.m3);
-    g('treesBack').innerHTML = s.tb.map(function (d) { return '<path d="' + d + '" style="fill:var(--tree)"/>'; }).join('');
-    g('treesMid').innerHTML = s.tm.map(function (d) { return '<path d="' + d + '" style="fill:var(--treefront)"/>'; }).join('');
-    g('treesFront').innerHTML = s.tf.map(function (d) { return '<path d="' + d + '" style="fill:var(--treefront)"/>'; }).join('');
-    g('chain').setAttribute('points', s.chainPts);
-    g('gnodes').innerHTML = s.gnodes.map(function (n) { return '<circle class="node" cx="' + n.x + '" cy="' + n.y + '" r="4" fill="currentColor" style="color:' + n.c + ';filter:drop-shadow(0 0 5px ' + n.c + ');animation-delay:' + n.d + '"/>'; }).join('');
-    g('glabels').innerHTML = s.gnodes.map(function (n) { return '<text x="' + n.lx + '" y="' + n.y + '" dy="3.2" style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.05em;fill:var(--muted);opacity:.72">' + (n.label || '') + '</text>'; }).join('');
+    A('m1', 'd', s.m1); A('clipPath1', 'd', s.m1); A('m1line', 'd', s.m1line);
+    A('m2', 'd', s.m2); A('m3', 'd', s.m3);
+    H('treesBack', s.tb.map(function (d) { return '<path d="' + d + '" style="fill:var(--tree)"/>'; }).join(''));
+    H('treesMid', s.tm.map(function (d) { return '<path d="' + d + '" style="fill:var(--treefront)"/>'; }).join(''));
+    H('treesFront', s.tf.map(function (d) { return '<path d="' + d + '" style="fill:var(--treefront)"/>'; }).join(''));
+    A('chain', 'points', s.chainPts);
+    H('gnodes', s.gnodes.map(function (n) { return '<circle class="node" cx="' + n.x + '" cy="' + n.y + '" r="4" fill="currentColor" style="color:' + n.c + ';filter:drop-shadow(0 0 5px ' + n.c + ');animation-delay:' + n.d + '"/>'; }).join(''));
+    H('glabels', s.gnodes.map(function (n) { return '<text x="' + n.lx + '" y="' + n.y + '" dy="3.2" style="font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:.05em;fill:var(--muted);opacity:.72">' + (n.label || '') + '</text>'; }).join(''));
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint);
   else paint();
