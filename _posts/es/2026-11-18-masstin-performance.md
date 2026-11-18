@@ -40,6 +40,10 @@ En un servidor de análisis sin nada más que hacer, lo usa entero. En un portá
 
 Si prefieres fijarlo, `--threads N`. Con `--threads 1` corre en serie.
 
+[![Una ejecución real sobre el caso del laboratorio. La línea Threads dice cuántos hilos va a usar y por qué: los núcleos que hay, los que están libres en ese momento y la memoria disponible.](/assets/images/terminal/perf.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/perf.webp)
+
+<p class="video-cap">Una ejecución real sobre el caso del laboratorio. La línea Threads dice cuántos hilos va a usar y por qué: los núcleos que hay, los que están libres en ese momento y la memoria disponible.</p>
+
 ## La memoria también se mide
 
 Los EVTX se leen varios a la vez, en tandas que caben en un presupuesto: una cuarta parte de la memoria libre, con un mínimo de medio giga. Un fichero más grande que el presupuesto se lee solo.

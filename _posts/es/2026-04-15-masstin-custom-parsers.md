@@ -255,6 +255,10 @@ masstin -a parse --rules rules/ -f vpn.log -o timeline.csv --debug
 
 Apunta la salida a cualquier pipeline compatible con masstin (Neo4j, Memgraph, el merge CSV) y tus eventos VPN ahora fluyen por el mismo grafo que tu RDP Windows, tu SSH Linux y tus datos EVTX carved.
 
+[![La regla de FortiGate probada con --dry-run contra el log de muestra que trae el repositorio: las cuatro líneas casan, cada una con su parser, y se ven los registros que saldrían sin escribir el CSV.](/assets/images/terminal/custom.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/custom.webp)
+
+<p class="video-cap">La regla de FortiGate probada con --dry-run contra el log de muestra que trae el repositorio: las cuatro líneas casan, cada una con su parser, y se ven los registros que saldrían sin escribir el CSV.</p>
+
 ---
 
 ## Relacionado: filtrado de ruido para la timeline unificada

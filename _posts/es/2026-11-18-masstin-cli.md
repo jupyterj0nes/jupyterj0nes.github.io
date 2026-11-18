@@ -51,6 +51,10 @@ masstin -a view -f timeline.csv
 | `--silent` | Sin salida por consola, para automatizar |
 | `--debug` | Información de depuración |
 
+[![El principio de masstin --help: cada acción viene explicada en la propia ayuda, empezando por parse, que es por la que hay que empezar.](/assets/images/terminal/help.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/help.webp)
+
+<p class="video-cap">El principio de masstin --help: cada acción viene explicada en la propia ayuda, empezando por parse, que es por la que hay que empezar.</p>
+
 ## Leer evidencia
 
 | Acción | Para qué |

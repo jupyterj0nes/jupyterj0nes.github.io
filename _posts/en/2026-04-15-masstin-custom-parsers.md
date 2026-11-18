@@ -254,6 +254,10 @@ masstin -a parse --rules rules/ -f vpn.log -o timeline.csv --debug
 
 Point it at any masstin-compatible output (Neo4j, Memgraph, the CSV merge pipeline) and your VPN events now flow through the same graph as your Windows RDP, Linux SSH and carved EVTX data.
 
+[![The FortiGate rule tried with --dry-run against the sample log that ships in the repository: all four lines match, each with its parser, and the records that would come out are shown without writing the CSV.](/assets/images/terminal/custom.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/custom.webp)
+
+<p class="video-cap">The FortiGate rule tried with --dry-run against the sample log that ships in the repository: all four lines match, each with its parser, and the records that would come out are shown without writing the CSV.</p>
+
 ---
 
 ## Related: noise filtering for the unified timeline

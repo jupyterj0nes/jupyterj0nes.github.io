@@ -136,6 +136,10 @@ etcdump -d clean-image --measure -o measured
 etcdump -f suspect.tgz --reference measured/reference.tsv -o out
 ```
 
+[![etcdump's real summary on the triage of a lab Linux server: files and rows per area, and below it what to read first. The false positive this section talks about is visible too: the stock 50-motd-news flagged as significant.](/assets/images/terminal/etcdump.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/etcdump.webp)
+
+<p class="video-cap">etcdump's real summary on the triage of a lab Linux server: files and rows per area, and below it what to read first. The false positive this section talks about is visible too: the stock 50-motd-news flagged as significant.</p>
+
 ## What was deleted
 
 On a disk image, etcdump also reads the deleted configuration files the ext4 journal still describes, and the previous versions of those that were rewritten. They come out with the `deleted` state in a separate section of each text.

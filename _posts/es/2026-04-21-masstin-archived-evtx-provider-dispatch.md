@@ -139,6 +139,10 @@ masstin -a parse -d D:/evidence/archive/ -o timeline.csv
 
 Los mismos bytes en disco, el mismo comando, 245 eventos recuperados en vez de 0.
 
+[![La comprobación en el laboratorio: un Security.evtx renombrado como lo deja el archivado automático de Windows (Archive-Security-fecha.evtx) se lee igual que el original, con sus 1.255 eventos.](/assets/images/terminal/arch.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/arch.webp)
+
+<p class="video-cap">La comprobación en el laboratorio: un Security.evtx renombrado como lo deja el archivado automático de Windows (Archive-Security-fecha.evtx) se lee igual que el original, con sus 1.255 eventos.</p>
+
 ---
 
 ## ¿Cuánto importa esto en la práctica? Probémoslo contra upstream

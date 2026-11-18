@@ -150,6 +150,10 @@ El desglose de fase 2 entonces agrupa por source label y renderiza cada grupo co
 
 Cada evento está contabilizado. El analista puede leer este desglose y responder inmediatamente a preguntas como *"¿cuántos eventos WinRM vinieron de la partición live del DC vs de un shadow copy vs del triage de Cortex XDR?"* sin tener que hacer grep al CSV.
 
+[![Salida real de masstin sobre la carpeta del caso del laboratorio: una imagen de disco, cuatro paquetes de triage, una carpeta de EVTX sueltos y dos triages de Linux, cada uno reconocido y con sus eventos agrupados bajo su etiqueta.](/assets/images/terminal/triage.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/triage.webp)
+
+<p class="video-cap">Salida real de masstin sobre la carpeta del caso del laboratorio: una imagen de disco, cuatro paquetes de triage, una carpeta de EVTX sueltos y dos triages de Linux, cada uno reconocido y con sus eventos agrupados bajo su etiqueta.</p>
+
 ## Por qué tags ASCII en lugar de emoji
 
 Esta sección y la siguiente son notas de cambios: cuentan decisiones y arreglos de la salida por consola. Si solo quieres usar la detección, salta a «Qué significa esto para `parse`».

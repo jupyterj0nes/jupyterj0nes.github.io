@@ -150,6 +150,10 @@ The phase-2 breakdown then groups by source label and renders each group with it
 
 Every event is accounted for. The analyst can read this breakdown and immediately answer questions like *"how many WinRM events came from the live DC partition vs from a shadow copy vs from the Cortex XDR triage?"* without having to grep the CSV.
 
+[![Real masstin output on the lab case folder: one disk image, four triage packages, a folder of loose EVTX files and two Linux triages, each one recognised and with its events grouped under its tag.](/assets/images/terminal/triage.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/triage.webp)
+
+<p class="video-cap">Real masstin output on the lab case folder: one disk image, four triage packages, a folder of loose EVTX files and two Linux triages, each one recognised and with its events grouped under its tag.</p>
+
 ## Why ASCII tags instead of emoji
 
 This section and the next one are change notes: they tell of decisions and fixes in the console output. If you only want to use the detection, skip to "What this means for `parse`".

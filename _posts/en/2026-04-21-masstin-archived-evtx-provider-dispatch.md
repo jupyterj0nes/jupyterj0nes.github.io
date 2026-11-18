@@ -139,6 +139,10 @@ masstin -a parse -d D:/evidence/archive/ -o timeline.csv
 
 Same bytes on disk, same command, 245 events recovered instead of 0.
 
+[![The check in the lab: a Security.evtx renamed the way Windows auto-archiving leaves it (Archive-Security-date.evtx) is read just like the original, with its 1,255 events.](/assets/images/terminal/arch.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/arch.webp)
+
+<p class="video-cap">The check in the lab: a Security.evtx renamed the way Windows auto-archiving leaves it (Archive-Security-date.evtx) is read just like the original, with its 1,255 events.</p>
+
 ---
 
 ## How much does this actually matter? Let's test against upstream

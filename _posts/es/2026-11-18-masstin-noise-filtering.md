@@ -104,6 +104,10 @@ Es la forma de comprobar que el patrón hace lo que crees. Si `--exclude-users '
 
 Los números del resumen siempre suman. Cada fila filtrada se atribuye a una sola causa: la primera que encajó.
 
+[![Una prueba real con --dry-run sobre los logs de un servidor del laboratorio: de 1.325 registros, --ignore-local quitaría 805, y el resumen dice por qué motivo cada uno. No se escribe ningún CSV.](/assets/images/terminal/noise.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/noise.webp)
+
+<p class="video-cap">Una prueba real con --dry-run sobre los logs de un servidor del laboratorio: de 1.325 registros, --ignore-local quitaría 805, y el resumen dice por qué motivo cada uno. No se escribe ningún CSV.</p>
+
 ## Filtrar sin volver a analizar
 
 Analizar veinte imágenes de disco lleva su tiempo. Filtrar no debería obligarte a repetirlo, y no obliga: `merge` aplica los mismos filtros sobre una timeline ya hecha.

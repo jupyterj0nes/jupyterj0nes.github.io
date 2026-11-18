@@ -54,6 +54,10 @@ Dos columnas que no se explican solas:
 
 Por eso el salto 6 tiene profundidad 2 aunque sea el último en el tiempo. Sale de `LEO-LNX01`, la máquina en la que se entró en el salto 1, igual que los saltos 2 y 3. El número de la primera columna va por hora, no por profundidad.
 
+[![La caza con una semilla sobre la timeline del laboratorio: la línea Seeds dice que la dirección dada se encontró y que desde ella se reconstruyeron 6 movimientos por 6 máquinas. El detalle queda en el informe.](/assets/images/terminal/seeds.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/seeds.webp)
+
+<p class="video-cap">La caza con una semilla sobre la timeline del laboratorio: la línea Seeds dice que la dirección dada se encontró y que desde ella se reconstruyeron 6 movimientos por 6 máquinas. El detalle queda en el informe.</p>
+
 ## Cómo sigue el rastro
 
 La regla es conservadora a propósito, y conviene entenderla.

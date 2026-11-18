@@ -51,6 +51,10 @@ masstin -a view -f timeline.csv
 | `--silent` | No console output, for automation |
 | `--debug` | Debug information |
 
+[![The start of masstin --help: every action is explained in the help itself, beginning with parse, the one to start with.](/assets/images/terminal/help.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/help.webp)
+
+<p class="video-cap">The start of masstin --help: every action is explained in the help itself, beginning with parse, the one to start with.</p>
+
 ## Reading evidence
 
 | Action | What for |

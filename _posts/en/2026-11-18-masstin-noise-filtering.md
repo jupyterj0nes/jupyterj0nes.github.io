@@ -104,6 +104,10 @@ It is how you check that the pattern does what you think. If `--exclude-users 'a
 
 The numbers in the summary always add up. Each filtered row is attributed to a single cause: the first that matched.
 
+[![A real --dry-run on the logs of one lab server: of 1,325 records, --ignore-local would remove 805, and the summary says why for each group. No CSV is written.](/assets/images/terminal/noise.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/noise.webp)
+
+<p class="video-cap">A real --dry-run on the logs of one lab server: of 1,325 records, --ignore-local would remove 805, and the summary says why for each group. No CSV is written.</p>
+
 ## Filtering without parsing again
 
 Parsing twenty disk images takes its time. Filtering should not make you do it again, and it does not: `merge` applies the same filters to a timeline already made.

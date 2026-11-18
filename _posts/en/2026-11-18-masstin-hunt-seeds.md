@@ -54,6 +54,10 @@ Two columns that do not explain themselves:
 
 That is why hop 6 has depth 2 although it is the last in time. It leaves from `LEO-LNX01`, the machine entered in hop 1, like hops 2 and 3. The number in the first column goes by time, not by depth.
 
+[![A hunt with one seed on the lab timeline: the Seeds line says the given address was found and that 6 movements over 6 machines were reconstructed from it. The detail is in the report.](/assets/images/terminal/seeds.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/seeds.webp)
+
+<p class="video-cap">A hunt with one seed on the lab timeline: the Seeds line says the given address was found and that 6 movements over 6 machines were reconstructed from it. The detail is in the report.</p>
+
 ## How it follows the trail
 
 The rule is conservative on purpose, and it is worth understanding.

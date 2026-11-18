@@ -136,6 +136,10 @@ etcdump -d imagen-limpia --measure -o medido
 etcdump -f sospechoso.tgz --reference medido/reference.tsv -o salida
 ```
 
+[![El resumen real de etcdump sobre el triage de un servidor Linux del laboratorio: ficheros y filas por área, y debajo lo primero que conviene leer. Se ve también el falso positivo del que habla esta sección: el 50-motd-news de fábrica marcado como significant.](/assets/images/terminal/etcdump.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/etcdump.webp)
+
+<p class="video-cap">El resumen real de etcdump sobre el triage de un servidor Linux del laboratorio: ficheros y filas por área, y debajo lo primero que conviene leer. Se ve también el falso positivo del que habla esta sección: el 50-motd-news de fábrica marcado como significant.</p>
+
 ## Lo borrado
 
 Sobre una imagen de disco, etcdump lee también los ficheros de configuración borrados que el diario de ext4 todavía describe, y las versiones anteriores de los que se reescribieron. Salen con estado `deleted` en una sección aparte de cada texto.

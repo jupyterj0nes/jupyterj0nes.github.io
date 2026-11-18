@@ -97,6 +97,10 @@ python sabonis.py load2neo evtx --csv_input lateral_movement.csv --ne04j_url bol
 
 You need a Neo4j instance running and reachable at that address first. The user's password does not go in the command: sabonis asks for it on the console.
 
+[![Real rows sabonis gets out of the logs of a lab server: a remote desktop session by ryan.devlead from 10.10.0.37, followed event by event (131, 1149, 4648, 4624, 21, 22, 24).](/assets/images/terminal/sabonis.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/sabonis.webp)
+
+<p class="video-cap">Real rows sabonis gets out of the logs of a lab server: a remote desktop session by ryan.devlead from 10.10.0.37, followed event by event (131, 1149, 4648, 4624, 21, 22, 24).</p>
+
 ## Key options
 
 | Option | Description |

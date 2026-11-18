@@ -40,6 +40,10 @@ On an analysis server with nothing else to do, it uses all of it. On a laptop wi
 
 If you would rather fix it, `--threads N`. With `--threads 1` it runs serially.
 
+[![A real run on the lab case. The Threads line says how many threads it will use and why: the cores there are, the ones idle at that moment and the memory available.](/assets/images/terminal/perf.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/perf.webp)
+
+<p class="video-cap">A real run on the lab case. The Threads line says how many threads it will use and why: the cores there are, the ones idle at that moment and the memory available.</p>
+
 ## Memory is measured too
 
 EVTX files are read several at a time, in waves that fit a budget: a quarter of the free memory, with half a gigabyte at least. A file bigger than the budget is read alone.
