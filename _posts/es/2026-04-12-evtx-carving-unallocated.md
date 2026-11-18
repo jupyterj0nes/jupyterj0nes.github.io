@@ -245,6 +245,10 @@ La salida es el mismo CSV que escribe `parse`, con `log_filename` mostrando el o
 HRServer_Disk0.e01:carved:Security.evtx
 ```
 
+[![Carving real sobre la imagen de un servidor del laboratorio (50 GB, casi ocho minutos de escaneo): 1.410 chunks encontrados y 13.755 eventos, de los que 13.753 ya estaban en los logs vivos. Solo 2 son nuevos. En un disco al que nadie le ha borrado nada, eso es lo normal.](/assets/images/terminal/carve.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/terminal/carve.webp)
+
+<p class="video-cap">Carving real sobre la imagen de un servidor del laboratorio (50 GB, casi ocho minutos de escaneo): 1.410 chunks encontrados y 13.755 eventos, de los que 13.753 ya estaban en los logs vivos. Solo 2 son nuevos. En un disco al que nadie le ha borrado nada, eso es lo normal.</p>
+
 ---
 
 ## Resultados reales
