@@ -46,6 +46,10 @@ Masstin extracts the destination host from this field and generates a `CONNECT` 
 
 **Filtering:** Masstin automatically filters localhost connections (`localhost`, `127.0.0.1`, `::1`) and self-connections (destination hostname = source hostname), including FQDN vs NetBIOS name comparisons.
 
+[![Two PowerShell remoting connections from the lab, as masstin writes them: the server that started them is in src_computer and the machine it connected to, taken from the connection string, in dst_computer.](/assets/images/artifacts/tl-winrm.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-winrm.webp)
+
+<p class="video-cap">Two PowerShell remoting connections from the lab, as masstin writes them: the server that started them is in src_computer and the machine it connected to, taken from the connection string, in dst_computer.</p>
+
 ## WMI-Activity/Operational — Event ID 5858
 
 Remote WMI execution (`wmic /node:host process call create`) generates Event ID 5858 on the **destination system**. This event contains the `ClientMachine` field — the hostname of the machine that initiated the WMI connection:

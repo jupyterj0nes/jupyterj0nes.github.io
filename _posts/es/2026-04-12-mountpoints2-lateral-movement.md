@@ -99,6 +99,16 @@ Procesando las imágenes del DEFCON DFIR CTF 2018 con masstin:
 
 El usuario `mpowers` se conectó a `\\74.118.139.11\M4Projects` desde dos máquinas diferentes — evidencia de movimiento lateral que **no aparece en ningún fichero EVTX**. Esto se encontró exclusivamente en el registro.
 
+### En nuestro laboratorio
+
+El usuario `ryan.devlead` montó el recurso `SYSVOL` del controlador de dominio, por su dirección, el 16 de noviembre a las 12:08:38 UTC. Copiamos su registro poco después, y esto es lo que masstin saca de él:
+
+[![La fila de MountPoints2 del laboratorio en la timeline de masstin: destino 10.10.0.37, usuario ryan.devlead, origen DEV-DC01 y el recurso SYSVOL](/assets/images/artifacts/tl-mountpoints.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-mountpoints.webp)
+
+<p class="video-cap">La fila de MountPoints2 del laboratorio, tal como la enseña el visor de masstin.</p>
+
+La hora coincide al segundo con la del montaje. Y hay un detalle que enlaza con la sección siguiente: cuando se copió el registro, esa clave todavía no estaba en `NTUSER.DAT`. Solo estaba en `NTUSER.DAT.LOG1`. Sin aplicar ese log, este acceso no aparece.
+
 ## Hives sucios y transaction logs
 
 Las imágenes forenses frecuentemente contienen hives de registro sucios — el sistema no se apagó limpiamente (común en respuesta a incidentes: tirar del cable, adquisición forense en caliente, etc.). Windows no escribe cada cambio del registro directamente en el hive: primero lo apunta en unos ficheros auxiliares que están junto a él, los transaction logs (`.LOG1`, `.LOG2`), y lo pasa al hive después. Un hive sucio es uno al que le quedaron cambios pendientes en esos ficheros. Si se lee sin ellos, faltan los cambios más recientes.

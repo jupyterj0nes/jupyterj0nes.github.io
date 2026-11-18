@@ -99,6 +99,16 @@ Processing the DEFCON DFIR CTF 2018 images with masstin:
 
 User `mpowers` connected to `\\74.118.139.11\M4Projects` from two different machines — evidence of lateral movement that **does not appear in any EVTX file**. This was found exclusively in the registry.
 
+### In our lab
+
+The user `ryan.devlead` mounted the domain controller's `SYSVOL` share, by its address, on 16 November at 12:08:38 UTC. We copied the registry shortly afterwards, and this is what masstin gets out of it:
+
+[![The lab's MountPoints2 row in masstin's timeline: destination 10.10.0.37, user ryan.devlead, source DEV-DC01 and the SYSVOL share](/assets/images/artifacts/tl-mountpoints.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-mountpoints.webp)
+
+<p class="video-cap">The lab's MountPoints2 row, as masstin's viewer shows it.</p>
+
+The time matches the mount to the second. And there is a detail that leads into the next section: when the registry was copied, that key was not yet in `NTUSER.DAT`. It was only in `NTUSER.DAT.LOG1`. Without replaying that log, this access does not show up.
+
 ## Dirty hives and transaction logs
 
 Forensic images often contain dirty registry hives — the system was not shut down cleanly (common in incident response: pulled the plug, forensic acquisition while running, etc.). Windows does not write every registry change straight into the hive: it first notes it in auxiliary files that sit next to it, the transaction logs (`.LOG1`, `.LOG2`), and moves it into the hive later. A dirty hive is one that was left with pending changes in those files. Read without them, the most recent changes are missing.
