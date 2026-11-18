@@ -14,6 +14,16 @@ layout: default
     {% if page.description %}<p class="page-description">{{ page.description }}</p>{% endif %}
   </header>
   {% if content != blank %}<div class="page-content category-intro">{{ content }}</div>{% endif %}
+  {% if page.tools %}
+  <div class="tool-cards">
+    {% for tl in page.tools %}
+    <a class="tool-card tool-card-{{ tl.name }}" href="#{{ tl.anchor | default: tl.name }}">
+      <span class="tool-card-img"><img src="{{ '/assets/images/tools/' | append: tl.img | relative_url }}" alt="{{ tl.name }}" loading="lazy"></span>
+      <span class="tool-card-body"><em>{{ tl.q }}</em><strong>{{ tl.name }}</strong><small>{{ tl.text }}</small></span>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
   <div class="page-content hub">
   {% for g in page.groups %}
     {% assign posts = "" | split: "" %}
@@ -28,9 +38,9 @@ layout: default
     <section class="hub-group{% if g.sub %} hub-sub{% endif %}"{% if g.anchor %} id="{{ g.anchor }}"{% endif %}>
       {% if g.sub %}<h3>{{ g.title }}</h3>{% else %}<h2>{{ g.title }}</h2>{% endif %}
       {% if g.text %}<p class="hub-text">{{ g.text | markdownify | remove: "<p>" | remove: "</p>" }}</p>{% endif %}
-      <ul class="hub-list">
+      <ul class="hub-list{% if posts.size > 2 %} hub-cards{% endif %}">
       {% for post in posts %}
-        <li><a href="{{ post.url | relative_url }}">{{ post.short | default: post.title }}</a>{% if post.description %}<span>{{ post.description | truncate: 170 }}</span>{% endif %}</li>
+        <li><a href="{{ post.url | relative_url }}">{{ post.short | default: post.title }}</a>{% if post.description %}<span>{{ post.description }}</span>{% endif %}</li>
       {% endfor %}
       {% for l in g.links %}
         <li><a href="{% if l.url contains '://' %}{{ l.url }}{% else %}{{ '/' | append: lang | append: l.url | relative_url }}{% endif %}">{{ l.title }}</a>{% if l.text %}<span>{{ l.text }}</span>{% endif %}</li>

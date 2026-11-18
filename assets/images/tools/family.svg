@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300" viewBox="0 0 900 300" role="img" aria-label="Four timelines, one per tool, crossing the same minute">
+  <defs>
+    <radialGradient id="g" cx="0.6" cy="0.5" r="0.9"><stop offset="0" stop-color="#16243d"/><stop offset="0.6" stop-color="#0c1424"/><stop offset="1" stop-color="#070c15"/></radialGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3a44f" stop-opacity="0"/><stop offset="0.5" stop-color="#e3a44f" stop-opacity="0.55"/><stop offset="1" stop-color="#e3a44f" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect width="900" height="300" fill="url(#g)"/>
+  <rect x="548" y="30" width="44" height="240" fill="url(#beam)" opacity="0.5"/>
+  <path d="M570 34 V266" stroke="#e3a44f" stroke-width="1.5" stroke-dasharray="3 6"/>
+  <g font-family="'Space Mono', Consolas, Menlo, monospace" font-size="17">
+    <g stroke-width="2" stroke-linecap="round" fill="none">
+      <path d="M210 78 H830" stroke="#7aa6f2" opacity="0.55"/>
+      <path d="M210 128 H830" stroke="#58c98f" opacity="0.55"/>
+      <path d="M210 178 H830" stroke="#ef6a7d" opacity="0.55"/>
+      <path d="M210 228 H830" stroke="#e3a44f" opacity="0.55"/>
+    </g>
+    <text x="70" y="84" fill="#7aa6f2">masstin</text>
+    <text x="70" y="134" fill="#58c98f">caarea</text>
+    <text x="70" y="184" fill="#ef6a7d">faramir</text>
+    <text x="70" y="234" fill="#e3a44f">allymacb</text>
+    <g fill="#7aa6f2"><circle cx="300" cy="78" r="4"/><circle cx="452" cy="78" r="4"/><circle cx="566" cy="78" r="6.5"/><circle cx="720" cy="78" r="4"/></g>
+    <g fill="#58c98f"><circle cx="352" cy="128" r="4"/><circle cx="574" cy="128" r="6.5"/><circle cx="612" cy="128" r="4"/><circle cx="770" cy="128" r="4"/></g>
+    <g fill="#ef6a7d"><circle cx="260" cy="178" r="4"/><circle cx="570" cy="178" r="6.5"/><circle cx="690" cy="178" r="4"/></g>
+    <g fill="#e3a44f"><circle cx="410" cy="228" r="4"/><circle cx="572" cy="228" r="6.5"/><circle cx="650" cy="228" r="4"/><circle cx="800" cy="228" r="4"/></g>
+    <text x="570" y="26" text-anchor="middle" font-size="13" fill="#e3a44f">08:32:43</text>
+  </g>
+</svg>

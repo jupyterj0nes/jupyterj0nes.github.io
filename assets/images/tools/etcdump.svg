@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300" viewBox="0 0 900 300" role="img" aria-label="etcdump: a directory tree under /etc, one branch lit">
+  <defs>
+    <radialGradient id="g" cx="0.28" cy="0.4" r="0.8"><stop offset="0" stop-color="#16243d"/><stop offset="0.6" stop-color="#0c1424"/><stop offset="1" stop-color="#070c15"/></radialGradient>
+  </defs>
+  <rect width="900" height="300" fill="url(#g)"/>
+  <g fill="none" stroke="#2c4164" stroke-width="2" stroke-linecap="round">
+    <path d="M150 70 V236"/>
+    <path d="M150 104 H196"/><path d="M150 148 H196"/><path d="M150 192 H196"/><path d="M150 236 H196"/>
+  </g>
+  <path d="M150 148 H196" fill="none" stroke="#e3a44f" stroke-width="2.5" stroke-linecap="round"/>
+  <g font-family="'Space Mono', Consolas, Menlo, monospace" font-size="19">
+    <text x="128" y="58" fill="#7aa6f2" font-weight="700">/etc</text>
+    <text x="208" y="110" fill="#6f7e91">passwd</text>
+    <text x="208" y="154" fill="#e3a44f" font-weight="700">sudoers</text>
+    <text x="298" y="154" fill="#ef6a7d">&lt;&lt;&lt;</text>
+    <text x="208" y="198" fill="#6f7e91">cron.d/</text>
+    <text x="208" y="242" fill="#6f7e91">systemd/</text>
+  </g>
+  <circle cx="150" cy="148" r="5" fill="#e3a44f"/>
+  <text x="430" y="150" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="74" font-weight="700" fill="#f6eedd" letter-spacing="-2">etcdump</text>
+  <text x="434" y="192" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="21" fill="#9aa8bb">how that Linux was configured</text>
+  <g><rect x="434" y="216" width="14" height="6" fill="#c8102e"/><rect x="454" y="216" width="14" height="6" fill="#2f9e6b"/><rect x="474" y="216" width="14" height="6" fill="#4a7bd4"/></g>
+</svg>

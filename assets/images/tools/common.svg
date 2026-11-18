@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300" viewBox="0 0 900 300" role="img" aria-label="Three stacked layers: evidencefs, blockcarve and dirtyhive, under the tools">
+  <defs>
+    <radialGradient id="g" cx="0.5" cy="0.2" r="0.9"><stop offset="0" stop-color="#16243d"/><stop offset="0.6" stop-color="#0c1424"/><stop offset="1" stop-color="#070c15"/></radialGradient>
+  </defs>
+  <rect width="900" height="300" fill="url(#g)"/>
+  <g font-family="'Space Mono', Consolas, Menlo, monospace" text-anchor="middle">
+    <g fill="none" stroke="#2c4164" stroke-width="1.5" stroke-dasharray="4 6">
+      <path d="M250 62 V96"/><path d="M383 62 V96"/><path d="M517 62 V96"/><path d="M650 62 V96"/>
+    </g>
+    <g font-size="15" fill="#6f7e91">
+      <text x="250" y="50">masstin</text><text x="383" y="50">caarea</text><text x="517" y="50">faramir</text><text x="650" y="50">allymacb</text>
+    </g>
+    <rect x="170" y="100" width="560" height="46" rx="6" fill="#0f1826" stroke="#7aa6f2" stroke-width="1.6"/>
+    <text x="450" y="130" font-size="22" font-weight="700" fill="#7aa6f2">evidencefs</text>
+    <rect x="200" y="158" width="500" height="46" rx="6" fill="#0f1826" stroke="#58c98f" stroke-width="1.6"/>
+    <text x="450" y="188" font-size="22" font-weight="700" fill="#58c98f">blockcarve</text>
+    <rect x="230" y="216" width="440" height="46" rx="6" fill="#0f1826" stroke="#e3a44f" stroke-width="1.6"/>
+    <text x="450" y="246" font-size="22" font-weight="700" fill="#e3a44f">dirtyhive</text>
+  </g>
+</svg>

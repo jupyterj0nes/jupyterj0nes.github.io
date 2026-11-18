@@ -53,9 +53,9 @@ layout: default
       {%- elsif sec == "caarea" -%}{%- assign hero_img = "caarea.webp" -%}
       {%- elsif sec == "faramir" -%}{%- assign hero_img = "faramir.svg" -%}
       {%- elsif sec == "allymacb" -%}{%- assign hero_img = "allymacb.svg" -%}
-      {%- elsif sec == "etcdump" -%}{%- assign hero_text = "etcdump" -%}
-      {%- elsif sec == "common" -%}{%- assign hero_text = "evidencefs · blockcarve · dirtyhive" -%}
-      {%- elsif sec == "family" -%}{%- assign hero_text = "masstin · caarea · faramir · allymacb" -%}
+      {%- elsif sec == "etcdump" -%}{%- assign hero_img = "etcdump.svg" -%}
+      {%- elsif sec == "common" -%}{%- assign hero_img = "common.svg" -%}
+      {%- elsif sec == "family" -%}{%- assign hero_img = "family.svg" -%}
       {%- endif -%}
     {%- endunless -%}
     {%- if hero_img %}
@@ -96,14 +96,36 @@ layout: default
 
     {% include share.html %}
 
+    {%- assign sibs = "" | split: "" -%}
+    {%- if page.section -%}{%- assign sibs = site.posts | where: "lang", lang | where: "section", page.section | sort: "order" -%}{%- endif -%}
+    {%- assign prev_p = nil -%}{%- assign next_p = nil -%}{%- assign seen = false -%}
+    {%- for sp in sibs -%}
+      {%- if sp.url == page.url -%}{%- assign seen = true -%}
+      {%- elsif seen == false -%}{%- assign prev_p = sp -%}
+      {%- elsif next_p == nil -%}{%- assign next_p = sp -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {%- if sibs.size == 0 -%}{%- assign prev_p = page.previous -%}{%- assign next_p = page.next -%}{%- endif -%}
+    {%- if prev_p or next_p %}
     <nav class="post-nav">
-      {% if page.previous %}
-      <a href="{{ page.previous.url | relative_url }}" class="post-nav-prev">← {{ page.previous.title }}</a>
-      {% endif %}
-      {% if page.next %}
-      <a href="{{ page.next.url | relative_url }}" class="post-nav-next">{{ page.next.title }} →</a>
-      {% endif %}
+      {% if prev_p %}<a href="{{ prev_p.url | relative_url }}" class="post-nav-card post-nav-prev"><span>← {% if lang == "en" %}Previous{% else %}Anterior{% endif %}</span><strong>{{ prev_p.short | default: prev_p.title }}</strong></a>{% else %}<span></span>{% endif %}
+      {% if next_p %}<a href="{{ next_p.url | relative_url }}" class="post-nav-card post-nav-next"><span>{% if lang == "en" %}Next{% else %}Siguiente{% endif %} →</span><strong>{{ next_p.short | default: next_p.title }}</strong></a>{% endif %}
     </nav>
+    {%- endif %}
+    {%- if sibs.size > 3 %}
+    <aside class="post-related">
+      <h2>{% if lang == "en" %}More in this section{% else %}Más de esta sección{% endif %}</h2>
+      <ul>
+      {%- assign shown = 0 -%}
+      {%- for sp in sibs -%}
+        {%- if sp.url != page.url and sp.url != prev_p.url and sp.url != next_p.url and shown < 4 %}
+        <li><a href="{{ sp.url | relative_url }}"><strong>{{ sp.short | default: sp.title }}</strong><span>{{ sp.description | truncate: 120 }}</span></a></li>
+        {%- assign shown = shown | plus: 1 -%}
+        {%- endif -%}
+      {%- endfor %}
+      </ul>
+    </aside>
+    {%- endif %}
 
     {% include giscus.html %}
   </div>

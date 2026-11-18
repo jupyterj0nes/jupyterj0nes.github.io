@@ -5,6 +5,27 @@ description: "Our own DFIR tools: one question per tool, the same timeline forma
 lang: en
 ref: tools
 permalink: /en/tools/
+tools:
+  - name: masstin
+    img: masstin.webp
+    q: "Who logged in where?"
+    text: "Every login of a network in one timeline, with a hunt and a viewer of its own."
+  - name: caarea
+    img: caarea.webp
+    q: "What ran?"
+    text: "Every program execution, from more than 60 sources, with the process tree."
+  - name: faramir
+    img: faramir.svg
+    q: "What persists?"
+    text: "Every autostart mechanism and backdoor, live or deleted."
+  - name: allymacb
+    img: allymacb.svg
+    q: "What did the file system do?"
+    text: "The MACB timeline, with forged dates pointed out."
+  - name: etcdump
+    img: etcdump.svg
+    q: "How was that Linux configured?"
+    text: "Each Linux machine's configuration, as text and as a timeline."
 groups:
   - title: "Start here"
     section: family
@@ -98,10 +119,3 @@ groups:
 
 Each tool here answers one question of an investigation, and they all write the same kind of timeline: a 19-column CSV in UTC, with the same five closing columns for what the hunt finds and what the analyst notes. That is why they read side by side.
 
-| Question | Tool |
-|---|---|
-| Who logged in where? | **masstin** |
-| What ran? | **caarea** |
-| What persists? | **faramir** |
-| What did the file system do? | **allymacb** |
-| How was that Linux box configured? | **etcdump** |

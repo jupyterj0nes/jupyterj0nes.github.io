@@ -5,6 +5,27 @@ description: "Herramientas DFIR propias: una pregunta por herramienta, el mismo 
 lang: es
 ref: tools
 permalink: /es/tools/
+tools:
+  - name: masstin
+    img: masstin.webp
+    q: "¿Quién inició sesión dónde?"
+    text: "Todos los logins de una red en una sola timeline, con hunt y visor propio."
+  - name: caarea
+    img: caarea.webp
+    q: "¿Qué se ejecutó?"
+    text: "Cada ejecución de programa, de más de 60 fuentes, con el árbol de procesos."
+  - name: faramir
+    img: faramir.svg
+    q: "¿Qué persiste?"
+    text: "Cada mecanismo de arranque y puerta trasera, vivo o borrado."
+  - name: allymacb
+    img: allymacb.svg
+    q: "¿Qué hizo el sistema de ficheros?"
+    text: "La timeline MACB, con las fechas falseadas señaladas."
+  - name: etcdump
+    img: etcdump.svg
+    q: "¿Cómo estaba configurado ese Linux?"
+    text: "La configuración de cada Linux, como texto y como timeline."
 groups:
   - title: "Empieza aquí"
     section: family
@@ -98,10 +119,3 @@ groups:
 
 Cada herramienta de aquí responde a una sola pregunta de una investigación, y todas escriben el mismo tipo de timeline: un CSV de 19 columnas en UTC, con las mismas cinco columnas finales para lo que encuentra el hunt y lo que anota el analista. Por eso se pueden leer juntas.
 
-| Pregunta | Herramienta |
-|---|---|
-| ¿Quién inició sesión dónde? | **masstin** |
-| ¿Qué se ejecutó? | **caarea** |
-| ¿Qué persiste? | **faramir** |
-| ¿Qué hizo el sistema de ficheros? | **allymacb** |
-| ¿Cómo estaba configurado ese Linux? | **etcdump** |
