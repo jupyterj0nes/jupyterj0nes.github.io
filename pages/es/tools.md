@@ -23,7 +23,7 @@ tools:
     q: "¿Qué hizo el sistema de ficheros?"
     text: "La timeline MACB, con las fechas falseadas señaladas."
   - name: etcdump
-    img: etcdump.svg
+    img: etcdump-card.svg
     q: "¿Cómo estaba configurado ese Linux?"
     text: "La configuración de cada Linux, como texto y como timeline."
 groups:

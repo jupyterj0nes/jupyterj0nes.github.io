@@ -23,7 +23,7 @@ tools:
     q: "What did the file system do?"
     text: "The MACB timeline, with forged dates pointed out."
   - name: etcdump
-    img: etcdump.svg
+    img: etcdump-card.svg
     q: "How was that Linux configured?"
     text: "Each Linux machine's configuration, as text and as a timeline."
 groups:

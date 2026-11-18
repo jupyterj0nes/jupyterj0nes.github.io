@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="284" viewBox="0 0 500 284" role="img" aria-label="etcdump: a directory tree under /etc, one branch lit">
+  <defs>
+    <radialGradient id="g" cx="0.3" cy="0.4" r="0.9"><stop offset="0" stop-color="#16243d"/><stop offset="0.6" stop-color="#0c1424"/><stop offset="1" stop-color="#070c15"/></radialGradient>
+  </defs>
+  <rect width="500" height="284" fill="url(#g)"/>
+  <g fill="none" stroke="#2c4164" stroke-width="2.5" stroke-linecap="round">
+    <path d="M62 66 V236"/>
+    <path d="M62 100 H104"/><path d="M62 146 H104"/><path d="M62 192 H104"/><path d="M62 236 H104"/>
+  </g>
+  <path d="M62 146 H104" fill="none" stroke="#e3a44f" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="62" cy="146" r="6" fill="#e3a44f"/>
+  <g font-family="'Space Mono', Consolas, Menlo, monospace" font-size="22">
+    <text x="40" y="52" fill="#7aa6f2" font-weight="700">/etc</text>
+    <text x="116" y="107" fill="#6f7e91">passwd</text>
+    <text x="116" y="153" fill="#e3a44f" font-weight="700">sudoers</text>
+    <text x="222" y="153" fill="#ef6a7d">&lt;&lt;&lt;</text>
+    <text x="116" y="199" fill="#6f7e91">cron.d/</text>
+    <text x="116" y="243" fill="#6f7e91">systemd/</text>
+  </g>
+  <text x="270" y="112" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="46" font-weight="700" fill="#f6eedd" letter-spacing="-1.5">etcdump</text>
+  <g><rect x="273" y="132" width="16" height="7" fill="#c8102e"/><rect x="296" y="132" width="16" height="7" fill="#2f9e6b"/><rect x="319" y="132" width="16" height="7" fill="#4a7bd4"/></g>
+</svg>

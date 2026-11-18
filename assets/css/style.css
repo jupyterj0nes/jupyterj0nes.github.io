@@ -1398,3 +1398,14 @@ html.noscroll { overflow: hidden; }
   .hub-list.hub-cards { grid-template-columns: 1fr; }
   .read-progress { top: 64px; }
 }
+
+
+/* ---------- Fixes after the design pass ---------- */
+/* Backslashes in Windows paths are not escapes worth a colour */
+.highlight .se, .highlight .sr { color: inherit; }
+/* etcdump card: show the whole emblem */
+.tool-card-etcdump .tool-card-img img { object-fit: cover; object-position: 50% 50%; }
+.tool-card-etcdump .tool-card-img { background: #0b1322; }
+/* Intro text of hubs and pages sits on the scene: keep it readable */
+.category-intro, .page-header + .page-content > p:first-child { text-shadow: 0 1px 12px rgba(4, 8, 16, 0.95), 0 0 2px rgba(4, 8, 16, 0.9); }
+.category-intro p { color: #d5dde8; }
