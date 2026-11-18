@@ -59,7 +59,7 @@ El colector de Cortex XDR también sigue una convención estricta de nombre de f
 offline_collector_output_<HOSTNAME>_<YYYY-MM-DD>_<HH-MM-SS>.zip
 ```
 
-Así que extraemos el hostname del filename siempre que coincida con esa forma. Ejemplo: `offline_collector_output_STFVEEAMPRXY01_2026-03-17_21-18-38.zip` → host `STFVEEAMPRXY01`.
+Así que extraemos el hostname del filename siempre que coincida con esa forma. Ejemplo: `offline_collector_output_TESTHOST01_2026-03-17_21-18-38.zip` → host `TESTHOST01`.
 
 Dentro del paquete, Cortex XDR tiene un layout rico de módulos: cada categoría de artefacto forense está en su propia carpeta `<nombre>-parsing/` o `<nombre>-collection/`, y cada carpeta contiene un `script_output.zip` anidado con la evidencia real. Los ficheros EVTX terminan en `output/event_log-parsing/script_output.zip` dentro de rutas como `entry_159_0/Microsoft-Windows-Windows Firewall With Advanced Security%4FirewallDiagnostics.evtx`. Las bases de datos UAL `.mdb` terminan en `output/user_access_logging_db-collection/script_output.zip`. El colector XDR cubre unos 70+ módulos de artefactos.
 
@@ -113,7 +113,7 @@ Las labels se computan a partir del enum `EvtxLocation` que masstin ya usa para 
 
 - `EvtxLocation::File(path)` donde la ruta contiene el marker `masstin_image_extract/` → extract de imagen forense → `[IMAGE]  <nombre-imagen>`
 - `EvtxLocation::File(path)` en otro caso → fichero suelto → `[FOLDER]  <ruta completa del directorio padre>`
-- `EvtxLocation::ZipEntry { zip_path, .. }` → busca el zip exterior en el triage map → `[TRIAGE: <type>]` si fue detectado, `[ARCHIVE]` en otro caso. **La label incluye el directorio padre inmediato del zip** (`triages/host.zip`) para que dos copias físicas del mismo triage en carpetas distintas — extremadamente común en casos reales cuando el cliente sube un triage a `SFTP/...` y el equipo IR lo copia a `To-Unit42/...` — aparezcan como grupos source distintos en lugar de colapsarse en un mismo cubo con entradas duplicadas dentro.
+- `EvtxLocation::ZipEntry { zip_path, .. }` → busca el zip exterior en el triage map → `[TRIAGE: <type>]` si fue detectado, `[ARCHIVE]` en otro caso. **La label incluye el directorio padre inmediato del zip** (`triages/host.zip`) para que dos copias físicas del mismo triage en carpetas distintas — extremadamente común en casos reales cuando el cliente sube un triage a `SFTP/...` y el equipo IR lo copia a `To-IR/...` — aparezcan como grupos source distintos en lugar de colapsarse en un mismo cubo con entradas duplicadas dentro.
 
 El desglose de fase 2 entonces agrupa por source label y renderiza cada grupo con su event count más la lista por-EVTX. **Los eventos recuperados de VSS llevan tag inline** para que el analista pueda decir de un vistazo qué logs vinieron de un shadow copy vs cuáles vinieron de la partición live:
 
@@ -213,10 +213,10 @@ Siempre sabes si masstin abrió tus archivos o no.
 
 ### Normalización de ruta larga
 
-Windows genera nombres cortos 8.3 para cualquier directorio cuyo nombre largo sea más antiguo que el sistema, y el `tempdir` de PowerShell para el usuario actual a menudo aparece como `C:\Users\C00PR~1.DES\AppData\Local\Temp\` en lugar de la forma larga. La línea `Output:` del summary de masstin imprimía la ruta corta 8.3 cruda:
+Windows genera nombres cortos 8.3 para cualquier directorio cuyo nombre largo sea más antiguo que el sistema, y el `tempdir` de PowerShell para el usuario actual a menudo aparece como `C:\Users\ANALYS~1\AppData\Local\Temp\` en lugar de la forma larga. La línea `Output:` del summary de masstin imprimía la ruta corta 8.3 cruda:
 
 ```
-Output: C:/Users/C00PR~1.DES/AppData/Local/Temp/test-vicon.csv
+Output: C:/Users/ANALYS~1/AppData/Local/Temp/test-vicon.csv
 ```
 
 Fixeado para canonicalizar la ruta vía `std::fs::canonicalize` y quitar el prefijo verbatim `\\?\` de Windows:
@@ -274,7 +274,7 @@ Las source labels son consistentes en todo tipo de evidencia, así que un run de
 
 Un comando, cuatro clases de fuente, cada evento atribuido.
 
-Después del summary, masstin imprime una hint **"Load into graph (pick one):"** con los comandos de Memgraph y Neo4j listos para copiar y pegar, con la ruta de salida canonicalizada a forma larga así no acabas con nombres cortos 8.3 tipo `C00PR~1.DES` filtrándose en la sugerencia:
+Después del summary, masstin imprime una hint **"Load into graph (pick one):"** con los comandos de Memgraph y Neo4j listos para copiar y pegar, con la ruta de salida canonicalizada a forma larga así no acabas con nombres cortos 8.3 tipo `ANALYS~1` filtrándose en la sugerencia:
 
 ```
         Load into graph (pick one):

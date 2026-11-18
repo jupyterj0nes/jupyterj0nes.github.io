@@ -59,7 +59,7 @@ The Cortex XDR collector also follows a strict filename convention:
 offline_collector_output_<HOSTNAME>_<YYYY-MM-DD>_<HH-MM-SS>.zip
 ```
 
-So we extract the hostname from the filename whenever it matches that shape. Example: `offline_collector_output_STFVEEAMPRXY01_2026-03-17_21-18-38.zip` → host `STFVEEAMPRXY01`.
+So we extract the hostname from the filename whenever it matches that shape. Example: `offline_collector_output_TESTHOST01_2026-03-17_21-18-38.zip` → host `TESTHOST01`.
 
 Inside the package, Cortex XDR has a rich module layout: each forensic artifact category is in its own `<name>-parsing/` or `<name>-collection/` folder, and each folder contains a nested `script_output.zip` with the actual evidence. EVTX files end up in `output/event_log-parsing/script_output.zip` inside paths like `entry_159_0/Microsoft-Windows-Windows Firewall With Advanced Security%4FirewallDiagnostics.evtx`. UAL `.mdb` databases end up in `output/user_access_logging_db-collection/script_output.zip`. The XDR collector covers about 70+ artifact modules.
 
@@ -113,7 +113,7 @@ The labels are computed from the `EvtxLocation` enum that masstin already uses t
 
 - `EvtxLocation::File(path)` where the path contains the `masstin_image_extract/` marker → forensic image extract → `[IMAGE]  <image-filename>`
 - `EvtxLocation::File(path)` otherwise → loose file → `[FOLDER]  <full parent directory path>`
-- `EvtxLocation::ZipEntry { zip_path, .. }` → look up the outer zip in the triage map → `[TRIAGE: <type>]` if detected, `[ARCHIVE]` otherwise. **The label includes the immediate parent directory of the zip** (`triages/host.zip`) so two physical copies of the same triage in different folders — extremely common in real cases when the client uploads a triage to `SFTP/...` and the IR team copies it to `To-Unit42/...` — appear as different source groups instead of collapsing into one bucket with duplicate entries inside.
+- `EvtxLocation::ZipEntry { zip_path, .. }` → look up the outer zip in the triage map → `[TRIAGE: <type>]` if detected, `[ARCHIVE]` otherwise. **The label includes the immediate parent directory of the zip** (`triages/host.zip`) so two physical copies of the same triage in different folders — extremely common in real cases when the client uploads a triage to `SFTP/...` and the IR team copies it to `To-IR/...` — appear as different source groups instead of collapsing into one bucket with duplicate entries inside.
 
 The phase-2 breakdown then groups by source label and renders each group with its event count plus the per-EVTX list. **VSS-recovered events are tagged inline** so the analyst can tell at a glance which logs came from a shadow copy vs which came from the live partition:
 
@@ -213,10 +213,10 @@ You always know whether masstin opened your archives or not.
 
 ### Long path normalization
 
-Windows generates 8.3 short names for any directory whose long name is older than the system, and PowerShell's `tempdir` for the current user often shows up as `C:\Users\C00PR~1.DES\AppData\Local\Temp\` instead of the long form. The `Output:` line in masstin's summary used to print the raw 8.3 short path:
+Windows generates 8.3 short names for any directory whose long name is older than the system, and PowerShell's `tempdir` for the current user often shows up as `C:\Users\ANALYS~1\AppData\Local\Temp\` instead of the long form. The `Output:` line in masstin's summary used to print the raw 8.3 short path:
 
 ```
-Output: C:/Users/C00PR~1.DES/AppData/Local/Temp/test-vicon.csv
+Output: C:/Users/ANALYS~1/AppData/Local/Temp/test-vicon.csv
 ```
 
 Fixed to canonicalize the path via `std::fs::canonicalize` and strip Windows' `\\?\` verbatim prefix:
@@ -274,7 +274,7 @@ The source labels are consistent across every kind of evidence, so a `parse` run
 
 One command, four source classes, every event attributed.
 
-After the summary, masstin prints a **"Load into graph (pick one):"** hint with both Memgraph and Neo4j commands ready to copy-paste, with the output path canonicalised to the long form so you don't end up with 8.3 short names like `C00PR~1.DES` leaking into the suggestion:
+After the summary, masstin prints a **"Load into graph (pick one):"** hint with both Memgraph and Neo4j commands ready to copy-paste, with the output path canonicalised to the long form so you don't end up with 8.3 short names like `ANALYS~1` leaking into the suggestion:
 
 ```
         Load into graph (pick one):
