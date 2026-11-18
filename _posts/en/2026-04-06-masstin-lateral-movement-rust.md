@@ -59,10 +59,10 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 
 | Feature | Description | Article |
 |---------|-------------|---------|
-| **Unified cross-OS image parsing** | **Single `parse-image` command auto-detects OS per partition** — NTFS gets Windows parsing (EVTX + UAL + VSS), ext4 gets Linux parsing (auth.log, wtmp, audit.log, **systemd-journald binary logs**, etc.) — all merged into one timeline. Point at a folder of mixed images and get a single CSV. Zero manual steps.  | [Forensic images](/en/tools/masstin-vss-recovery/) |
+| **Unified cross-OS image parsing** | **A single `parse` command auto-detects the OS of every partition** — NTFS gets Windows parsing (EVTX + UAL + VSS), ext4 gets Linux parsing (auth.log, wtmp, audit.log, **systemd-journald binary logs**, etc.) — all merged into one timeline. Point at a folder of mixed images and get a single CSV. Zero manual steps.  | [Forensic images](/en/tools/masstin-vss-recovery/) |
 | **graph-hunt: statistical detection** | Every connection after the cutoff is measured against the network's own baseline: p-values, the false discovery rate as the only parameter, Hopper classes, chain reconstruction from a seed, an analyst report. Runs straight from the CSV, no database or plugin needed | [graph-hunt](/en/tools/masstin-graph-hunt/) |
 | Multi-directory incident analysis | Analyze dozens of machines at once with multiple `-d` flags, critical for ransomware investigations | [Parse evidence](#parse-evidence) |
-| Cross-platform timeline | Windows EVTX + Linux SSH + EDR data in one timeline — `parse-image` auto-merges across OS boundaries | [Windows](/en/artifacts/security-evtx-lateral-movement/) / [Linux](/en/artifacts/linux-forensic-artifacts/) / [Cortex](/en/artifacts/cortex-xdr-artifacts/) |
+| Cross-platform timeline | Windows EVTX + Linux SSH + EDR data in one timeline — `parse` merges across OS boundaries | [Windows](/en/artifacts/security-evtx-lateral-movement/) / [Linux](/en/artifacts/linux-forensic-artifacts/) / [Cortex](/en/artifacts/cortex-xdr-artifacts/) |
 | 33+ Event IDs from 12 EVTX sources + Scheduled Tasks XML | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS, WinRM, WMI-Activity, Sysmon (Event 3 network connections) + remote task detection — covering RDP, SMB, Kerberos, NTLM, share access, PowerShell Remoting, WMI and Scheduled Tasks | [Security.evtx](/en/artifacts/security-evtx-lateral-movement/) / [RDP](/en/artifacts/terminal-services-evtx/) / [SMB](/en/artifacts/smb-evtx-events/) |
 | Event classification | Every event classified as `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF` or `CONNECT` | [CSV Format — event_type](/en/tools/masstin-csv-format/) |
 | Recursive decompression | Auto-extracts ZIP/triage packages recursively (KAPE, Velociraptor, UAC, Cortex; tar / tar.gz streamed, nested in each other), handles archived logs with duplicate filenames, auto-detects common forensic passwords | [Linux artifacts — triage support](/en/artifacts/linux-forensic-artifacts/) |
@@ -79,7 +79,7 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 | Mounted volume support | Point `-d D:` at a mounted volume or use `--all-volumes` — live EVTX + VSS recovery from connected disks, no imaging needed | [Forensic images](/en/tools/masstin-vss-recovery/) |
 | UAL parsing | Auto-detect User Access Logging ESE databases — 3-year server logon history surviving event log clearing | [UAL](/en/tools/masstin-ual/) |
 | MountPoints2 registry | Extract NTUSER.DAT from each user profile and parse MountPoints2 — reveals user→server share connections with timestamps, survives log clearing. Dirty hive + transaction log support | [MountPoints2](/en/artifacts/mountpoints2-lateral-movement/) |
-| EVTX carving | `carve-image` scans raw disk for EVTX chunks in unallocated space — recovers events after logs AND VSS are deleted. Implements Tier 1 (full 64 KB chunks) + Tier 2 (orphan record detection); Tier 3 (template matching) is planned. Builds synthetic EVTX files grouped by provider and parses them through the full pipeline. Three upstream parser bugs (infinite loops and multi-GB OOMs on corrupt BinXML) were reported and fixed in evtx 0.11.2; masstin keeps thread isolation + `catch_unwind` + `--skip-offsets` as a belt-and-suspenders safety net | [EVTX carving](/en/tools/evtx-carving-unallocated/) |
+| EVTX carving | `parse --carve` scans raw disk for EVTX chunks in unallocated space — recovers events after logs AND VSS are deleted. Implements Tier 1 (full 64 KB chunks) + Tier 2 (orphan record detection); Tier 3 (template matching) is planned. Builds synthetic EVTX files grouped by provider and parses them through the full pipeline. Three upstream parser bugs (infinite loops and multi-GB OOMs on corrupt BinXML) were reported and fixed in evtx 0.11.2; masstin keeps thread isolation + `catch_unwind` + `--skip-offsets` as a belt-and-suspenders safety net | [EVTX carving](/en/tools/evtx-carving-unallocated/) |
 | Transparent reporting | CLI shows artifact discovery, processing progress, hostname/year inferences and per-artifact event counts | [Parse evidence](#parse-evidence) |
 
 ---
@@ -109,20 +109,19 @@ cd masstin && cargo build --release
 ### Parse evidence
 
 ```bash
-# Forensic images — auto-detects Windows and Linux, single merged timeline
-masstin -a parse-image -f DC01.e01 -f ubuntu-server.vmdk -o timeline.csv
+# The whole case folder: images, triages, loose EVTX, Linux logs, in one timeline
+masstin -a parse -d /evidence/case/ -o timeline.csv
 
-# Scan entire evidence folder — any mix of Windows/Linux images
-masstin -a parse-image -d /evidence/all_machines/ -o full_timeline.csv
+# Files and folders together: two images and a Linux triage
+masstin -a parse -f DC01.e01 -f ubuntu-server.vmdk -d /evidence/linux-triage/ -o timeline.csv
 
-# Parse extracted logs from directories
-masstin -a parse-windows -d /evidence/DC01 -d /evidence/SRV-FILE -o windows.csv
-masstin -a parse-linux -d /evidence/linux-triage/ -o linux.csv
+# Also the EVTX records of cleared or overwritten logs, carved from the images
+masstin -a parse -d /evidence/case/ --carve -o timeline.csv
 ```
 
 <video autoplay loop muted playsinline style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
   <source src="/assets/video/masstin-parse-windows.mp4" type="video/mp4">
-  parse-windows over 293 EVTX samples: discovery, per-folder breakdown, duplicates removed, the 14-column CSV.
+  masstin over 293 EVTX samples: discovery, per-folder breakdown, duplicates removed, the 14-column CSV.
 </video>
 
 ### Visualize in a graph database
@@ -155,6 +154,35 @@ RETURN path ORDER BY length(path) LIMIT 5
 
 ![Temporal path in Memgraph](/assets/images/memgraph_temporal_path.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
+### Follow the trail: where it came from and how far it got
+
+The above needs a graph database. If you just want to look right now, masstin has a window of its own that reads the CSV directly:
+
+```bash
+masstin -a view -f timeline.csv
+```
+
+The graph shows you who talked to whom. The next question is usually a different one: if someone got in through this machine, how far could they get? And the other way round: this server is compromised, so where did they come in?
+
+**Tools › Paths** answers both. Pick an origin and a destination and you get the chains of logins that join them, shortest first. Or pick only the origin and press **Everything from the origin**: you get a tree of everything reachable from there, branch by branch, with the account and the time of every hop. **Everything into the destination** does the same thing backwards.
+
+You do not need to know where to start, either. Leave the origin box empty, type an account, and the tree starts at every machine where that account begins to move. Tick **the same account all along** and each chain is one single account from start to finish.
+
+Hops can be chained in two ways:
+
+- **By time.** A hop leaves a machine after the one that came into it, within a margin (24 hours by default). This is "what could have happened". It finds a lot, and you have to read it with care.
+- **By session (logon ID).** The hop has to be tied to the session the previous one opened. Either of two proofs will do: the machine itself wrote down that this session made the connection (a 4648 on Windows, an auditd `connect` on Linux), or the hop leaves while the session is still open, between its logon and its logoff.
+
+In the list, a hop the machine recorded as made by that session is drawn `=(account time)=>`. The rest, `-(account time)->`. In a report that difference matters: "it could have been" is one thing, "it was that session" is another.
+
+Three things worth knowing before you use it:
+
+- The search works on whatever the filters let through. With "Findings" on, only the hunt's findings count. There is a button to search the whole timeline.
+- A machine that shows up by name in some rows and by IP in others is two nodes, and the path breaks there. **Tools › Hosts and addresses** tells you whose each address is, with the evidence, and joins them when you press the button. It joins nothing by itself.
+- When there is no path, the window tells you why: the origin has no login of the kind that counts, nothing comes into the destination, or what you can reach from one and what arrives at the other never meet.
+
+All of this comes with masstin 1.5.0.
+
 ### Hunt without knowing what to look for
 
 Once the timeline exists, `graph-hunt-csv` asks the question an analyst brings to the first day: of everything that happened after the compromise, what is new for this network? No database, no plugin: every window connection is measured against the baseline, the only number you choose is the false discovery rate, and the report explains each finding in words. No hint needed: on the public Los Alamos set (21 million logins, 749 labelled red-team events) the red-team machine comes out at rank 1 and 204 connections survive the 5 % false discovery rate. The 22-minute run is cut in the recording.
@@ -177,15 +205,9 @@ How it decides, and what it found on the public LANL set, is in the [graph-hunt 
 
 | Action | Description |
 |--------|-------------|
-| `parse-windows` | Parse Windows EVTX from directories or files (supports compressed triage packages) |
-| `parse-linux` | Parse Linux logs: auth.log, secure, messages, audit.log, utmp, wtmp, btmp, lastlog |
-| `parser-elastic` | Parse Winlogbeat JSON logs exported from Elasticsearch |
+| `parse` | **The one to use.** Reads any mix of evidence from `-d` folders and `-f` files (EVTX, triages, disk images, Linux, macOS, Winlogbeat) into one timeline. `--carve` adds the carved EVTX records, `--rules` your custom parsers. See [One action: parse](#one-action-parse) |
 | `parse-cortex` | Query Cortex XDR API for network connections (RDP/SMB/SSH) |
-| `parse-image` | **Auto-detects OS per partition.** Open E01/dd/VMDK images (including streamOptimized), scan evidence folders (`-d /evidence/`), mounted volumes (`-d D:`), or `--all-volumes`. Detects BitLocker. NTFS → EVTX + UAL + VSS + Tasks. ext4 → Linux logs. All merged into one CSV |
-| `parse-massive` | Like `parse-image` but also includes loose EVTX and log files from `-d` directories — use when evidence is a mix of disk images and extracted triage packages |
-| `carve-image` | **Last resort recovery.** Scans raw disk for EVTX chunks in unallocated space. Recovers lateral movement events after logs + VSS are deleted. Use `--carve-unalloc` for unallocated-only scan |
 | `parse-cortex-evtx-forensics` | Query Cortex XDR API for forensic EVTX collections across multiple machines |
-| `parse-custom` | Parse arbitrary text or JSON logs (VPN, firewall, proxy, web app, Mordor / OTRF) using YAML rule files with csv, regex, keyvalue and json extractors. Bring your own log format — see [masstin custom parsers](/en/tools/masstin-custom-parsers/) |
 | `merge` | Combine multiple CSVs into a single chronological timeline |
 | `load-neo4j` | Upload timeline to Neo4j for graph visualization |
 | `load-memgraph` | Upload timeline to Memgraph for in-memory graph visualization |
@@ -195,30 +217,21 @@ How it decides, and what it found on the public LANL set, is in the [graph-hunt 
 | `graph-hunt` | Same hunt on a graph loaded into Memgraph with `--ungrouped`. Everything is computed in memory; no MAGE needed |
 | `graph-hunt-neo4j` | Same hunt on Neo4j (`--db <name>` for named databases). No GDS plugin needed |
 
-### parse-windows vs parse-image vs parse-massive — what each one actually processes
+### One action: `parse` {#one-action-parse}
 
-The three Windows-side actions differ by **what you feed them**, not by the parser underneath — EVTX dispatch is the same in all of them (Provider.Name routing, unknown providers silently skipped).
+You don't have to pick a parser. `-a parse` takes whatever you give it, `-d` for a folder (walked whole) and `-f` for a single file, says in one line what it found and reads it all in one pass:
 
-| Source | `parse-windows` | `parse-image` | `parse-massive` |
-|---|:---:|:---:|:---:|
-| Loose EVTX files and directories | ✅ | ❌ | ✅ |
-| Recursive ZIP walk (unlimited nesting) | ✅ | ❌ | ✅ |
-| `Provider.Name` fallback for archived / renamed EVTX | ✅ | ✅ | ✅ |
-| Forensic disk images (E01, VMDK, raw, dd, img) | ❌ | ✅ | ✅ |
-| NTFS walker → `winevt/Logs` + VSS recovery | ❌ | ✅ | ✅ |
-| UAL databases (`LogFiles/Sum/*.mdb`) | ❌ | ✅ | ✅ |
-| Scheduled Tasks XML (`System32/Tasks/`) | ❌ | ✅ | ✅ |
-| MountPoints2 (NTUSER.DAT registry hive) | ❌ | ✅ | ✅ |
-| Triage detection (KAPE / Velociraptor / UAC / Cortex XDR) with per-source labels | ❌ | ❌ | ✅ |
-| Loose-artifact promotion of `-d` directories into the pipeline | ❌ | ❌ | ✅ |
+```
+        Found: 1 disk image, 4 triage packages (KAPE), 19 EVTX files, 2 Linux triages (26 files in 6 folders, 1.5 s)
+```
 
-Rule of thumb:
+- EVTX files and ZIPs full of them, UAL databases, KAPE / Velociraptor / UAC / Cortex XDR triages, disk images (E01, VMDK, VHD/VHDX, dd) with their shadow copies, Linux logs and triages, archives inside archives.
+- macOS logs (`.logarchive` or the `log show` JSON) and Winlogbeat JSON, each read by its own parser in the same run.
+- masstin timelines you pass with `-f` are merged in. The ones sitting inside the folders (an earlier run, another case) are left out, and the console tells you so.
 
-- **Folder / ZIP / single EVTX** → `parse-windows`
-- **Forensic image** (`.e01`, `.vmdk`, `.raw`) → `parse-image`
-- **Mixed evidence** (image + zip + triage + loose files) → `parse-massive`
+Two things it can't guess, so you ask for them: `--carve` adds the EVTX records carved from the disk images (only the ones the live logs don't already hold), and `--rules` reads the VPN, firewall or proxy logs masstin doesn't know with your custom-parser rules. Everything ends up in the same CSV.
 
-In all three, any EVTX whose `Provider.Name` matches a channel masstin knows is parsed — regardless of filename. Archived logs (`Security-YYYY-MM-DD-HH-MM-SS.evtx` produced by the "Archive the log when full" retention policy), operator-renamed copies, and extracts from third-party tooling all route correctly. See [Archived EVTX post](/en/tools/masstin-archived-evtx-provider-dispatch/) for the full story.
+Whatever the evidence, any EVTX whose `Provider.Name` matches a channel masstin knows is parsed — regardless of filename. Archived logs (`Security-YYYY-MM-DD-HH-MM-SS.evtx` produced by the "Archive the log when full" retention policy), operator-renamed copies, and extracts from third-party tooling all route correctly. See [Archived EVTX post](/en/tools/masstin-archived-evtx-provider-dispatch/) for the full story.
 
 ---
 
@@ -246,7 +259,7 @@ In all three, any EVTX whose `Provider.Name` matches a channel masstin knows is 
 | Forensic image analysis and VSS recovery | [Recovering deleted logs from VSS](/en/tools/masstin-vss-recovery/) |
 | User Access Logging (UAL) | [Server access history from ESE databases](/en/tools/masstin-ual/) |
 | vshadow-rs — pure Rust VSS parser | [vshadow-rs](/en/tools/vshadow-rs/) |
-| Triage detection (KAPE / Velociraptor / Cortex) — automatic recognition of triage packages inside `parse-image` and `parse-massive` | [Triage detection in masstin](/en/tools/masstin-triage-detection/) |
+| Triage detection (KAPE / Velociraptor / Cortex) — automatic recognition of triage packages inside `parse` | [Triage detection in masstin](/en/tools/masstin-triage-detection/) |
 | **graph-hunt** — statistical lateral movement detection: p-values against the network's own baseline, false discovery rate, Hopper classes, seed chains, analyst report; from the CSV, Memgraph or Neo4j, no plugins | [graph-hunt in masstin](/en/tools/masstin-graph-hunt/) |
 
 ### Graph Databases

@@ -128,6 +128,27 @@ Tipos de registro relevantes para movimiento lateral:
 
 Masstin se queda solo con `USER_LOGIN` (un registro por conexión SSH; `USER_AUTH` se usa como fallback), descarta los registros de audit de una conexión que el log de sshd ya cubre — emparejados por pid — y toma los finales de sesión de `USER_END`.
 
+### Lo que una sesión hizo en la red: `ses=` y los registros `connect`
+
+Windows tiene el logon ID para saber qué sesión hizo qué. Linux tiene algo parecido y se habla poco de ello: cada login deja en auditd un identificador de sesión, `ses=`, y el kernel lo pone en todos los registros de todos los procesos que cuelgan de esa sesión.
+
+Si el equipo tiene una regla de auditoría sobre `connect` (es habitual en guías de bastionado), cada conexión saliente queda así:
+
+```
+type=SYSCALL msg=audit(1712502493.390:10045): arch=c000003e syscall=42 success=no exit=-115 ... auid=1002 ... ses=7 comm="smbclient" exe="/usr/bin/smbclient" key="netconn"
+type=SOCKADDR msg=audit(1712502493.390:10045): saddr=020001BD0A00013C0000000000000000 SADDR={ saddr_fam=inet laddr=10.0.1.60 lport=445 }
+```
+
+Eso es la máquina de origen diciendo «la sesión 7 conectó con 10.0.1.60 por el 445». Masstin lo convierte en una fila `AUDIT_CONNECT`, escrita desde el origen, y le pone como `logon_id` el del login SSH de esa misma sesión. Así, cuando buscas caminos por sesión en la ventana, ese salto queda probado: no es «salió mientras la sesión estaba abierta», es «lo hizo esa sesión».
+
+Algunos detalles:
+
+- Solo cuentan las conexiones de sesiones de login (los demonios no tienen `ses`) y a puertos de acceso remoto: 22, 23, 135, 139, 445, 3389, 5900, 5985 y 5986.
+- `exit=-115` no es un fallo. Es una conexión en curso sobre un socket no bloqueante, y cuenta.
+- Sin la regla no hay nada que leer. Es esta: `-a always,exit -F arch=b64 -S connect -F a2=16 -k netconn`.
+
+Esto llega con masstin 1.5.0.
+
 ---
 
 ## utmp, wtmp y btmp
@@ -298,13 +319,13 @@ Masstin gestiona esto de forma nativa: lee directamente los ficheros `.journal` 
 
 ```bash
 # Directorio con logs extraidos
-masstin -a parse-linux -d /evidence/var/log/ -o timeline.csv
+masstin -a parse -d /evidence/var/log/ -o timeline.csv
 
 # Paquete forense comprimido (extraccion automatica, soporta contrasenas)
-masstin -a parse-linux -d /evidence/triage_package/ -o timeline.csv
+masstin -a parse -d /evidence/triage_package/ -o timeline.csv
 ```
 
-![Salida CLI de masstin parse-linux](/assets/images/masstin_cli_linux.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
+![Salida CLI de masstin sobre logs de Linux](/assets/images/masstin_cli_linux.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
 Masstin reporta de forma transparente todas las inferencias: identificación del hostname (desde `/etc/hostname`, `dmesg` o la cabecera syslog), inferencia del año (desde el sufijo de logrotate de los ficheros rotados, `dpkg.log`, `wtmp` o fecha de modificación del fichero), la zona horaria usada para convertir los timestamps RFC3164 a UTC y extracción de ZIPs protegidos con contraseña.
 
@@ -349,7 +370,7 @@ Este formato se utiliza cuando se exporta el journal de systemd o cuando rsyslog
 
 ### Soporte de triage comprimido
 
-Al igual que `parse-windows`, `parse-linux` puede procesar paquetes de triage comprimidos directamente. Descomprime archivos ZIP de forma recursiva — incluyendo archivos **protegidos con contraseña** utilizando contraseñas forenses comunes (`cyberdefenders.org`, `infected`, `malware`, `password`). Cuando se detecta y desbloquea un archivo protegido, masstin notifica al usuario. Los archivos `tar` / `tar.gz` / `tgz` también se recorren (en streaming, solo se desempaquetan los ficheros de log), anidados en cualquier combinación (zip → tar.gz, tar.gz → tar.gz), y las colecciones de UAC (Unix-like Artifacts Collector) se reconocen por su layout `uac.log` + `[root]/` o por su nombre `uac-<host>-<os>-<timestamp>` y se etiquetan `[TRIAGE: UAC]`, con el hostname tomado del nombre del fichero o del `/etc/hostname` recolectado.
+masstin puede procesar directamente paquetes de triage de Linux comprimidos. Descomprime archivos ZIP de forma recursiva — incluyendo archivos **protegidos con contraseña** utilizando contraseñas forenses comunes (`cyberdefenders.org`, `infected`, `malware`, `password`). Cuando se detecta y desbloquea un archivo protegido, masstin notifica al usuario. Los archivos `tar` / `tar.gz` / `tgz` también se recorren (en streaming, solo se desempaquetan los ficheros de log), anidados en cualquier combinación (zip → tar.gz, tar.gz → tar.gz), y las colecciones de UAC (Unix-like Artifacts Collector) se reconocen por su layout `uac.log` + `[root]/` o por su nombre `uac-<host>-<os>-<timestamp>` y se etiquetan `[TRIAGE: UAC]`, con el hostname tomado del nombre del fichero o del `/etc/hostname` recolectado.
 
 ---
 

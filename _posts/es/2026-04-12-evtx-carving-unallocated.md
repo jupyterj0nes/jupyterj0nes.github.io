@@ -6,7 +6,7 @@ category: tools
 lang: es
 ref: tool-masstin-evtx-carving
 tags: [masstin, carving, evtx, forense, dfir, unallocated, recuperación, herramientas]
-description: "La acción carve-image de masstin escanea imágenes forenses buscando chunks EVTX en espacio no asignado, recuperando eventos de movimiento lateral después de que los atacantes borren los logs. Un análisis detallado de los tres niveles de carving EVTX y cómo masstin se protege contra bugs del parser upstream."
+description: "La opción --carve de masstin escanea imágenes forenses buscando chunks EVTX en espacio no asignado, recuperando eventos de movimiento lateral después de que los atacantes borren los logs. Un análisis detallado de los tres niveles de carving EVTX y cómo masstin se protege contra bugs del parser upstream."
 comments: true
 ---
 
@@ -16,7 +16,7 @@ El atacante fue meticuloso. Borró todos los logs de eventos. Eliminó los Volum
 
 ¿O sí?
 
-Cuando Windows borra un fichero, los datos no desaparecen del disco — el espacio simplemente se marca como "disponible" en el sistema de ficheros. Los bytes reales — incluyendo chunks EVTX completos — permanecen en disco hasta que se sobreescriben con datos nuevos. **El `carve-image` de masstin escanea el disco raw buscando estos restos, los recupera, los mete por el pipeline normal de parseo y te devuelve una timeline indistinguible de una construida a partir de logs vivos.**
+Cuando Windows borra un fichero, los datos no desaparecen del disco — el espacio simplemente se marca como "disponible" en el sistema de ficheros. Los bytes reales — incluyendo chunks EVTX completos — permanecen en disco hasta que se sobreescriben con datos nuevos. **El `--carve` de masstin escanea el disco raw buscando estos restos, los recupera, los mete por el pipeline normal de parseo y te devuelve una timeline indistinguible de una construida a partir de logs vivos.**
 
 Este artículo es un análisis en profundidad de cómo funciona eso: cómo están organizados los ficheros EVTX, los tres niveles teóricos de carving EVTX, qué implementa masstin hoy, qué dejamos como future work, y los obstáculos sorprendentemente dolorosos que nos encontramos por el camino — incluyendo tres bugs nuevos que descubrimos y reportamos upstream en el crate `evtx`.
 
@@ -212,27 +212,29 @@ Verificado end-to-end en el caso `ws01-wipe-novss.raw` anterior: **un** EVTX sin
 
 ## Uso
 
+El carving es una opción de `parse`: se añade `--carve` y los eventos recuperados entran en la misma timeline que los vivos. Un evento carveado que ya está en los logs vivos se descarta, así que lo que se suma es solo lo recuperado, y la consola dice cuántos.
+
 ```bash
-# Carving de una imagen forense
-masstin -a carve-image -f servidor.e01 -o carved-timeline.csv
+# La carpeta del caso entera, logs vivos y carving en una timeline
+masstin -a parse -d /evidence/case/ --carve -o timeline.csv
 
-# Carving de múltiples imágenes
-masstin -a carve-image -f DC01.e01 -f SRV-FILE.vmdk -o carved.csv
+# Imágenes concretas
+masstin -a parse -f DC01.e01 -f SRV-FILE.vmdk --carve -o timeline.csv
 
-# Escanear solo espacio no asignado (más rápido, planificado)
-masstin -a carve-image -f servidor.e01 -o carved.csv --carve-unalloc
+# Escanear solo el espacio no asignado (más rápido, planificado)
+masstin -a parse -f servidor.e01 --carve --carve-unalloc -o timeline.csv
 
-# Saltar offsets malos conocidos (para E01 patológicos)
-masstin -a carve-image -f roto.e01 --skip-offsets 0x6478b6000 -o carved.csv
+# Saltar offsets problemáticos conocidos (para E01 patológicos)
+masstin -a parse -f roto.e01 --carve --skip-offsets 0x6478b6000 -o timeline.csv
 
-# Conservar ficheros rechazados para post-mortem (útil para reportes de bugs)
-masstin -a carve-image -f imagen.e01 -o carved.csv --debug
+# Conservar los ficheros sintéticos rechazados para el post-mortem (útil para reportar bugs)
+masstin -a parse -f imagen.e01 --carve --debug -o timeline.csv
 ```
 
-La salida es el mismo CSV de 14 columnas que `parse-image`, con `log_filename` mostrando el origen carved:
+La salida es el mismo CSV de 14 columnas que `parse`, con `log_filename` mostrando el origen carved:
 
 ```
-HRServer_Disk0.e01_carved_Microsoft-Windows-Security-Auditing.evtx
+HRServer_Disk0.e01:carved:Security.evtx
 ```
 
 ---
@@ -289,7 +291,7 @@ La fase de validación añade unos pocos segundos por fichero sintético, domina
 
 | Herramienta | Lenguaje | Nivel 1 | Nivel 2 | Nivel 3 | Parseo de movimiento lateral |
 |-------------|----------|---------|---------|---------|------------------------------|
-| **masstin `carve-image`** | Rust | Sí | Detección | Planificado | **Sí — pipeline completo** |
+| **masstin `parse --carve`** | Rust | Sí | Detección | Planificado | **Sí — pipeline completo** |
 | EVTXtract (Ballenthin) | Python | Sí | Sí | Sí | No — genera XML raw |
 | bulk_extractor-rec | C++ | Sí | Sí | No | No — genera ficheros raw |
 | EvtxCarv | Python | Sí | Sí | Reensamblaje de fragmentos | No — genera ficheros raw |
@@ -298,15 +300,15 @@ Masstin es la única herramienta que hace carving de chunks EVTX **y** los parse
 
 ---
 
-## Cuándo usar `carve-image` vs `parse-image`
+## Cuándo hacer carving
 
 | Escenario | Usar |
 |-----------|------|
-| Análisis forense normal | `parse-image` — extrae de NTFS + VSS |
-| Logs borrados, VSS intacto | `parse-image` — la recuperación VSS lo maneja |
-| Logs borrados, VSS borrado, UAL intacto | `parse-image` — UAL proporciona 3 años de historial |
-| **Todo borrado** | **`carve-image` — recupera del espacio no asignado** |
-| Recuperación máxima | Ambos: `parse-image` primero, luego `carve-image` sobre la misma imagen |
+| Análisis forense normal | `parse` — extrae de NTFS + VSS |
+| Logs borrados, VSS intacto | `parse` — la recuperación VSS lo maneja |
+| Logs borrados, VSS borrado, UAL intacto | `parse` — UAL proporciona 3 años de historial |
+| **Todo borrado** | **`parse --carve` — recupera del espacio no asignado** |
+| Recuperación máxima | `parse --carve`: las dos cosas en una ejecución, y un evento que está vivo y también carveado sale una sola vez |
 
 ---
 
@@ -315,7 +317,7 @@ Masstin es la única herramienta que hace carving de chunks EVTX **y** los parse
 | Tema | Enlace |
 |------|--------|
 | Masstin — página principal | [masstin](/es/tools/masstin-lateral-movement-rust/) |
-| Imágenes forenses y recuperación VSS | [parse-image](/es/tools/masstin-vss-recovery/) |
+| Imágenes forenses y recuperación VSS | [Imágenes de disco y VSS](/es/tools/masstin-vss-recovery/) |
 | MountPoints2 del registro | [MountPoints2](/es/artifacts/mountpoints2-lateral-movement/) |
 | Formato CSV y clasificación de eventos | [Formato CSV](/es/tools/masstin-csv-format/) |
 | Artefactos Security.evtx | [Security.evtx](/es/artifacts/security-evtx-lateral-movement/) |

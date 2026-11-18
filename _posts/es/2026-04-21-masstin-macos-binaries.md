@@ -25,7 +25,7 @@ Los dos son standalone. Descargar, hacer ejecutable, ejecutar. Nada de Homebrew.
 # Apple Silicon
 curl -LO https://github.com/jupyterj0nes/masstin/releases/latest/download/masstin-<tag>-macos-arm64
 chmod +x masstin-<tag>-macos-arm64
-./masstin-<tag>-macos-arm64 -a parse-windows -d /evidencia/logs -o timeline.csv
+./masstin-<tag>-macos-arm64 -a parse -d /evidencia/logs -o timeline.csv
 ```
 
 ---
@@ -90,7 +90,7 @@ Buenas noticias para quien use curl / wget: el atributo de quarantine solo lo ap
 
 ## Verificación end-to-end sobre un runner macOS arm64 real
 
-La forma habitual de convencerte de que un binario realmente funciona en una plataforma que no tienes es levantar un runner hosted y comprobarlo. Como GitHub Actions da minutos gratuitos de macOS a repositorios públicos, esto sale barato. Monté un pequeño workflow manual-only (`mac-debug.yml`) que compila masstin y abre una shell accesible vía SSH usando `mxschmitt/action-tmate@v3`, luego metí los fixtures de test canónicos de `github.com/omerbenamram/evtx` — el repositorio del parser `evtx` sobre el que masstin está construido — y corrí `parse-windows` sobre ellos.
+La forma habitual de convencerte de que un binario realmente funciona en una plataforma que no tienes es levantar un runner hosted y comprobarlo. Como GitHub Actions da minutos gratuitos de macOS a repositorios públicos, esto sale barato. Monté un pequeño workflow manual-only (`mac-debug.yml`) que compila masstin y abre una shell accesible vía SSH usando `mxschmitt/action-tmate@v3`, luego metí los fixtures de test canónicos de `github.com/omerbenamram/evtx` — el repositorio del parser `evtx` sobre el que masstin está construido — y corrí masstin sobre ellos.
 
 Input: 27 fixtures EVTX de `omerbenamram/evtx/samples/` (chunks intencionalmente dirty, caché de strings rota, post-security, big security, ficheros Security renombrados, RdpCoreTS, forwarded events).
 
@@ -145,7 +145,7 @@ El binario de release Intel también corrió fino bajo Rosetta 2 — sin errores
 
 ## Qué está planeado para macOS
 
-Los parsers actuales son Windows y Linux. macOS como *objetivo de investigación* — `/var/log` en vivo, unified logging `.tracev3`, imágenes forenses APFS / HFS+ — está en el roadmap como una acción separada (`parse-mac`). Es independiente de este release; lo que sale ahora es solo la paridad de plataforma para *ejecutar* masstin desde una workstation macOS.
+En aquel momento los parsers eran Windows y Linux. macOS como *objetivo de investigación* lo cubre hoy `parse`, que lee el Unified Log, como `.logarchive` o como export JSON de `log show`, para los logons por SSH y Screen Sharing. Este release era solo la paridad de plataforma para *ejecutar* masstin desde una workstation macOS.
 
 ---
 
@@ -155,5 +155,5 @@ Los parsers actuales son Windows y Linux. macOS como *objetivo de investigación
 |------|--------|
 | Masstin — página principal | [masstin](/es/tools/masstin-lateral-movement-rust/) |
 | EVTX archivados / dispatch por Provider.Name | [EVTX archivados](/es/tools/masstin-archived-evtx-provider-dispatch/) |
-| EVTX carving desde espacio no asignado | [carve-image](/es/tools/evtx-carving-unallocated/) |
+| EVTX carving desde espacio no asignado | [EVTX carving](/es/tools/evtx-carving-unallocated/) |
 | Formato CSV | [Formato CSV](/es/tools/masstin-csv-format/) |

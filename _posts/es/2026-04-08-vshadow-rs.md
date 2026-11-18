@@ -159,7 +159,7 @@ vshadow-rs extract -f suspect.E01 -s 0 -p "Windows/System32/winevt/Logs" -o ./re
 vshadow-rs timeline -f suspect.E01 -o timeline.csv
 
 # 5. Parsear los logs recuperados con masstin
-masstin -a parse-windows -d ./recuperados/ -o lateral.csv
+masstin -a parse -d ./recuperados/ -o lateral.csv
 ```
 
 ---
@@ -238,7 +238,7 @@ for i in 0..vss.store_count() {
 [Masstin](/es/tools/masstin-lateral-movement-rust/) utiliza vshadow-rs para procesar imagenes forenses con un solo comando:
 
 ```bash
-masstin -a parse-image-windows -f evidence.E01 -o timeline.csv
+masstin -a parse -f evidence.E01 -o timeline.csv
 ```
 
 Esto extrae EVTX tanto del volumen activo como de todos los snapshots VSS, generando una timeline unificada de movimiento lateral que incluye eventos que el atacante borró.

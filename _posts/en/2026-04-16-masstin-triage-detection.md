@@ -92,7 +92,7 @@ KAPE's lack of a strict filename pattern also makes hostname extraction unreliab
 
 ### UAC — added later for the Linux side
 
-Since v1.1.0 [UAC (Unix-like Artifacts Collector)](https://github.com/tclahr/uac) is a recognised layout too. Its archives are detected by `uac.log` at the root plus the `[root]/` (or `live_response/`) layout directory, or by the enforced filename `uac-<host>-<os>-<YYYYMMDDhhmmss>.tar.gz`. The hostname comes from the filename; when UAC was run against a mounted image it writes `unknown`, so masstin falls back to `[root]/etc/hostname`, `/etc/sysconfig/network`, `uac.log`, `/etc/hosts` or the syslog header of the collected logs. `parse-linux` streams the tar.gz (only the log files are unpacked) and labels the group `[TRIAGE: UAC]`.
+Since v1.1.0 [UAC (Unix-like Artifacts Collector)](https://github.com/tclahr/uac) is a recognised layout too. Its archives are detected by `uac.log` at the root plus the `[root]/` (or `live_response/`) layout directory, or by the enforced filename `uac-<host>-<os>-<YYYYMMDDhhmmss>.tar.gz`. The hostname comes from the filename; when UAC was run against a mounted image it writes `unknown`, so masstin falls back to `[root]/etc/hostname`, `/etc/sysconfig/network`, `uac.log`, `/etc/hosts` or the syslog header of the collected logs. masstin streams the tar.gz (only the log files are unpacked) and labels the group `[TRIAGE: UAC]`.
 
 ## Per-source grouping in the breakdown
 
@@ -239,16 +239,16 @@ Skipped: 100 (no relevant events found in file)
 
 A full breakdown by cause (no_events / access_denied / parse_error) is on the roadmap for v0.12.1.
 
-## What this means for parse-windows, parse-image, parse-massive and parse-linux
+## What this means for `parse`
 
-The triage detection and source grouping apply to **every action that walks directories looking for artifacts**:
+The triage detection and source grouping apply to **everything `parse` walks looking for artifacts**:
 
-- **`parse-windows`** — directly. Walks `-d` directories, finds loose EVTX + opens ZIPs, detects triages, groups by source.
-- **`parse-image`** — inherits automatically. The action extracts EVTX from forensic images into a temp directory whose path contains the `masstin_image_extract/` marker. The source-label helper recognises this marker and labels every extracted EVTX as `[IMAGE]  <image-filename>`.
-- **`parse-massive`** — inherits via parse-image. Mixed evidence folders with images + triages + loose EVTX all get correctly classified.
-- **`parse-linux`** — same treatment. The detection helpers are reused via `crate::parse::detect_triage_type()` and the per-source breakdown uses the same `print_artifact_detail_grouped` helper. Linux artifacts inside Velociraptor or Cortex XDR collections (which both support Linux endpoints) and inside UAC tarballs are correctly attributed to their source triage.
+- **Folders and ZIPs** — walks `-d` directories, finds loose EVTX + opens ZIPs, detects triages, groups by source.
+- **Disk images** — the same labels. masstin extracts EVTX from forensic images into a temp directory whose path contains the `masstin_image_extract/` marker. The source-label helper recognises this marker and labels every extracted EVTX as `[IMAGE]  <image-filename>`.
+- **Mixed evidence** — folders with images + triages + loose EVTX all get correctly classified.
+- **Linux evidence** — same treatment. The detection helpers are reused via `crate::parse::detect_triage_type()` and the per-source breakdown uses the same `print_artifact_detail_grouped` helper. Linux artifacts inside Velociraptor or Cortex XDR collections (which both support Linux endpoints) and inside UAC tarballs are correctly attributed to their source triage.
 
-The source labels are consistent across all actions, so a `parse-massive` run against a folder with one E01 image, two triage zips, and a directory of loose `auth.log` files produces a single coherent breakdown:
+The source labels are consistent across every kind of evidence, so a `parse` run against a folder with one E01 image, two triage zips, and a directory of loose `auth.log` files produces a single coherent breakdown:
 
 ```
 [+] Lateral movement events grouped by source (4 sources):
@@ -299,7 +299,7 @@ The triage detection and per-source breakdown ship in **masstin v0.12.0**. Pre-b
 
 ```bash
 # Real-world example: parse a customer's evidence folder
-masstin -a parse-massive -d D:/incidents/2026-04-customer-x/evidence/ -o timeline.csv
+masstin -a parse -d D:/incidents/2026-04-customer-x/evidence/ -o timeline.csv
 ```
 
 If you spot a triage layout the detector misses, or a hostname pattern that fails to extract correctly, open an issue on the [masstin repo](https://github.com/jupyterj0nes/masstin/issues) with a (sanitised) sample filename — adding new patterns is straightforward and we want the detector to handle the real variety of formats that show up in actual cases.
@@ -312,6 +312,6 @@ If you spot a triage layout the detector misses, or a hostname pattern that fail
 |-------|------|
 | Masstin main page | [masstin](/en/tools/masstin-lateral-movement-rust/) |
 | docs/parsing.md — Triage detection section | [`docs/parsing.md#triage-detection-and-per-source-breakdown`](https://github.com/jupyterj0nes/masstin/blob/main/docs/parsing.md#triage-detection-and-per-source-breakdown) |
-| Custom parsers post (related v0.12 feature) | [parse-custom + 9 YAML rules](/en/tools/masstin-custom-parsers/) |
+| Custom parsers post (related v0.12 feature) | [Custom parsers + 9 YAML rules](/en/tools/masstin-custom-parsers/) |
 | EVTX carving | [evtx-carving-unallocated](/en/tools/evtx-carving-unallocated/) |
 | Forensic image parsing + VSS recovery | [masstin-vss-recovery](/en/tools/masstin-vss-recovery/) |

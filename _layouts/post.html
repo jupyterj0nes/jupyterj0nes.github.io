@@ -72,6 +72,8 @@ layout: default
       {{ content }}
     </div>
 
+    {% if page.category == "tools" or page.category == "artifacts" %}{% include lab-section.html %}{% endif %}
+
     {% include share.html %}
 
     <nav class="post-nav">

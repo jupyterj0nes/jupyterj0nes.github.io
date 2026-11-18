@@ -5,7 +5,7 @@ date: 2026-04-21 07:00:00 +0100
 category: tools
 lang: es
 ref: tool-masstin-archived-evtx
-tags: [masstin, evtx, provider, archivados, dfir, parse-windows, tools]
+tags: [masstin, evtx, provider, archivados, dfir, parse, tools]
 description: "Windows rota los Security.evtx llenos en archivos Security-YYYY-MM-DD-HH-MM-SS.evtx. Los EVTX renombrados, extraídos por operador o generados por herramientas de terceros rompían silenciosamente el dispatcher por nombre de fichero de masstin. Aquí se cuenta cómo masstin ahora despacha por Provider.Name leído del XML y acepta cualquier EVTX con un provider conocido — verificado end-to-end contra los propios fixtures de test del crate evtx upstream."
 comments: true
 ---
@@ -24,7 +24,7 @@ Los dos de ~80 KB, cada uno conteniendo un único EVTX con el mismo nombre dentr
 Apuntas masstin:
 
 ```bash
-masstin -a parse-windows -d I:/forensic/act3/archive/ -o timeline.csv
+masstin -a parse -d I:/forensic/act3/archive/ -o timeline.csv
 ```
 
 Salida:
@@ -107,12 +107,12 @@ match provider.as_str() {
 }
 ```
 
-La función `parse_unknown()` existía en el código desde hace un tiempo, puerta atrás de un atómico `MASSIVE_MODE` para que solo `parse-massive` la usara. El razonamiento era precaución: mantener `parse-windows` estricto y predecible, dejar el fallback agresivo detrás del flag *"off-the-leash"*. En la práctica eso significaba que `parse-windows` descartaba silenciosamente los logs archivados mientras que `parse-massive` los recogía — una distinción que ningún usuario podía razonablemente adivinar sin leer el código fuente.
+La función `parse_unknown()` existía en el código desde hace un tiempo, puerta atrás de un atómico `MASSIVE_MODE` para que solo la usara el modo que recorre una carpeta de evidencia entera. El razonamiento era precaución: mantener el camino normal de los EVTX estricto y predecible, dejar el fallback agresivo detrás del flag *"off-the-leash"*. En la práctica eso significaba que una carpeta de EVTX perdía en silencio sus logs archivados, mientras que los mismos ficheros dentro de una carpeta de evidencia completa sí se recogían — una distinción que ningún usuario podía razonablemente adivinar sin leer el código fuente.
 
 Volviendo a correr el mismo caso ahora, comando sin cambios:
 
 ```bash
-masstin -a parse-windows -d I:/forensic/act3/archive/ -o timeline.csv
+masstin -a parse -d I:/forensic/act3/archive/ -o timeline.csv
 ```
 
 ```
@@ -148,7 +148,7 @@ Un test rápido en el binario de release público `masstin-v0.14.0-macos` (pre-f
 
 El binario de release descarta silenciosamente cada uno de esos fixtures. El binario nuevo parsea nueve de ellos (los que tienen providers que masstin conoce — los otros dieciocho son logs genuinamente no-LM: CAPI2, HelloForBusiness, Shell-Core, etc., donde el dispatcher correctamente devuelve un vec vacío).
 
-Fíjate en los fixtures dirty/broken — `2-system-Security-dirty.evtx` (corrupción de chunk intencional), `security_bad_string_cache.evtx` (caché de strings roto intencional), `sample-with-irregular-bool-values.evtx` (codificación de bool inválida intencional): el dispatcher por Provider.Name extrae eventos de ellos limpiamente, porque el mismo hardening que protege a carve-image de chunks malformados protege también este camino.
+Fíjate en los fixtures dirty/broken — `2-system-Security-dirty.evtx` (corrupción de chunk intencional), `security_bad_string_cache.evtx` (caché de strings roto intencional), `sample-with-irregular-bool-values.evtx` (codificación de bool inválida intencional): el dispatcher por Provider.Name extrae eventos de ellos limpiamente, porque el mismo hardening que protege al carving de chunks malformados protege también este camino.
 
 ---
 
@@ -187,10 +187,10 @@ Si quieres específicamente el comportamiento estricto antiguo — por velocidad
 
 ```bash
 # Scope solo a la carpeta canónica, equivalente al comportamiento estricto antiguo
-masstin -a parse-windows -d /evidencia/C/Windows/System32/winevt/Logs -o timeline.csv
+masstin -a parse -d /evidencia/C/Windows/System32/winevt/Logs -o timeline.csv
 
 # Incluir también los logs archivados
-masstin -a parse-windows -d /evidencia/C/Windows/System32/winevt/Logs \
+masstin -a parse -d /evidencia/C/Windows/System32/winevt/Logs \
                           -d /evidencia/C/Windows/System32/winevt/Logs/Archive \
                           -o timeline.csv
 ```
@@ -201,10 +201,7 @@ masstin -a parse-windows -d /evidencia/C/Windows/System32/winevt/Logs \
 
 1. Si alguna vez apuntaste masstin a un archivo de logs rotados, un extract de KAPE por hostname, o un dump de collector offline de Velociraptor y viste `Events collected: 0` — eso era este bug, no una timeline vacía.
 2. El fix está en `main` (commit [`9419c95`](https://github.com/jupyterj0nes/masstin/commit/9419c95)) y estará en el próximo release. El commit es de una línea: quitar el gate `MASSIVE_MODE`, llamar a `parse_unknown` incondicionalmente.
-3. Las tres acciones ahora comparten el mismo dispatch EVTX y solo difieren en **qué le meten dentro**:
-   - `parse-windows` → ficheros y directorios (+ zips recursivos).
-   - `parse-image` → imágenes forenses de disco, extrayendo del `winevt/Logs` del NTFS + VSS.
-   - `parse-massive` → todo lo anterior, más triage detection, más promoción de loose-artifact.
+3. Toda la evidencia pasa por el mismo dispatch EVTX: `masstin -a parse` lee ficheros, carpetas con zips recursivos, imágenes forenses de disco (`winevt/Logs` del NTFS + VSS) y paquetes de triage de una pasada.
 4. El test canónico para la robustez de cualquier parser EVTX es una corrida contra `github.com/omerbenamram/evtx/samples/`. Vale la pena tenerlo en el bolsillo.
 
 Si estás investigando un caso ahora mismo y a masstin le pareció que no veía nada, relánzalo contra `main` — los bytes en disco son los mismos, la timeline probablemente no.
@@ -216,7 +213,7 @@ Si estás investigando un caso ahora mismo y a masstin le pareció que no veía 
 | Tema | Enlace |
 |------|--------|
 | Masstin — página principal | [masstin](/es/tools/masstin-lateral-movement-rust/) |
-| EVTX carving desde espacio no asignado | [carve-image](/es/tools/evtx-carving-unallocated/) |
+| EVTX carving desde espacio no asignado | [EVTX carving](/es/tools/evtx-carving-unallocated/) |
 | Formato CSV y clasificación de eventos | [Formato CSV](/es/tools/masstin-csv-format/) |
 | Artefactos Security.evtx | [Security.evtx](/es/artifacts/security-evtx-lateral-movement/) |
 | Triage detection | [triage detection](/es/tools/masstin-triage-detection/) |

@@ -94,10 +94,10 @@ For locally created tasks, the Author field either has no machine prefix or uses
 
 ## How masstin handles these artifacts
 
-All three artifact types are extracted automatically during `parse-image`:
+All three artifact types are extracted automatically when `parse` reads a disk image:
 
 ```bash
-masstin -a parse-image -d /evidence/ -o timeline.csv
+masstin -a parse -d /evidence/ -o timeline.csv
 ```
 
 For each forensic image:

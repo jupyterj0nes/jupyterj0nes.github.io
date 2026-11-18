@@ -92,7 +92,7 @@ Masstin automatically recognizes Winlogbeat JSON files and extracts the fields r
 2. **JSON array:** An array of documents, less common but supported.
 
 ```bash
-masstin -a parser-elastic -d /path/to/winlogbeat/ -o timeline.csv
+masstin -a parse -d /path/to/winlogbeat/ -o timeline.csv
 ```
 
 Masstin maps ECS/Winlogbeat fields to its internal normalized format, so Winlogbeat events appear in the timeline with the same structure as those parsed directly from EVTX.

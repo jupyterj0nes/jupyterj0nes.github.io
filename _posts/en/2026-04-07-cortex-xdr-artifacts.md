@@ -6,20 +6,23 @@ category: artifacts
 lang: en
 ref: artifact-cortex-xdr
 tags: [cortex-xdr, lateral-movement, dfir, masstin, edr, palo-alto]
-description: "How masstin leverages Cortex XDR in two modes -- network connections and EVTX forensic collection -- to detect lateral movement."
+description: "How masstin reads three sources from a Cortex XDR tenant -- network connections, the agents' event logs and the forensic collection -- to detect lateral movement."
 comments: true
 ---
 
 ## Cortex XDR as a Forensic Source
 
-Palo Alto Cortex XDR is an EDR/XDR platform that provides visibility into endpoint activity. For lateral movement analysis, Cortex XDR offers two complementary data sources that [masstin](/en/tools/masstin-lateral-movement-rust/) can leverage:
+Palo Alto Cortex XDR is an EDR/XDR platform that provides visibility into endpoint activity. For lateral movement analysis, a Cortex XDR tenant holds three things that [masstin](/en/tools/masstin-lateral-movement-rust/) can read:
 
-1. **Network connections mode:** network connection data captured by Cortex XDR agents on each endpoint.
-2. **EVTX Forensics mode:** Windows Event Logs collected by forensic collection agents deployed to endpoints.
+1. **Network connections:** the ones the Cortex XDR agents record on each endpoint.
+2. **The agents' event logs:** the Windows events every agent sends by itself, with no triage.
+3. **EVTX Forensics:** the Windows Event Logs the forensics add-on collected (triages, hunts, offline collector).
+
+One action, `parse-cortex`, reads all three into a single timeline. If the tenant does not have one of them, it says so and carries on with the rest. `--cortex-sources network,eventlog,forensics` picks which.
 
 ---
 
-## Mode 1: Network Connections
+## Source 1: Network Connections
 
 ### What It Captures
 
@@ -50,7 +53,8 @@ Cortex XDR network events provide the **endpoint perspective**, complementing ne
 ### How Masstin Retrieves This Data
 
 ```bash
-masstin -a parse-cortex --cortex-url api-xxxx.xdr.xx.paloaltonetworks.com \
+masstin -a parse-cortex --cortex-url https://api-xxxx.xdr.xx.paloaltonetworks.com \
+  --cortex-sources network \
   --start-time "2024-08-12 00:00:00" --end-time "2024-08-14 00:00:00" \
   -o cortex-network.csv
 ```
@@ -59,7 +63,24 @@ Masstin queries the Cortex XDR API directly, filters connections to ports releva
 
 ---
 
-## Mode 2: EVTX Forensics (Forensic Collection)
+## Source 2: The event logs the agents send
+
+This is the one most people do not know they have. With nothing deployed and no triage requested, every Cortex agent is already sending the tenant the Windows security events that matter for lateral movement: logons and logoffs (4624, 4625, 4634, 4647, 4648), Kerberos (4768 to 4771), NTLM (4776), RDP reconnects (4778, 4779) and share access (5140, 5145). From every machine with an agent.
+
+Masstin runs each event through the same mapping it uses for an EVTX, so the row you get is the one the original file would give.
+
+```bash
+masstin -a parse-cortex --cortex-url https://api-xxxx.xdr.xx.paloaltonetworks.com \
+  --cortex-sources eventlog --ignore-local \
+  --start-time "2024-08-12 00:00:00" --end-time "2024-08-14 00:00:00" \
+  -o cortex-eventlog.csv
+```
+
+Most of those events are logons local to the machine itself. `--ignore-local` keeps the ones that came from another machine, which are the ones you care about here.
+
+---
+
+## Source 3: EVTX Forensics (Forensic Collection)
 
 ### What Are Cortex XDR Forensic Collection Agents
 
@@ -76,7 +97,7 @@ Forensic collection agents are especially useful when:
 
 ### What Logs They Collect
 
-Masstin's query covers the full lateral-movement event set from `parse-windows`, across ten Windows Event Log providers:
+Masstin's query covers the full lateral-movement event set masstin reads from EVTX, across ten Windows Event Log providers:
 
 - **Security** -- logons (4624/4625/4648), logoffs (4634/4647), Kerberos (4768/4769/4770/4771), NTLM (4776), session reconnect/disconnect (4778/4779), network share access (5140)
 - **TerminalServices-LocalSessionManager/Operational** -- RDP session lifecycle (21, 22, 24, 25)
@@ -93,7 +114,8 @@ The regex extraction against the localized `message` field ships with English, S
 ### How Masstin Retrieves This Data
 
 ```bash
-masstin -a parse-cortex-evtx-forensics --cortex-url api-xxxx.xdr.xx.paloaltonetworks.com \
+masstin -a parse-cortex --cortex-url https://api-xxxx.xdr.xx.paloaltonetworks.com \
+  --cortex-sources forensics \
   --start-time "2024-08-12 00:00:00" --end-time "2024-08-14 00:00:00" \
   -o cortex-evtx.csv
 ```
@@ -104,10 +126,47 @@ Masstin queries the logs collected by the forensic agents and extracts lateral m
 
 ---
 
-## Mode Comparison
+## Source Comparison
 
-| Aspect | Network Connections | EVTX Forensics |
-|--------|-------------------|----------------|
+| Aspect | Network Connections | Agents' event logs | EVTX Forensics |
+|--------|-------------------|--------------------|----------------|
+| **Data source** | Network events captured by Cortex agents | Security events every agent sends by itself | EVTX logs collected by the forensic agent or uploaded by the offline collector |
+| **What it provides** | Connections by process to admin ports | Logons, logoffs, Kerberos, NTLM and shares from every machine with an agent | Full Windows Event Log events, with the RDP, SMB and WinRM channels |
+| **Ports/Event IDs** | 22, 445, 3389, 5985, 5986 by default; `--admin-ports` adds 135, 139, 1433, 3306, 5900 | 4624, 4625, 4634, 4647, 4648, 4768-4771, 4776, 4778, 4779, 5140, 5145 | 32 event IDs across 10 providers (Security, TS-LSM/RCM/RDPClient/RdpCoreTS, SMB Server/Client/Connectivity, WinRM, WMI-Activity) |
+| **`--cortex-sources`** | `network` | `eventlog` | `forensics` |
+| **When to use** | Complement EVTX with endpoint network data | Always: it is already there and nothing has to be deployed | When you need the channels the agent does not send |
+
+---
+
+## Before reading anything: check the connection
+
+The first thing that fails with an API is the key. So that you do not find out halfway through a query that spends compute units, masstin can ask first:
+
+```bash
+masstin -a parse-cortex --cortex-url https://api-xxxx.xdr.xx.paloaltonetworks.com --cortex-check
+```
+
+It makes a single request, the XQL quota one, which costs nothing. If the tenant accepts, it tells you what kind of key it is (Standard or Advanced) and how much quota you have used today. If not, it shows you what the tenant answered and what that usually means: a URL that does not exist, an ID that does not belong to that key, a role that may not run XQL. Nothing is read or written, and the exit code is 0 when the tenant accepts, in case you want it in a script.
+
+The key and its ID are asked on the console, or read from `CORTEX_API_KEY` and `CORTEX_API_KEY_ID`. They never go on the command line.
+
+---
+
+## The wizard in the window
+
+If you would rather not type the command, masstin's window (`masstin -a view`) walks you through it. **Evidence › Cortex XDR API** opens a five-step wizard:
+
+1. **Tenant.** It tells you where the three values you need live in Cortex (the URL, the key's ID and the key) and has a button that checks the connection. Green if it works, with the kind of key and today's quota. Red if not, with the reason.
+2. **What to read.** The three sources, as cards you tick or untick.
+3. **Which events.** The period, with buttons for the last 24 hours, 3, 7 and 30 days, and the filters.
+4. **Timeline.** Where it is written, and a summary in words of what is about to happen.
+5. **Run.** The phases as they pass and a bar with the share of the period already read.
+
+The key travels to the process in its environment. It does not show up on the command line or in the log, and it is not saved to disk.
+
+The wizard, `--cortex-check` and the progress bar come with masstin 1.5.0.
+
+--------|-------------------|----------------|
 | **Data source** | Network events captured by Cortex agents | EVTX logs collected by the forensic agent or uploaded by the offline collector |
 | **What it provides** | Connections by process to admin ports | Full Windows Event Log events |
 | **Ports/Event IDs** | 22, 445, 3389, 5985, 5986 by default; `--admin-ports` adds 135, 139, 1433, 3306, 5900 | 32 event IDs across 10 providers (Security, TS-LSM/RCM/RDPClient/RdpCoreTS, SMB Server/Client/Connectivity, WinRM, WMI-Activity) |
@@ -123,18 +182,18 @@ The recommended workflow when Cortex XDR is available:
 | Step | Action | Source |
 |:----:|--------|--------|
 | 1 | Deploy forensic collection agents on key endpoints | Cortex XDR |
-| 2 | Retrieve network connections via API | `parse-cortex` |
-| 3 | Retrieve collected forensic EVTX logs | `parse-cortex-evtx-forensics` |
+| 2 | Check that the key works | `parse-cortex --cortex-check` |
+| 3 | Read the tenant's three sources into one timeline | `parse-cortex` |
 | 4 | Supplement with native EVTX if available | `parse` |
 | 5 | Unify everything into a single timeline | `merge` |
-| 6 | Visualize in Neo4j | `load` |
+| 6 | Look at it in masstin's window or in a graph | `view` / `load-neo4j` |
 
-Data from both Cortex XDR modes integrates into the timeline with the same normalized fields as native EVTX, enabling correlation between a network connection seen by Cortex and a logon recorded in Security.evtx.
+Data from the three Cortex XDR sources integrates into the timeline with the same normalized fields as native EVTX, enabling correlation between a network connection seen by Cortex and a logon recorded in Security.evtx.
 
 ---
 
 ## Conclusion
 
-Cortex XDR provides two complementary forensic data sources for lateral movement. Network connections give you the perspective of which processes are communicating over suspicious ports, while EVTX forensic collection gives you access to full Windows Event Logs without needing to physically access each machine.
+Cortex XDR provides three complementary forensic data sources for lateral movement. Network connections tell you which processes are talking over suspicious ports, the agents' event logs give you the logons of the whole estate without asking for anything, and EVTX forensic collection gives you full Windows Event Logs without physically reaching each machine.
 
-[Masstin](/en/tools/masstin-lateral-movement-rust/) integrates both sources into a single timeline, allowing you to combine them with native EVTX, Winlogbeat data, and Linux logs for a complete picture of lateral movement.
+[Masstin](/en/tools/masstin-lateral-movement-rust/) integrates all three into a single timeline, allowing you to combine them with native EVTX, Winlogbeat data, and Linux logs for a complete picture of lateral movement.

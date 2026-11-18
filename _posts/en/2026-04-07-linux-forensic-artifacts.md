@@ -128,6 +128,27 @@ Relevant audit record types for lateral movement:
 
 Masstin keeps `USER_LOGIN` only (one record per SSH connection; `USER_AUTH` is used as a fallback), drops the audit records of a connection the sshd log already covers — paired by pid — and takes session ends from `USER_END`.
 
+### What a session did on the network: `ses=` and the `connect` records
+
+Windows has the logon ID to know which session did what. Linux has something similar that gets little attention: every login leaves a session identifier in auditd, `ses=`, and the kernel stamps it on every record of every process that hangs from that session.
+
+If the machine has an audit rule on `connect` (common in hardening guides), each outgoing connection is left like this:
+
+```
+type=SYSCALL msg=audit(1712502493.390:10045): arch=c000003e syscall=42 success=no exit=-115 ... auid=1002 ... ses=7 comm="smbclient" exe="/usr/bin/smbclient" key="netconn"
+type=SOCKADDR msg=audit(1712502493.390:10045): saddr=020001BD0A00013C0000000000000000 SADDR={ saddr_fam=inet laddr=10.0.1.60 lport=445 }
+```
+
+That is the origin machine saying "session 7 connected to 10.0.1.60 on 445". Masstin turns it into an `AUDIT_CONNECT` row, written from the origin, and gives it the `logon_id` of the SSH login of that same session. So when you search for paths by session in the window, that hop is proven: not "it left while the session was open" but "that session did it".
+
+A few details:
+
+- Only connections from login sessions count (daemons have no `ses`), and only to remote-access ports: 22, 23, 135, 139, 445, 3389, 5900, 5985 and 5986.
+- `exit=-115` is not a failure. It is a connection in progress on a non-blocking socket, and it counts.
+- Without the rule there is nothing to read. This is it: `-a always,exit -F arch=b64 -S connect -F a2=16 -k netconn`.
+
+This comes with masstin 1.5.0.
+
 ---
 
 ## utmp, wtmp, and btmp
@@ -298,13 +319,13 @@ Masstin handles this natively: it reads `.journal` and `.journal~` files directl
 
 ```bash
 # Directory with extracted logs
-masstin -a parse-linux -d /evidence/var/log/ -o timeline.csv
+masstin -a parse -d /evidence/var/log/ -o timeline.csv
 
 # Compressed forensic package (auto-extracts, supports passwords)
-masstin -a parse-linux -d /evidence/triage_package/ -o timeline.csv
+masstin -a parse -d /evidence/triage_package/ -o timeline.csv
 ```
 
-![Masstin parse-linux CLI output](/assets/images/masstin_cli_linux.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
+![masstin CLI output on Linux logs](/assets/images/masstin_cli_linux.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
 Masstin transparently reports all inferences: hostname identification (from `/etc/hostname`, `dmesg`, or the syslog header), year inference (from the logrotate suffix of rotated files, `dpkg.log`, `wtmp`, or file modification date), the time zone used to convert RFC3164 timestamps to UTC, and password-protected ZIP extraction.
 
@@ -349,7 +370,7 @@ This format is used when systemd journal is exported or rsyslog is configured wi
 
 ### Compressed triage support
 
-Like `parse-windows`, `parse-linux` can process compressed triage packages directly. It recursively decompresses ZIP archives — including **password-protected** ones using common forensic passwords (`cyberdefenders.org`, `infected`, `malware`, `password`). When a password-protected archive is detected and unlocked, masstin notifies the user. `tar` / `tar.gz` / `tgz` archives are walked too (streamed, only the log files are unpacked), nested in any combination (zip → tar.gz, tar.gz → tar.gz), and UAC (Unix-like Artifacts Collector) collections are recognised by their `uac.log` + `[root]/` layout or their `uac-<host>-<os>-<timestamp>` filename and labelled `[TRIAGE: UAC]`, with the hostname taken from the filename or the collected `/etc/hostname`.
+masstin can process compressed Linux triage packages directly. It recursively decompresses ZIP archives — including **password-protected** ones using common forensic passwords (`cyberdefenders.org`, `infected`, `malware`, `password`). When a password-protected archive is detected and unlocked, masstin notifies the user. `tar` / `tar.gz` / `tgz` archives are walked too (streamed, only the log files are unpacked), nested in any combination (zip → tar.gz, tar.gz → tar.gz), and UAC (Unix-like Artifacts Collector) collections are recognised by their `uac.log` + `[root]/` layout or their `uac-<host>-<os>-<timestamp>` filename and labelled `[TRIAGE: UAC]`, with the hostname taken from the filename or the collected `/etc/hostname`.
 
 ---
 

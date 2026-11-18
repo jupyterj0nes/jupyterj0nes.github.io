@@ -6,7 +6,7 @@ category: tools
 lang: en
 ref: tool-masstin-vss-recovery
 tags: [masstin, vss, shadow-copy, forensics, dfir, evtx, tools]
-description: "Masstin's parse-image auto-detects OS per partition (NTFS/ext4), extracts Windows EVTX+UAL+VSS and Linux logs from forensic images, and merges everything into a single timeline."
+description: "Masstin's parse auto-detects OS per partition (NTFS/ext4), extracts Windows EVTX+UAL+VSS and Linux logs from forensic images, and merges everything into a single timeline."
 comments: true
 ---
 
@@ -14,7 +14,7 @@ comments: true
 
 A ransomware incident hits your network. You receive a folder full of forensic images — Windows domain controllers, Linux web servers, file servers — all mixed together. Traditionally, you'd need to identify each OS, mount each image, run separate tools for Windows and Linux, then manually merge the results.
 
-**Masstin's `parse-image` does it all in one command.** It auto-detects the operating system of every partition inside every image and applies the right parser automatically:
+**Masstin's `parse` does it all in one command.** It auto-detects the operating system of every partition inside every image and applies the right parser automatically:
 
 - **NTFS partition detected?** → Extracts EVTX + UAL from the live volume, recovers deleted logs from VSS snapshots, deduplicates
 - **ext4 partition detected?** → Extracts auth.log, secure, messages, audit.log, wtmp, btmp, lastlog, **systemd-journald binary logs** (`/var/log/journal/<machine-id>/*.journal[~]` — essential on SSSD + Active Directory hosts), infers hostname and year
@@ -23,13 +23,13 @@ All results are merged into a **single chronological CSV** — Windows RDP logon
 
 ```bash
 # Single image — OS auto-detected
-masstin -a parse-image -f HRServer_Disk0.e01 -o timeline.csv
+masstin -a parse -f HRServer_Disk0.e01 -o timeline.csv
 
 # Mixed Windows + Linux images — single merged timeline
-masstin -a parse-image -f DC01.e01 -f ubuntu-web.vmdk -o incident.csv
+masstin -a parse -f DC01.e01 -f ubuntu-web.vmdk -o incident.csv
 
 # Point at evidence folder — finds all images, any OS
-masstin -a parse-image -d /evidence/all_machines/ -o full_timeline.csv
+masstin -a parse -d /evidence/all_machines/ -o full_timeline.csv
 ```
 
 For each image, masstin:
@@ -43,7 +43,7 @@ For each image, masstin:
 7. **Parses each source** with its native parser
 8. **Merges and deduplicates** into a single timeline
 
-![Masstin parse-image-windows output](/assets/images/masstin_cli_parse_image.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
+![masstin output on a forensic image](/assets/images/masstin_cli_parse_image.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
 ## Example
 
@@ -84,7 +84,7 @@ This allows the analyst to immediately distinguish between current evidence, rec
 For large-scale incidents, point masstin at any combination of Windows and Linux forensic images:
 
 ```bash
-masstin -a parse-image \
+masstin -a parse \
   -f DC01.e01 \
   -f SRV-FILE.e01 \
   -f linux-web.vmdk \
@@ -97,7 +97,7 @@ Each image is processed independently: partitions detected, OS identified per pa
 Or simply point at an evidence folder:
 
 ```bash
-masstin -a parse-image -d /evidence/ -o timeline.csv
+masstin -a parse -d /evidence/ -o timeline.csv
 ```
 
 Masstin recursively finds all E01, VMDK, and dd/raw images in the folder, auto-detects the OS of each, and produces one unified CSV.

@@ -120,6 +120,7 @@ Masstin classifies every event into one of four categories:
 | `FAILED_LOGIN` | `FAILED_LOGON` | btmp record | |
 | `LASTLOG` | `SUCCESSFUL_LOGON` | Last login per account (lastlog) | |
 | `LOGOUT` | `LOGOFF` | Session end paired with its login by sshd pid (wtmp, pam `session closed`, journald, auditd `USER_END`) | |
+| `AUDIT_CONNECT` | `CONNECT` | Outgoing connection of a login session to a remote-access port, recorded by auditd. Written from the origin (masstin 1.5.0) | Program, address, port and session |
 
 `logon_type` is `SSH` on every Linux row.
 
@@ -134,7 +135,9 @@ Masstin classifies every event into one of four categories:
 
 ## The logon_id Column
 
-The `logon_id` field contains the session identifier extracted from the `TargetLogonId` field in Security.evtx events (4624, 4634, 4647, 4648; `LogonID` on 4778/4779). This enables session correlation: matching a logon event with its corresponding logoff to determine session duration.
+The `logon_id` field identifies a session. On rows written from the destination (4624, 4634, 4647, and 4778/4779 with their `LogonID`) it is the session the event opened or closed on that machine, and it lets you pair a logon with its logoff and see how long it lasted.
+
+On rows written from the **origin** of a connection it is something else: the session, on the origin, that made it. That is the `SubjectLogonId` of a 4648 and the login of the auditd session on an `AUDIT_CONNECT`. With it you can say which session made the next hop (since masstin 1.5.0).
 
 For Terminal Services events, the `SessionId` is used when available. On Linux rows it carries the sshd process id (`sshd[pid]`, journald `_PID`, auditd `pid=`, wtmp `ut_pid`), the same on a login and on its `LOGOFF`. For Cortex and SMB events, this field is empty.
 

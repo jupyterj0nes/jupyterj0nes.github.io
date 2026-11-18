@@ -91,11 +91,15 @@ Se genera cuando un proceso se autentica con credenciales distintas a las de la 
 
 > **Tip forense:** Si el `SubjectUserName` es una cuenta de servicio y el `TargetUserName` es un Domain Admin, tienes un caso claro de escalada de privilegios seguida de movimiento lateral.
 
+> **El 4648 te dice qué sesión lo hizo.** Su `SubjectLogonId` es el logon ID de la sesión, en la máquina de origen, cuyo proceso usó las credenciales. Es el mismo ID del 4624 que abrió esa sesión. Masstin lo guarda en `logon_id`, y por eso puede afirmar que un salto de B a C lo hizo la sesión que alguien abrió en B viniendo de A.
+
 ---
 
 ## Eventos Kerberos
 
 Los eventos Kerberos son fundamentales para reconstruir la autenticación en entornos de Active Directory. Se generan **en el Domain Controller**.
+
+> **Un ticket no es un inicio de sesión en el controlador de dominio.** Un 4768, 4769 o 4770 correcto (y también un 4776) es una autenticación *en* el DC de camino a otro sitio. En la ventana de masstin se tratan como «connect», así que un camino no salta a un DC solo porque alguien le pidió un ticket. En el CSV siguen escritos igual que siempre.
 
 ### Event ID 4768 — Solicitud de TGT (AS-REQ)
 
@@ -224,7 +228,7 @@ Masstin combina todos estos artefactos en una sola timeline precisamente para su
 [Masstin](/es/tools/masstin-lateral-movement-rust/) extrae automáticamente los eventos 4624 (tipos 3 y 10), 4625, 4648 y otros de Security.evtx, y los normaliza en un formato CSV unificado con campos como timestamp, source IP, destination host, username y tipo de evento.
 
 ```bash
-masstin -a parse-windows -d /evidence/logs/ -o timeline.csv
+masstin -a parse -d /evidence/logs/ -o timeline.csv
 ```
 
 El resultado incluye todos los eventos de Security.evtx junto con los de otros logs (Terminal Services, SMB, etc.), ordenados cronológicamente y listos para análisis o ingestión en Neo4j. Esto te permite ver exactamente cuándo empiezan a aparecer los eventos de Security.evtx y cuánto terreno cubren los demás artefactos antes de esa fecha.

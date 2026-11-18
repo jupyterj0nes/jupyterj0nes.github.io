@@ -1,0 +1,26 @@
+{%- comment -%}
+  The lab section of a tool or artifact page. Until a page has its own lab
+  it shows the placeholder below; when it does, the page's front matter carries it:
+
+    lab: |
+      The text of the section, in Markdown.
+
+  `lab: false` leaves the section out of a page.
+{%- endcomment -%}
+{%- assign rf_lang = page.lang | default: "es" -%}
+{%- unless page.lab == false -%}
+<section class="lab-section" id="lab">
+  <p class="lab-kicker">{% if rf_lang == "en" %}Lab{% else %}Laboratorio{% endif %}</p>
+  {%- if page.lab -%}
+  {{ page.lab | markdownify }}
+  {%- elsif rf_lang == "en" -%}
+  <h2>Try it in a lab of your own</h2>
+  <p>Reading about an artifact is one thing; seeing it appear on a machine you just attacked is another. Each article here will get its own lab: a small Active Directory network you deploy and tear down yourself, the activity behind this article played on it, and the evidence it leaves ready to open with whatever tool you like.</p>
+  <p>This section is still empty. The lab for this article is on its way, so come back in a few weeks.</p>
+  {%- else -%}
+  <h2>Pruébalo en tu propio laboratorio</h2>
+  <p>Una cosa es leer sobre un artefacto y otra verlo aparecer en una máquina que acabas de atacar. Cada artículo de aquí tendrá su laboratorio: una pequeña red de Active Directory que montas y desmontas tú mismo, la actividad de la que habla el artículo reproducida en ella y la evidencia que deja, lista para abrirla con la herramienta que prefieras.</p>
+  <p>Esta sección todavía está vacía. El laboratorio de este artículo está en camino, así que vuelve dentro de unas semanas.</p>
+  {%- endif -%}
+</section>
+{%- endunless -%}

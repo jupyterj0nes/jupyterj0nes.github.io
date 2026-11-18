@@ -6,7 +6,7 @@ category: tools
 lang: es
 ref: tool-masstin-vss-recovery
 tags: [masstin, vss, shadow-copy, forensics, dfir, evtx, herramientas]
-description: "El comando parse-image de masstin auto-detecta el SO por partición (NTFS/ext4), extrae EVTX+UAL+VSS de Windows y logs de Linux desde imágenes forenses, y fusiona todo en una única timeline."
+description: "El comando parse de masstin auto-detecta el SO por partición (NTFS/ext4), extrae EVTX+UAL+VSS de Windows y logs de Linux desde imágenes forenses, y fusiona todo en una única timeline."
 comments: true
 ---
 
@@ -14,7 +14,7 @@ comments: true
 
 Un incidente de ransomware golpea tu red. Recibes una carpeta llena de imágenes forenses — controladores de dominio Windows, servidores web Linux, servidores de ficheros — todos mezclados. Tradicionalmente, necesitarías identificar cada SO, montar cada imagen, ejecutar herramientas separadas para Windows y Linux, y luego fusionar los resultados manualmente.
 
-**El comando `parse-image` de masstin lo hace todo en un solo paso.** Auto-detecta el sistema operativo de cada partición dentro de cada imagen y aplica el parser correcto automáticamente:
+**El comando `parse` de masstin lo hace todo en un solo paso.** Auto-detecta el sistema operativo de cada partición dentro de cada imagen y aplica el parser correcto automáticamente:
 
 - **¿Partición NTFS detectada?** → Extrae EVTX + UAL del volumen activo, recupera logs borrados de snapshots VSS, deduplica
 - **¿Partición ext4 detectada?** → Extrae auth.log, secure, messages, audit.log, wtmp, btmp, lastlog, **logs binarios de systemd-journald** (`/var/log/journal/<machine-id>/*.journal[~]` — esenciales en hosts SSSD + Active Directory), infiere hostname y año
@@ -23,13 +23,13 @@ Todos los resultados se fusionan en un **único CSV cronológico** — logons RD
 
 ```bash
 # Una imagen — SO auto-detectado
-masstin -a parse-image -f HRServer_Disk0.e01 -o timeline.csv
+masstin -a parse -f HRServer_Disk0.e01 -o timeline.csv
 
 # Imágenes mixtas Windows + Linux — una sola timeline fusionada
-masstin -a parse-image -f DC01.e01 -f ubuntu-web.vmdk -o incident.csv
+masstin -a parse -f DC01.e01 -f ubuntu-web.vmdk -o incident.csv
 
 # Apunta a carpeta de evidencia — encuentra todas las imágenes, cualquier SO
-masstin -a parse-image -d /evidence/all_machines/ -o full_timeline.csv
+masstin -a parse -d /evidence/all_machines/ -o full_timeline.csv
 ```
 
 Para cada imagen, masstin:
@@ -43,7 +43,7 @@ Para cada imagen, masstin:
 7. **Parsea cada fuente** con su parser nativo
 8. **Fusiona y deduplica** en una única timeline
 
-![Salida de masstin parse-image-windows](/assets/images/masstin_cli_parse_image.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
+![Salida de masstin sobre una imagen forense](/assets/images/masstin_cli_parse_image.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
 ## Ejemplo
 
@@ -84,7 +84,7 @@ Esto permite al analista distinguir inmediatamente entre evidencia actual, evide
 Para incidentes a gran escala, apunta masstin a cualquier combinación de imágenes forenses Windows y Linux:
 
 ```bash
-masstin -a parse-image \
+masstin -a parse \
   -f DC01.e01 \
   -f SRV-FILE.e01 \
   -f linux-web.vmdk \
@@ -97,7 +97,7 @@ Cada imagen se procesa independientemente: particiones detectadas, SO identifica
 O simplemente apunta a una carpeta de evidencia:
 
 ```bash
-masstin -a parse-image -d /evidence/ -o timeline.csv
+masstin -a parse -d /evidence/ -o timeline.csv
 ```
 
 Masstin encuentra recursivamente todas las imágenes E01, VMDK y dd/raw en la carpeta, auto-detecta el SO de cada una, y produce un único CSV unificado.

@@ -37,6 +37,8 @@ masstin -a graph-hunt-csv -f timeline.csv \
 
 No hay base de datos por medio: `graph-hunt-csv` lee el timeline que escribió cualquier acción `parse-*` y lo calcula todo en memoria. El mismo motor corre sobre un grafo cargado con `graph-hunt` (Memgraph) y `graph-hunt-neo4j`, y da las mismas filas; el grafo sólo está ahí si luego quieres explorar. Ni MAGE, ni GDS, ni ningún plugin.
 
+Mientras trabaja, una barra te dice en cuál de sus diez etapas va (leyendo el timeline, aprendiendo qué es normal, pesando cada conexión...), en la consola y, si lo lanzas desde la ventana de masstin, sobre el propio mapa. En un timeline grande se agradece saber que sigue vivo.
+
 El terminal te cuenta qué está midiendo antes de contarte qué ha encontrado:
 
 ```
@@ -107,7 +109,7 @@ Dos días de logs no son una línea base; la ejecución de Szechuan de arriba lo
 `graph-hunt-csv`, `graph-hunt` y `graph-hunt-neo4j` van en [masstin v1.1.0](https://github.com/jupyterj0nes/masstin/releases/latest), un binario para Windows, Linux y macOS.
 
 ```bash
-masstin -a parse-massive -d /evidencias/caso/ -o timeline.csv
+masstin -a parse -d /evidencias/caso/ -o timeline.csv
 masstin -a graph-hunt-csv -f timeline.csv --investigation-from "2026-03-15 00:00:00" \
         --report hunt.md -o hunt.csv
 ```

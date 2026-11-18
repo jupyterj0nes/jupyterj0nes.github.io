@@ -47,7 +47,7 @@ The presence of admin shares (`C$`, `ADMIN$`, `IPC$`) in MountPoints2 is a stron
 
 ## How masstin extracts MountPoints2
 
-During `parse-image`, masstin automatically:
+When `parse` reads a disk image, masstin automatically:
 
 1. **Finds all user profiles** in `Users\*\` on each NTFS partition
 2. **Extracts NTUSER.DAT** from each profile (skips Default, Public, system profiles)
@@ -59,7 +59,7 @@ During `parse-image`, masstin automatically:
 
 ```bash
 # Automatic — MountPoints2 is extracted alongside EVTX, UAL, VSS, and Tasks
-masstin -a parse-image -f server.e01 -o timeline.csv
+masstin -a parse -f server.e01 -o timeline.csv
 ```
 
 Output in the summary:
@@ -126,7 +126,7 @@ MountPoints2 is unique because it provides the **share name** (e.g., `C$`, `ADMI
 | Topic | Link |
 |-------|------|
 | Masstin — main page | [masstin](/en/tools/masstin-lateral-movement-rust/) |
-| Forensic images and VSS recovery | [parse-image](/en/tools/masstin-vss-recovery/) |
+| Forensic images and VSS recovery | [Disk images and VSS](/en/tools/masstin-vss-recovery/) |
 | CSV format and event classification | [CSV format](/en/tools/masstin-csv-format/) |
 | WinRM, WMI and Scheduled Tasks | [WinRM/WMI/Tasks](/en/artifacts/winrm-wmi-schtasks-lateral-movement/) |
 | SMB EVTX events | [SMB Events](/en/artifacts/smb-evtx-events/) |

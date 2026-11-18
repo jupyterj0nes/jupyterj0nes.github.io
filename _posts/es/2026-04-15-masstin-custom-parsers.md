@@ -6,7 +6,7 @@ category: tools
 lang: es
 ref: tool-masstin-custom-parsers
 tags: [masstin, custom-parsers, yaml, vpn, firewall, proxy, dfir, herramientas]
-description: "La nueva acción parse-custom de masstin convierte cualquier log de VPN, firewall o proxy en entradas de la timeline unificada de movimiento lateral — solo hay que escribir un fichero YAML. Recorrido del esquema, la biblioteca de reglas pre-hechas y un parser para Palo Alto GlobalProtect investigado a fondo como primera entrada."
+description: "Los custom parsers de masstin (`parse --rules`) convierten cualquier log de VPN, firewall o proxy en entradas de la timeline unificada de movimiento lateral — solo hay que escribir un fichero YAML. Recorrido del esquema, la biblioteca de reglas pre-hechas y un parser para Palo Alto GlobalProtect investigado a fondo como primera entrada."
 comments: true
 ---
 
@@ -14,7 +14,7 @@ comments: true
 
 Todo caso DFIR acaba tropezando con el mismo punto de fricción. La parte Windows es manejable — EVTX, UAL, prefetch, registro, todo formato bien definido. La parte Linux es un poco más sucia pero aún acotada — auth.log, secure, wtmp, audit. Y luego viene el resto: Palo Alto GlobalProtect, Cisco AnyConnect, Fortinet SSL-VPN, Checkpoint, OpenVPN, Squid, Cloudflare Access, ZScaler, cualquier firewall hardware, cualquier VPN cloud. Cada uno con su formato de log, sus convenciones, sus rarezas, y escribir un parser dedicado por fabricante es una batalla perdida.
 
-La respuesta de masstin es `parse-custom`: una nueva acción que parsea **cualquier log de texto** usando **ficheros YAML de reglas**. Un fichero por formato de fabricante. Una biblioteca de reglas pre-hechas que crece con el tiempo. Dentro de cada fichero, una lista de sub-parsers maneja los distintos tipos de línea que emite el mismo producto. La salida es la misma timeline CSV de 14 columnas que masstin usa en todas partes, así que un chunk EVTX carved de un desktop, un brute-force SSH en Linux y un login VPN de GlobalProtect aparecen lado a lado, listos para visualización en grafo y reconstrucción temporal de la ruta del atacante.
+La respuesta de masstin son los custom parsers: `parse --rules` lee **cualquier log de texto** usando **ficheros YAML de reglas**. Un fichero por formato de fabricante. Una biblioteca de reglas pre-hechas que crece con el tiempo. Dentro de cada fichero, una lista de sub-parsers maneja los distintos tipos de línea que emite el mismo producto. La salida es la misma timeline CSV de 14 columnas que masstin usa en todas partes, así que un chunk EVTX carved de un desktop, un brute-force SSH en Linux y un login VPN de GlobalProtect aparecen lado a lado, listos para visualización en grafo y reconstrucción temporal de la ruta del atacante.
 
 Este post recorre el diseño, el esquema, y la primera regla que se publica con la biblioteca: un parser para Palo Alto GlobalProtect completamente investigado, construido a partir de la documentación oficial de Palo Alto Networks y validado contra líneas de log reales.
 
@@ -229,16 +229,16 @@ El modelo de contribución es el mismo que las reglas Sigma: recolectar líneas 
 
 ```bash
 # Un fichero de regla único
-masstin -a parse-custom --rules rules/vpn/palo-alto-globalprotect.yaml -f vpn.log -o timeline.csv
+masstin -a parse --rules rules/vpn/palo-alto-globalprotect.yaml -f vpn.log -o timeline.csv
 
 # Biblioteca entera — todas las reglas se prueban contra todos los logs
-masstin -a parse-custom --rules rules/ -f vpn.log -f fw.log -o timeline.csv
+masstin -a parse --rules rules/ -f vpn.log -f fw.log -o timeline.csv
 
 # Dry-run: muestra primeros matches + muestras de rechazados, no escribe CSV
-masstin -a parse-custom --rules rules/vpn/palo-alto-globalprotect.yaml -f vpn.log --dry-run
+masstin -a parse --rules rules/vpn/palo-alto-globalprotect.yaml -f vpn.log --dry-run
 
 # Debug: conserva una muestra de líneas rechazadas junto al output
-masstin -a parse-custom --rules rules/ -f vpn.log -o timeline.csv --debug
+masstin -a parse --rules rules/ -f vpn.log -o timeline.csv --debug
 ```
 
 Apunta la salida a cualquier pipeline compatible con masstin (Neo4j, Memgraph, el merge CSV) y tus eventos VPN ahora fluyen por el mismo grafo que tu RDP Windows, tu SSH Linux y tus datos EVTX carved.
@@ -258,7 +258,7 @@ Masstin v0.12.0 incorpora cuatro flags de filtrado opt-in construidas sobre aná
 
 Combinado con `--dry-run` obtienes un reporte de estadísticas pre-vuelo que muestra exactamente cuántos registros eliminaría cada capa del filtro, desglosado por regla, sin escribir el CSV de salida. Eso te permite validar la decisión de filtrado antes de comprometerte a una corrida larga.
 
-Las cuatro flags aplican a todas las parser actions (`parse-windows`, `parse-linux`, `parse-image`, `parse-custom`, `parser-elastic`, `parse-cortex`, `parse-cortex-evtx-forensics`) y a `merge` — así que también puedes re-filtrar un CSV existente sin re-parsear la evidencia original.
+Las cuatro flags aplican a `parse`, a las acciones de Cortex XDR (`parse-cortex`, `parse-cortex-evtx-forensics`) y a `merge` — así que también puedes re-filtrar un CSV existente sin re-parsear la evidencia original.
 
 Medidas reales contra la timeline combinada del DefCon DFIR CTF 2018 (178k eventos de FileServer + HRServer + Desktop):
 
@@ -285,7 +285,7 @@ Documentación completa en la [sección de filtrado de `docs/parsing.md`](https:
 - **Map condicional.** Predicados tipo `when: ${action} == "fail"` para que un único parser pueda manejar variantes de línea de éxito y fallo del mismo evento cuando el formato lo hace más limpio que dos parsers.
 - **Más reglas.** Cisco ASA AnyConnect, Fortinet FortiGate, OpenVPN y Squid son las siguientes prioridades. Checkpoint, ZScaler, Cloudflare Access están en el backlog.
 - **Log type dedicado de PAN-OS 9.1+ `globalprotect`.** Una segunda regla de Palo Alto cubriendo el formato dedicado de 49+ columnas, en cuanto pueda validarla contra muestras reales.
-- **Comando de validación por regla.** `masstin -a parse-custom --validate rule.yaml` para detectar errores de esquema sin necesidad de ejecutar contra un fichero de log.
+- **Comando de validación por regla.** Comprobar un fichero de reglas en busca de errores de esquema sin ejecutarlo contra un log.
 
 Si quieres contribuir una regla o una muestra de los logs de tu fabricante, la guía está en [`rules/README.md`](https://github.com/jupyterj0nes/masstin/blob/main/rules/README.md) dentro del repo de masstin.
 

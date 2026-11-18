@@ -171,7 +171,7 @@ Los eventos SMB no viven aislados. Para una investigación completa, correlació
 [Masstin](/es/tools/masstin-lateral-movement-rust/) extrae los eventos de SMBServer y SMBClient automáticamente y los normaliza en la timeline CSV, incluyendo IP de origen, share accedido, cuenta utilizada y resultado de la conexión. 1009, 551 y 31001 acaban como `FAILED_LOGON` y los eventos de conectividad 30803-30808 como `CONNECT`; los registros escritos por las plantillas nuevas de 551/1009, sin el layout de campos legacy, se parsean en lugar de abortar la ejecución.
 
 ```bash
-masstin -a parse-windows -d /evidence/logs/ -o timeline.csv
+masstin -a parse -d /evidence/logs/ -o timeline.csv
 ```
 
 Combinados con los eventos de Security.evtx y Terminal Services, los eventos SMB completan la visión del movimiento lateral por red, cubriendo los tres vectores principales: RDP, SMB y autenticación.

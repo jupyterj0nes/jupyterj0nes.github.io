@@ -5,7 +5,7 @@ date: 2026-04-21 07:00:00 +0100
 category: tools
 lang: en
 ref: tool-masstin-archived-evtx
-tags: [masstin, evtx, provider, archived, dfir, parse-windows, tools]
+tags: [masstin, evtx, provider, archived, dfir, parse, tools]
 description: "Windows rotates full Security.evtx into Security-YYYY-MM-DD-HH-MM-SS.evtx archives. Renamed EVTX, operator-extracted files, and third-party tooling break masstin's old filename-based dispatcher silently. Here's how masstin now dispatches by Provider.Name from the XML and accepts anything with a known provider — verified end-to-end against the upstream evtx crate's own test fixtures."
 comments: true
 ---
@@ -24,7 +24,7 @@ Both ~80 KB, each containing a single EVTX of exactly the same name inside. Thes
 Point masstin at them:
 
 ```bash
-masstin -a parse-windows -d I:/forensic/act3/archive/ -o timeline.csv
+masstin -a parse -d I:/forensic/act3/archive/ -o timeline.csv
 ```
 
 Output:
@@ -107,12 +107,12 @@ match provider.as_str() {
 }
 ```
 
-The `parse_unknown()` function had actually existed in the codebase for a while, gated behind a `MASSIVE_MODE` atomic so only `parse-massive` used it. The reasoning was caution: keep `parse-windows` strict and predictable, let the aggressive fallback live behind the *"off-the-leash"* flag. In practice that meant `parse-windows` silently dropped archived logs while `parse-massive` picked them up — a distinction no user could reasonably be expected to guess without reading the source.
+The `parse_unknown()` function had actually existed in the codebase for a while, gated behind a `MASSIVE_MODE` atomic so only the mode that walks a whole evidence folder used it. The reasoning was caution: keep the plain EVTX path strict and predictable, let the aggressive fallback live behind the *"off-the-leash"* flag. In practice that meant a folder of EVTX silently lost its archived logs, while the same files inside a full evidence folder were picked up — a distinction no user could reasonably be expected to guess without reading the source.
 
 Re-running the same case now, unchanged command:
 
 ```bash
-masstin -a parse-windows -d I:/forensic/act3/archive/ -o timeline.csv
+masstin -a parse -d I:/forensic/act3/archive/ -o timeline.csv
 ```
 
 ```
@@ -148,7 +148,7 @@ A quick test on the public release binary `masstin-v0.14.0-macos` (pre-fix) and 
 
 The release binary silently discards every one of those fixtures. The new binary parses nine of them (the ones with providers masstin knows — the remaining eighteen are genuine non-LM logs: CAPI2, HelloForBusiness, Shell-Core, etc. where the dispatcher correctly returns an empty vec).
 
-Note the dirty/broken fixtures — `2-system-Security-dirty.evtx` (intentional chunk corruption), `security_bad_string_cache.evtx` (intentional broken string cache), `sample-with-irregular-bool-values.evtx` (intentional bad bool encoding): the Provider.Name dispatcher extracts events from them cleanly, because the same hardening that protects carve-image from malformed chunks protects this path too.
+Note the dirty/broken fixtures — `2-system-Security-dirty.evtx` (intentional chunk corruption), `security_bad_string_cache.evtx` (intentional broken string cache), `sample-with-irregular-bool-values.evtx` (intentional bad bool encoding): the Provider.Name dispatcher extracts events from them cleanly, because the same hardening that protects carving from malformed chunks protects this path too.
 
 ---
 
@@ -187,10 +187,10 @@ If you specifically want the old strict behavior — for speed on a huge tree wh
 
 ```bash
 # Scope to the canonical folder only, equivalent to the old strict behavior
-masstin -a parse-windows -d /evidence/C/Windows/System32/winevt/Logs -o timeline.csv
+masstin -a parse -d /evidence/C/Windows/System32/winevt/Logs -o timeline.csv
 
 # Include archived logs as well
-masstin -a parse-windows -d /evidence/C/Windows/System32/winevt/Logs \
+masstin -a parse -d /evidence/C/Windows/System32/winevt/Logs \
                           -d /evidence/C/Windows/System32/winevt/Logs/Archive \
                           -o timeline.csv
 ```
@@ -201,10 +201,7 @@ masstin -a parse-windows -d /evidence/C/Windows/System32/winevt/Logs \
 
 1. If you ever pointed masstin at a rotated-log archive, a KAPE extract per hostname, or a Velociraptor offline collector dump and saw `Events collected: 0` — that was this bug, not an empty timeline.
 2. The fix is in `main` (commit [`9419c95`](https://github.com/jupyterj0nes/masstin/commit/9419c95)) and will be in the next release. The commit is a one-liner: remove the `MASSIVE_MODE` gate, call `parse_unknown` unconditionally.
-3. The three actions now share the same EVTX dispatch and differ only in **what they feed into it**:
-   - `parse-windows` → files and directories (+ recursive zips).
-   - `parse-image` → forensic disk images, extracting from NTFS `winevt/Logs` + VSS.
-   - `parse-massive` → everything above, plus triage detection, plus loose-artifact promotion.
+3. Every kind of evidence goes through the same EVTX dispatch: `masstin -a parse` reads files, folders with recursive zips, forensic disk images (NTFS `winevt/Logs` + VSS) and triage packages in one pass.
 4. The canonical test for any EVTX parser's robustness is a run against `github.com/omerbenamram/evtx/samples/`. Worth keeping in your pocket.
 
 If you're investigating a case right now and masstin seemed to see nothing, re-run against `main` — the bytes on disk are the same, the timeline probably isn't.
@@ -216,7 +213,7 @@ If you're investigating a case right now and masstin seemed to see nothing, re-r
 | Topic | Link |
 |-------|------|
 | Masstin — main page | [masstin](/en/tools/masstin-lateral-movement-rust/) |
-| EVTX carving from unallocated | [carve-image](/en/tools/evtx-carving-unallocated/) |
+| EVTX carving from unallocated | [EVTX carving](/en/tools/evtx-carving-unallocated/) |
 | CSV format and event classification | [CSV format](/en/tools/masstin-csv-format/) |
 | Security.evtx artifacts | [Security.evtx](/en/artifacts/security-evtx-lateral-movement/) |
 | Triage detection | [triage detection](/en/tools/masstin-triage-detection/) |

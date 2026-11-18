@@ -91,11 +91,15 @@ Generated when a process authenticates with credentials different from those of 
 
 > **Forensic tip:** If the `SubjectUserName` is a service account and the `TargetUserName` is a Domain Admin, you have a clear case of privilege escalation followed by lateral movement.
 
+> **The 4648 tells you which session did it.** Its `SubjectLogonId` is the logon ID of the session, on the origin machine, whose process used the credentials. It is the same ID as the 4624 that opened that session. Masstin keeps it in `logon_id`, which is why it can state that a hop from B to C was made by the session someone opened on B coming from A.
+
 ---
 
 ## Kerberos Events
 
 Kerberos events are fundamental for reconstructing authentication in Active Directory environments. They are generated **on the Domain Controller**.
+
+> **A ticket is not a logon on the domain controller.** A successful 4768, 4769 or 4770 (and a 4776 too) is an authentication *at* the DC on the way somewhere else. Masstin's window treats them as "connect", so a path does not jump to a DC just because someone asked it for a ticket. In the CSV they are written as they always were.
 
 ### Event ID 4768 — TGT Request (AS-REQ)
 
@@ -224,7 +228,7 @@ Masstin combines all these artifacts into a single timeline precisely to overcom
 [Masstin](/en/tools/masstin-lateral-movement-rust/) automatically extracts events 4624 (types 3 and 10), 4625, 4648, and others from Security.evtx, normalizing them into a unified CSV format with fields like timestamp, source IP, destination host, username, and event type.
 
 ```bash
-masstin -a parse-windows -d /evidence/logs/ -o timeline.csv
+masstin -a parse -d /evidence/logs/ -o timeline.csv
 ```
 
 The output includes all Security.evtx events alongside those from other logs (Terminal Services, SMB, etc.), sorted chronologically and ready for analysis or Neo4j ingestion. This lets you see exactly when Security.evtx events start and how much ground the other artifacts cover before that date.

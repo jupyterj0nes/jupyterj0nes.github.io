@@ -6,7 +6,7 @@ category: tools
 lang: en
 ref: tool-masstin-evtx-carving
 tags: [masstin, carving, evtx, forensics, dfir, unallocated, recovery, tools]
-description: "Masstin's carve-image action scans forensic disk images for EVTX chunks in unallocated space, recovering lateral movement events after attackers delete logs. A deep dive into the three tiers of EVTX carving and how masstin hardens itself against upstream parser bugs."
+description: "Masstin's --carve option scans forensic disk images for EVTX chunks in unallocated space, recovering lateral movement events after attackers delete logs. A deep dive into the three tiers of EVTX carving and how masstin hardens itself against upstream parser bugs."
 comments: true
 ---
 
@@ -16,7 +16,7 @@ The attacker was thorough. They cleared every event log. They deleted the Volume
 
 Or is there?
 
-When Windows deletes a file, the data doesn't disappear from disk — the space is simply marked as "available" in the filesystem. The actual bytes — including complete EVTX chunks — remain on disk until they're overwritten by new data. **Masstin's `carve-image` scans the raw disk for these remnants and recovers them, feeds them through the normal parsing pipeline, and hands you a timeline indistinguishable from one built from live logs.**
+When Windows deletes a file, the data doesn't disappear from disk — the space is simply marked as "available" in the filesystem. The actual bytes — including complete EVTX chunks — remain on disk until they're overwritten by new data. **Masstin's `--carve` scans the raw disk for these remnants and recovers them, feeds them through the normal parsing pipeline, and hands you a timeline indistinguishable from one built from live logs.**
 
 This article is a deep dive into how that works: how EVTX files are laid out, the three theoretical tiers of EVTX carving, what masstin implements today, what we're leaving as future work, and the surprisingly painful real-world hurdles we hit along the way — including three new bugs we found and reported upstream in the `evtx` crate.
 
@@ -212,27 +212,29 @@ Verified end-to-end on the `ws01-wipe-novss.raw` case above: **one** synthetic E
 
 ## Usage
 
-```bash
-# Carve a single forensic image
-masstin -a carve-image -f server.e01 -o carved-timeline.csv
+Carving is an option of `parse`: add `--carve` and the carved events land in the same timeline as the live ones. A carved event the live logs already hold is dropped, so what you get on top is only what was recovered, and the console says how many.
 
-# Carve multiple images
-masstin -a carve-image -f DC01.e01 -f SRV-FILE.vmdk -o carved.csv
+```bash
+# The whole case folder, live logs and carving in one timeline
+masstin -a parse -d /evidence/case/ --carve -o timeline.csv
+
+# Specific images
+masstin -a parse -f DC01.e01 -f SRV-FILE.vmdk --carve -o timeline.csv
 
 # Scan only unallocated space (faster, planned)
-masstin -a carve-image -f server.e01 -o carved.csv --carve-unalloc
+masstin -a parse -f server.e01 --carve --carve-unalloc -o timeline.csv
 
 # Skip known bad offsets (for pathological E01s)
-masstin -a carve-image -f broken.e01 --skip-offsets 0x6478b6000 -o carved.csv
+masstin -a parse -f broken.e01 --carve --skip-offsets 0x6478b6000 -o timeline.csv
 
 # Keep rejected synthetic files for post-mortem (useful for bug reports)
-masstin -a carve-image -f image.e01 -o carved.csv --debug
+masstin -a parse -f image.e01 --carve --debug -o timeline.csv
 ```
 
-The output is the same 14-column CSV as `parse-image`, with `log_filename` showing the carved origin:
+The output is the same 14-column CSV as `parse`, with `log_filename` showing the carved origin:
 
 ```
-HRServer_Disk0.e01_carved_Microsoft-Windows-Security-Auditing.evtx
+HRServer_Disk0.e01:carved:Security.evtx
 ```
 
 ---
@@ -289,7 +291,7 @@ The validation phase adds a few seconds per synthetic file, dominated by the 15-
 
 | Tool | Language | Tier 1 | Tier 2 | Tier 3 | Lateral movement parsing |
 |------|----------|--------|--------|--------|--------------------------|
-| **masstin `carve-image`** | Rust | Yes | Detection | Planned | **Yes — full pipeline** |
+| **masstin `parse --carve`** | Rust | Yes | Detection | Planned | **Yes — full pipeline** |
 | EVTXtract (Ballenthin) | Python | Yes | Yes | Yes | No — outputs raw XML |
 | bulk_extractor-rec | C++ | Yes | Yes | No | No — outputs raw files |
 | EvtxCarv | Python | Yes | Yes | Fragment reassembly | No — outputs raw files |
@@ -298,15 +300,15 @@ Masstin is the only tool that carves EVTX chunks **and** immediately parses them
 
 ---
 
-## When to use `carve-image` vs `parse-image`
+## When to carve
 
 | Scenario | Use |
 |----------|-----|
-| Normal forensic analysis | `parse-image` — extracts from NTFS + VSS |
-| Logs deleted, VSS intact | `parse-image` — VSS recovery handles it |
-| Logs deleted, VSS deleted, UAL intact | `parse-image` — UAL provides 3-year history |
-| **Everything deleted** | **`carve-image` — recovers from unallocated space** |
-| Maximum recovery | Both: `parse-image` first, then `carve-image` on the same image |
+| Normal forensic analysis | `parse` — extracts from NTFS + VSS |
+| Logs deleted, VSS intact | `parse` — VSS recovery handles it |
+| Logs deleted, VSS deleted, UAL intact | `parse` — UAL provides 3-year history |
+| **Everything deleted** | **`parse --carve` — recovers from unallocated space** |
+| Maximum recovery | `parse --carve`: both in one run, and an event found both live and carved shows up once |
 
 ---
 
@@ -315,7 +317,7 @@ Masstin is the only tool that carves EVTX chunks **and** immediately parses them
 | Topic | Link |
 |-------|------|
 | Masstin — main page | [masstin](/en/tools/masstin-lateral-movement-rust/) |
-| Forensic images and VSS recovery | [parse-image](/en/tools/masstin-vss-recovery/) |
+| Forensic images and VSS recovery | [Disk images and VSS](/en/tools/masstin-vss-recovery/) |
 | MountPoints2 registry | [MountPoints2](/en/artifacts/mountpoints2-lateral-movement/) |
 | CSV format and event classification | [CSV format](/en/tools/masstin-csv-format/) |
 | Security.evtx artifacts | [Security.evtx](/en/artifacts/security-evtx-lateral-movement/) |

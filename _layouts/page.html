@@ -11,4 +11,5 @@ layout: default
   <div class="page-content">
     {{ content }}
   </div>
+  {% if page.ref == "tools" or page.ref == "artifacts" %}{% include lab-section.html %}{% endif %}
 </div>

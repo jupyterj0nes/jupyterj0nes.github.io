@@ -341,7 +341,7 @@ for f in *.raw.zst; do
 done
 
 # Correr masstin en todo el directorio
-masstin -a parse-massive -d . -o masstin-output.csv --overwrite
+masstin -a parse -d . -o masstin-output.csv --overwrite
 ```
 
 Eso produce un CSV unificado con todos los eventos de movimiento lateral que masstin puede extraer a través de las 7 imágenes: logons, sesiones SMB, trazas WinRM/WMI/PsExec, tickets Kerberos, writes a registry MountPoints2, triggers de scheduled task remotos, y el resto del toolkit. En nuestro caso: **256,237 eventos** de autenticación y movimiento lateral a través de 30+ cuentas de usuario en los 3 dominios.

@@ -6,7 +6,7 @@ category: tools
 lang: en
 ref: tool-masstin-custom-parsers
 tags: [masstin, custom-parsers, yaml, vpn, firewall, proxy, dfir, tools]
-description: "Masstin's new parse-custom action turns any VPN, firewall or proxy log into entries on the unified lateral movement timeline — just write a YAML rule file. Walkthrough of the schema, the library of pre-built rules, and a fully researched Palo Alto GlobalProtect parser as the first entry."
+description: "Masstin's custom parsers (`parse --rules`) turn any VPN, firewall or proxy log into entries on the unified lateral movement timeline — just write a YAML rule file. Walkthrough of the schema, the library of pre-built rules, and a fully researched Palo Alto GlobalProtect parser as the first entry."
 comments: true
 ---
 
@@ -14,7 +14,7 @@ comments: true
 
 Every DFIR case reaches the same friction point. The Windows side is tractable — EVTX, UAL, prefetch, registry, all well-defined formats. The Linux side is a bit messier but still bounded — auth.log, secure, wtmp, audit. And then comes the rest: Palo Alto GlobalProtect, Cisco AnyConnect, Fortinet SSL-VPN, Checkpoint, OpenVPN, Squid, Cloudflare Access, ZScaler, every hardware firewall, every cloud VPN. Each one has its own log format, its own conventions, its own quirks, and writing a dedicated parser per vendor is a losing battle.
 
-Masstin's answer is `parse-custom`: a new action that parses **any text log** using **YAML rule files**. One file per vendor format. A library of pre-built rules that grows over time. Inside each file, a list of sub-parsers handles the different line types the same product emits. The output is the same 14-column CSV timeline masstin uses everywhere else, so a carved EVTX chunk from a desktop, a Linux SSH brute-force, and a GlobalProtect VPN login appear side by side, ready for graph visualisation and temporal path reconstruction.
+Masstin's answer is custom parsers: `parse --rules` reads **any text log** using **YAML rule files**. One file per vendor format. A library of pre-built rules that grows over time. Inside each file, a list of sub-parsers handles the different line types the same product emits. The output is the same 14-column CSV timeline masstin uses everywhere else, so a carved EVTX chunk from a desktop, a Linux SSH brute-force, and a GlobalProtect VPN login appear side by side, ready for graph visualisation and temporal path reconstruction.
 
 This post walks through the design, the schema, and the first rule that ships with the library: a fully researched Palo Alto GlobalProtect parser built from the official Palo Alto Networks documentation and validated against real sample log lines.
 
@@ -228,16 +228,16 @@ The contribution model is the same as Sigma rules: collect sample lines, write t
 
 ```bash
 # Single rule file
-masstin -a parse-custom --rules rules/vpn/palo-alto-globalprotect.yaml -f vpn.log -o timeline.csv
+masstin -a parse --rules rules/vpn/palo-alto-globalprotect.yaml -f vpn.log -o timeline.csv
 
 # Whole library — all rules tried against all log files
-masstin -a parse-custom --rules rules/ -f vpn.log -f fw.log -o timeline.csv
+masstin -a parse --rules rules/ -f vpn.log -f fw.log -o timeline.csv
 
 # Dry-run: show first matches + rejected samples, no CSV
-masstin -a parse-custom --rules rules/vpn/palo-alto-globalprotect.yaml -f vpn.log --dry-run
+masstin -a parse --rules rules/vpn/palo-alto-globalprotect.yaml -f vpn.log --dry-run
 
 # Debug: preserve a rejected-lines sample alongside the output
-masstin -a parse-custom --rules rules/ -f vpn.log -o timeline.csv --debug
+masstin -a parse --rules rules/ -f vpn.log -o timeline.csv --debug
 ```
 
 Point it at any masstin-compatible output (Neo4j, Memgraph, the CSV merge pipeline) and your VPN events now flow through the same graph as your Windows RDP, Linux SSH and carved EVTX data.
@@ -257,7 +257,7 @@ Masstin v0.12.0 ships with four opt-in filtering flags built on top of real-case
 
 Combined with `--dry-run`, you get a pre-flight stats report showing exactly how many records each filter layer would remove, broken down by rule, without writing the output CSV. That lets you validate the filter choice before committing to a long run.
 
-All four flags apply to every parser action (`parse-windows`, `parse-linux`, `parse-image`, `parse-custom`, `parser-elastic`, `parse-cortex`, `parse-cortex-evtx-forensics`) and to `merge` — so you can also re-filter an existing CSV without re-parsing the original evidence.
+All four flags apply to `parse`, to the Cortex XDR actions (`parse-cortex`, `parse-cortex-evtx-forensics`) and to `merge` — so you can also re-filter an existing CSV without re-parsing the original evidence.
 
 Real measurements against the DefCon DFIR CTF 2018 combined timeline (178k events from FileServer + HRServer + Desktop):
 
@@ -284,7 +284,7 @@ Full documentation in the [filtering section of `docs/parsing.md`](https://githu
 - **Conditional map.** `when: ${action} == "fail"` style predicates so a single parser can handle both success and failure line variants of the same event when the format makes that cleaner than two parsers.
 - **More rules.** Cisco ASA AnyConnect, Fortinet FortiGate, OpenVPN and Squid are the next priorities. Checkpoint, ZScaler, Cloudflare Access are in the backlog.
 - **PAN-OS 9.1+ dedicated `globalprotect` log type.** A second Palo Alto rule covering the 49+ column dedicated format, once I can validate it against real samples.
-- **Per-rule validation command.** `masstin -a parse-custom --validate rule.yaml` to catch schema errors without running against a log file.
+- **Per-rule validation command.** Checking a rule file for schema errors without running it against a log.
 
 If you'd like to contribute a rule or a sample of your vendor's logs, see the guide at [`rules/README.md`](https://github.com/jupyterj0nes/masstin/blob/main/rules/README.md) in the masstin repo.
 

@@ -892,3 +892,33 @@ a:hover { color: #f2c27e; }
   }
   .page-content th, .post-content th { white-space: nowrap; }
 }
+
+/* The lab section of tool and artifact pages */
+.lab-section {
+  margin: 2.6rem 0 1.4rem;
+  padding: 1.3rem 1.5rem 1.1rem;
+  border: 1px dashed var(--line);
+  border-left: 3px solid var(--green);
+  border-radius: 8px;
+  background: rgba(88, 201, 143, 0.04);
+}
+.lab-section .lab-kicker {
+  margin: 0 0 0.3rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+.lab-section h2 {
+  margin: 0 0 0.7rem;
+  font-size: 1.3rem;
+  color: var(--ink);
+}
+.lab-section p {
+  color: var(--body);
+  margin: 0 0 0.7rem;
+}
+.lab-section p:last-child {
+  color: var(--muted);
+  margin-bottom: 0;
+}

@@ -88,10 +88,10 @@ When masstin scans a directory tree (with `-d`), it automatically looks for UAL 
 
 ```bash
 # Point at an evidence root — masstin finds EVTX + UAL automatically
-masstin -a parse-windows -d /evidence/C_drive/ -o timeline.csv
+masstin -a parse -d /evidence/C_drive/ -o timeline.csv
 
 # Point directly at the Sum folder
-masstin -a parse-windows -d /evidence/Windows/System32/LogFiles/Sum/ -o timeline.csv
+masstin -a parse -d /evidence/Windows/System32/LogFiles/Sum/ -o timeline.csv
 ```
 
 ### Direct file input
@@ -99,17 +99,17 @@ masstin -a parse-windows -d /evidence/Windows/System32/LogFiles/Sum/ -o timeline
 You can also pass individual `.mdb` files with `-f`:
 
 ```bash
-masstin -a parse-windows -f Current.mdb -f SystemIdentity.mdb -o timeline.csv
+masstin -a parse -f Current.mdb -f SystemIdentity.mdb -o timeline.csv
 ```
 
 > **Tip:** Always include `SystemIdentity.mdb` when using `-f` — it contains role name mappings and the server hostname.
 
 ### From forensic images
 
-When using `parse-image-windows`, UAL databases are extracted from the NTFS filesystem automatically alongside EVTX files:
+When `parse` reads a disk image, UAL databases are extracted from the NTFS filesystem automatically alongside EVTX files:
 
 ```bash
-masstin -a parse-image-windows -f DC01.e01 -o timeline.csv
+masstin -a parse -f DC01.e01 -o timeline.csv
 ```
 
 This extracts EVTX + UAL from the live volume and all VSS snapshots.
@@ -117,7 +117,7 @@ This extracts EVTX + UAL from the live volume and all VSS snapshots.
 ### From mounted volumes
 
 ```bash
-masstin -a parse-image-windows -d D: -o timeline.csv
+masstin -a parse -d D: -o timeline.csv
 ```
 
 ---

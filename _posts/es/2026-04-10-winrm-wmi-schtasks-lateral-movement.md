@@ -94,10 +94,10 @@ Para tareas creadas localmente, el campo Author no tiene prefijo de máquina o u
 
 ## Cómo masstin maneja estos artefactos
 
-Los tres tipos de artefactos se extraen automáticamente durante `parse-image`:
+Los tres tipos de artefactos se extraen automáticamente cuando `parse` lee una imagen de disco:
 
 ```bash
-masstin -a parse-image -d /evidence/ -o timeline.csv
+masstin -a parse -d /evidence/ -o timeline.csv
 ```
 
 Para cada imagen forense:
