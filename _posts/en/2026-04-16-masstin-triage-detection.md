@@ -195,7 +195,7 @@ But there were only **2 archives** — the `100` was the number of EVTX **inside
         => 102 EVTX artifacts found total
 ```
 
-The "2 of 2" is also useful — it tells you that all 2 scanned archives contributed at least one EVTX. If one of the archives was a generic ZIP with no EVTX inside (e.g. the case6.zip in the WeAreVicon test set, which contains a forensic image rather than a triage), the message becomes:
+The "2 of 2" is also useful — it tells you that all 2 scanned archives contributed at least one EVTX. If one of the archives was a generic ZIP with no EVTX inside (e.g. a zip that contains a forensic image rather than a triage), the message becomes:
 
 ```
 [1/3] Searching for artifacts...
@@ -224,13 +224,13 @@ You always know whether masstin opened your archives or not.
 Windows generates 8.3 short names for any directory whose long name is older than the system, and PowerShell's `tempdir` for the current user often shows up as `C:\Users\ANALYS~1\AppData\Local\Temp\` instead of the long form. The `Output:` line in masstin's summary used to print the raw 8.3 short path:
 
 ```
-Output: C:/Users/ANALYS~1/AppData/Local/Temp/test-vicon.csv
+Output: C:/Users/ANALYS~1/AppData/Local/Temp/timeline.csv
 ```
 
 Fixed to canonicalize the path via `std::fs::canonicalize` and strip Windows' `\\?\` verbatim prefix:
 
 ```
-Output: C:/Users/analyst/AppData/Local/Temp/test-vicon.csv
+Output: C:/Users/analyst/AppData/Local/Temp/timeline.csv
 ```
 
 ### Cleaner Skipped wording

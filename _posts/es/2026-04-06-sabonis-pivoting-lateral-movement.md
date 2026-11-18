@@ -82,6 +82,13 @@ python sabonis.py parse evtx --directory --source_artifact /evidence/xml/ --csv_
   --timezone "Europe/Madrid"
 ```
 
+**Probado en noviembre de 2026** sobre los logs de un servidor de nuestro laboratorio, en Linux. `pivotfoot.sh` convirtió siete logs a XML y `parse evtx --directory` escribió 2 323 filas (1 268 inicios de sesión 4624, 758 cierres 4634, 262 eventos 4648 y el resto de RDP). Con `--ignore_local` quedaron 469. Dos cosas a tener en cuenta:
+
+- Sabonis usa una función de pandas que desapareció en la versión 2. Instálalo con `pandas` 1.5 (`pip install "pandas<2" "numpy<2"`), o falla al procesar el primer log.
+- Con `--timezone` la ejecución terminó con un error al interpretar las fechas. Sin esa opción, las horas salen en UTC.
+
+La carga en Neo4j (`load2neo`) no la hemos vuelto a probar.
+
 ### 3. Carga en Neo4j
 
 ```bash

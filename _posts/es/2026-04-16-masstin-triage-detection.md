@@ -195,7 +195,7 @@ Pero solo había **2 archivos** — el `100` era el número de EVTX **dentro** d
         => 102 EVTX artifacts found total
 ```
 
-El "2 of 2" también es útil — te dice que los 2 archivos escaneados contribuyeron al menos un EVTX cada uno. Si uno de los archivos era un ZIP genérico sin EVTX (por ejemplo el case6.zip del test set WeAreVicon, que contiene una imagen forense en lugar de un triage), el mensaje pasa a ser:
+El "2 of 2" también es útil — te dice que los 2 archivos escaneados contribuyeron al menos un EVTX cada uno. Si uno de los archivos era un ZIP genérico sin EVTX (por ejemplo, un zip que contiene una imagen forense en lugar de un triage), el mensaje pasa a ser:
 
 ```
 [1/3] Searching for artifacts...
@@ -224,13 +224,13 @@ Siempre sabes si masstin abrió tus archivos o no.
 Windows genera nombres cortos 8.3 para cualquier directorio cuyo nombre largo sea más antiguo que el sistema, y el `tempdir` de PowerShell para el usuario actual a menudo aparece como `C:\Users\ANALYS~1\AppData\Local\Temp\` en lugar de la forma larga. La línea `Output:` del summary de masstin imprimía la ruta corta 8.3 cruda:
 
 ```
-Output: C:/Users/ANALYS~1/AppData/Local/Temp/test-vicon.csv
+Output: C:/Users/ANALYS~1/AppData/Local/Temp/timeline.csv
 ```
 
 Fixeado para canonicalizar la ruta vía `std::fs::canonicalize` y quitar el prefijo verbatim `\\?\` de Windows:
 
 ```
-Output: C:/Users/analyst/AppData/Local/Temp/test-vicon.csv
+Output: C:/Users/analyst/AppData/Local/Temp/timeline.csv
 ```
 
 ### Wording de Skipped más limpio
