@@ -66,6 +66,17 @@ layout: default
     <div class="post-hero post-hero-text" aria-hidden="true"><span>{{ hero_text }}</span></div>
     {%- endif %}
     <header class="post-header">
+      {%- assign cat = page.category -%}
+      {%- if cat %}
+      <nav class="crumbs" aria-label="breadcrumb">
+        <a href="{{ '/' | append: lang | append: '/' | append: cat | append: '/' | relative_url }}">{{ t.nav[cat] | default: cat }}</a>
+        {%- if sec contains "masstin" %}
+        <span>›</span><a href="{{ '/' | append: lang | append: '/tools/masstin/' | relative_url }}">masstin</a>
+        {%- elsif sec == "caarea" or sec == "faramir" or sec == "allymacb" or sec == "etcdump" %}
+        <span>›</span><a href="{{ '/' | append: lang | append: '/tools/#' | append: sec | relative_url }}">{{ sec }}</a>
+        {%- endif %}
+      </nav>
+      {%- endif %}
       <div class="post-meta">
         <time datetime="{{ page.date | date_to_xmlschema }}">
           {{ t.post.published }}: {{ page.date | date: "%Y-%m-%d %H:%M" }}

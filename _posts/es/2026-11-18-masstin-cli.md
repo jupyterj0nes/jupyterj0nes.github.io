@@ -81,7 +81,7 @@ Valen para `merge`, las acciones de Cortex, los cargadores de grafos y el visor.
 
 ## Cortex XDR
 
-Explicado en [el artículo de Cortex](/es/tools/cortex-xdr-artifacts/).
+Explicado en [el artículo de Cortex](/es/artifacts/cortex-xdr-artifacts/).
 
 | Acción | Para qué |
 |---|---|

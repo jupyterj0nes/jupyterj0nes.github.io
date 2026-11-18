@@ -12,7 +12,7 @@ tags: [masstin, visor, cortex-xdr, xql, dfir]
 description: "El asistente del visor de masstin para leer el movimiento lateral de un tenant de Cortex XDR por su API: comprobar la clave sin gastar unidades, elegir qué leer y ver el progreso."
 comments: true
 ---
-Hay casos en los que no existe evidencia en disco que recoger. El cliente tiene Cortex XDR desplegado, los datos están en el tenant y lo que necesitas es sacar de ahí el movimiento lateral. masstin lo hace por la API de XQL, y lo cuento con detalle en [el artículo de Cortex](/es/tools/cortex-xdr-artifacts/).
+Hay casos en los que no existe evidencia en disco que recoger. El cliente tiene Cortex XDR desplegado, los datos están en el tenant y lo que necesitas es sacar de ahí el movimiento lateral. masstin lo hace por la API de XQL, y lo cuento con detalle en [el artículo de Cortex](/es/artifacts/cortex-xdr-artifacts/).
 
 Aquí va la parte del [visor](/es/tools/masstin-viewer/): un asistente de cinco pasos para hacerlo sin escribir el comando. Se abre desde **Evidence › Cortex XDR API…** o desde el primer paso del [asistente de ingesta](/es/tools/masstin-viewer-ingest/).
 

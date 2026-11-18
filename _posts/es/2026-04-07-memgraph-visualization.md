@@ -146,7 +146,7 @@ masstin -a load-memgraph -f timeline.csv --database localhost:7687
 
 Por defecto, Memgraph no tiene autenticación habilitada. Si has configurado credenciales en tu instancia, usa los parámetros correspondientes. Pero para un despliegue rápido de análisis, la configuración por defecto es todo lo que necesitas.
 
-Masstin preserva los valores originales de la evidencia. Los nombres de nodos y propiedades se almacenan sin transformación. Solo los tipos de relación (cuentas de usuario) se normalizan a identificadores Cypher válidos (mayúsculas, guiones bajos, eliminar `@dominio`, sustituir cualquier carácter no alfanumérico — incluyendo el `$` final de las cuentas de máquina). Consulta el [artículo de Neo4j](/es/tools/2026-04-07-neo4j-cypher-visualization/) para más detalles.
+Masstin preserva los valores originales de la evidencia. Los nombres de nodos y propiedades se almacenan sin transformación. Solo los tipos de relación (cuentas de usuario) se normalizan a identificadores Cypher válidos (mayúsculas, guiones bajos, eliminar `@dominio`, sustituir cualquier carácter no alfanumérico — incluyendo el `$` final de las cuentas de máquina). Consulta el [artículo de Neo4j](/es/tools/neo4j-cypher-visualization/) para más detalles.
 
 ### Dos modos de carga: agrupado vs sin agrupar
 
@@ -272,7 +272,7 @@ LIMIT 5
 
 ![Reconstrucción de camino temporal en Memgraph Lab](/assets/images/memgraph_temporal_path.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
-Para el catálogo completo de queries (filtrado por tipo de logon, cuentas de servicio, usuarios específicos, nodos más conectados), consulta el [artículo de Neo4j y Cypher](/es/tools/2026-04-07-neo4j-cypher-visualization/). Todas funcionan en Memgraph sustituyendo `datetime()` por `localDateTime()`.
+Para el catálogo completo de queries (filtrado por tipo de logon, cuentas de servicio, usuarios específicos, nodos más conectados), consulta el [artículo de Neo4j y Cypher](/es/tools/neo4j-cypher-visualization/). Todas funcionan en Memgraph sustituyendo `datetime()` por `localDateTime()`.
 
 ---
 
@@ -355,5 +355,5 @@ Si tienes el módulo `merge` de MAGE instalado, `CALL merge.nodes([new, old]) YI
 ## Referencia
 
 - [masstin — Movimiento lateral en Rust](/es/tools/masstin-lateral-movement-rust/)
-- [Neo4j y Cypher: Visualización con masstin](/es/tools/2026-04-07-neo4j-cypher-visualization/)
+- [Neo4j y Cypher: Visualización con masstin](/es/tools/neo4j-cypher-visualization/)
 - [Memgraph Documentation](https://memgraph.com/docs)

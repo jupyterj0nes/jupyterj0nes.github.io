@@ -132,8 +132,8 @@
     nav.appendChild(ul);
     document.body.appendChild(nav);
     function mark() {
-      var y = window.scrollY + 140, cur = null;
-      for (var i = 0; i < links.length; i++) if (links[i][0].offsetTop <= y) cur = links[i][1];
+      var cur = null;
+      for (var i = 0; i < links.length; i++) if (links[i][0].getBoundingClientRect().top <= 160) cur = links[i][1];
       for (var j = 0; j < links.length; j++) links[j][1].classList.toggle('on', links[j][1] === cur);
       var top = root.getBoundingClientRect().top + window.scrollY;
       var end = top + root.offsetHeight;
@@ -179,6 +179,29 @@
     });
   }
 
+  /* ---- navigation: mark the section we are in ---- */
+  function activeNav() {
+    var seg = location.pathname.split('/').filter(Boolean)[1] || '';
+    if (!seg) return;
+    var links = document.querySelectorAll('.nav-links > li > a');
+    Array.prototype.forEach.call(links, function (a) {
+      var h = (a.getAttribute('href') || '').split('#')[0].split('/').filter(Boolean);
+      if (h.length === 2 && h[1] === seg) a.classList.add('current');
+    });
+  }
+
+  /* ---- back to top ---- */
+  function toTop() {
+    var b = el('button', 'to-top', '↑');
+    b.type = 'button';
+    b.setAttribute('aria-label', lang === 'en' ? 'Back to top' : 'Volver arriba');
+    b.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    document.body.appendChild(b);
+    function upd() { b.classList.toggle('show', window.scrollY > 900); }
+    window.addEventListener('scroll', upd, { passive: true });
+    upd();
+  }
+
   ready(function () {
     var post = document.querySelector('.post-content');
     var page = document.querySelector('.page-content');
@@ -187,5 +210,7 @@
     if (post) { callouts(post); lightbox(post); toc(post); progress(post); }
     else if (page) { lightbox(page); }
     reveal();
+    activeNav();
+    toTop();
   });
 })();

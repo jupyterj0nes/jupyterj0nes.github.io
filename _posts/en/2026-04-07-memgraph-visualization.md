@@ -146,7 +146,7 @@ masstin -a load-memgraph -f timeline.csv --database localhost:7687
 
 By default, Memgraph has no authentication enabled. If you've configured credentials on your instance, use the corresponding parameters. But for a quick analysis deployment, the default configuration is all you need.
 
-Masstin preserves original values from the evidence. Node names and properties are stored without transformation. Only relationship types (user accounts) are normalized to valid Cypher identifiers (uppercase, underscores, `@domain` stripped, any non-alphanumeric character replaced — including the trailing `$` of machine accounts). See the [Neo4j article](/en/tools/2026-04-07-neo4j-cypher-visualization/) for details.
+Masstin preserves original values from the evidence. Node names and properties are stored without transformation. Only relationship types (user accounts) are normalized to valid Cypher identifiers (uppercase, underscores, `@domain` stripped, any non-alphanumeric character replaced — including the trailing `$` of machine accounts). See the [Neo4j article](/en/tools/neo4j-cypher-visualization/) for details.
 
 ### Two loading modes: grouped vs ungrouped
 
@@ -272,7 +272,7 @@ LIMIT 5
 
 ![Temporal path reconstruction in Memgraph Lab](/assets/images/memgraph_temporal_path.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
 
-For the full query catalog (filtering by logon type, service accounts, specific users, most connected nodes), see the [Neo4j and Cypher article](/en/tools/2026-04-07-neo4j-cypher-visualization/). All of them work in Memgraph by replacing `datetime()` with `localDateTime()`.
+For the full query catalog (filtering by logon type, service accounts, specific users, most connected nodes), see the [Neo4j and Cypher article](/en/tools/neo4j-cypher-visualization/). All of them work in Memgraph by replacing `datetime()` with `localDateTime()`.
 
 ---
 
@@ -355,5 +355,5 @@ If you have the MAGE `merge` module installed, `CALL merge.nodes([new, old]) YIE
 ## Reference
 
 - [masstin — Lateral Movement in Rust](/en/tools/masstin-lateral-movement-rust/)
-- [Neo4j and Cypher: Visualization with masstin](/en/tools/2026-04-07-neo4j-cypher-visualization/)
+- [Neo4j and Cypher: Visualization with masstin](/en/tools/neo4j-cypher-visualization/)
 - [Memgraph Documentation](https://memgraph.com/docs)

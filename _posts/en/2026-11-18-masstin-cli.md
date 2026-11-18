@@ -81,7 +81,7 @@ They apply to `merge`, the Cortex actions, the graph loaders and the viewer.
 
 ## Cortex XDR
 
-Explained in [the Cortex article](/en/tools/cortex-xdr-artifacts/).
+Explained in [the Cortex article](/en/artifacts/cortex-xdr-artifacts/).
 
 | Action | What for |
 |---|---|

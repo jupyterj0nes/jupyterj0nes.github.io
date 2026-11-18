@@ -12,7 +12,7 @@ tags: [masstin, viewer, cortex-xdr, xql, dfir]
 description: "The wizard in masstin's viewer for reading lateral movement from a Cortex XDR tenant through its API: check the key without spending units, choose what to read and watch the progress."
 comments: true
 ---
-There are cases where there is no evidence on disk to collect. The client has Cortex XDR deployed, the data is in the tenant, and what you need is to get the lateral movement out of it. masstin does that through the XQL API, and I go through it in detail in [the Cortex article](/en/tools/cortex-xdr-artifacts/).
+There are cases where there is no evidence on disk to collect. The client has Cortex XDR deployed, the data is in the tenant, and what you need is to get the lateral movement out of it. masstin does that through the XQL API, and I go through it in detail in [the Cortex article](/en/artifacts/cortex-xdr-artifacts/).
 
 This is the [viewer](/en/tools/masstin-viewer/)'s side of it: a five-step wizard for doing it without typing the command. It opens from **Evidence › Cortex XDR API…** or from the first step of the [ingest wizard](/en/tools/masstin-viewer-ingest/).
 
