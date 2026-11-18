@@ -35,7 +35,7 @@ Each subkey represents a mounted volume or network share. Network shares use `#`
 
 ## Forensic value
 
-Each subkey has a **LastWriteTime** timestamp — the last time this share was accessed. Combined with the NTUSER.DAT location (`Users\<username>\NTUSER.DAT`), you get three critical pieces of information:
+Each subkey has a **LastWriteTime**: the last time Windows wrote that key. It usually matches the first time the user mounted that share or one of the following ones, but it is not updated on every access, so read it as "by this date they had already connected", not as "the last time they went in". Combined with the NTUSER.DAT location (`Users\<username>\NTUSER.DAT`), you get three critical pieces of information:
 
 1. **Who** — the username (from the NTUSER.DAT file path)
 2. **Where to** — the remote server and share name (from the subkey)
@@ -77,12 +77,12 @@ MountPoints2 events appear in the timeline as `CONNECT` events with `event_id = 
 | Column | Value |
 |--------|-------|
 | `time_created` | LastWriteTime of the registry subkey |
-| `dst_computer` | Remote server (e.g., `74.118.139.11`, `DC01`) |
+| `dst_computer` | Remote server, by name or by address (e.g. `DC01`, `74.118.139.11`) |
 | `event_type` | `CONNECT` |
 | `event_id` | `MountPoints2` |
-| `target_user_name` | Username who connected (from NTUSER.DAT path) |
-| `src_computer` | Machine where the registry was found |
-| `src_ip` | IP address if the server was accessed by IP |
+| `target_user_name` | User who connected (from the NTUSER.DAT path) |
+| `src_computer` | Machine the registry came from: the **source** of the connection |
+| `src_ip` | Empty. The registry does not keep the source machine's address |
 | `detail` | Full UNC path (e.g., `MountPoints2: \\74.118.139.11\M4Projects`) |
 | `log_filename` | Source file (e.g., `HRServer.e01:live:mpowers_NTUSER.DAT`) |
 
@@ -90,10 +90,10 @@ MountPoints2 events appear in the timeline as `CONNECT` events with `event_id = 
 
 Processing the DEFCON DFIR CTF 2018 images with masstin:
 
-```csv
-2018-07-12T21:24:27+00:00,74.118.139.11,CONNECT,MountPoints2,"",mpowers,"",DESKTOP-1N4R894,74.118.139.11,...,MountPoints2: \\74.118.139.11\M4Projects
-2018-07-23T16:00:53+00:00,74.118.139.11,CONNECT,MountPoints2,"",mpowers,"",WIN-29U41M70JCO,74.118.139.11,...,MountPoints2: \\74.118.139.11\M4Projects
-```
+| When | Destination (`dst_computer`) | User | Source (`src_computer`) | Detail |
+|---|---|---|---|---|
+| 2018-07-12 21:24:27 | 74.118.139.11 | mpowers | DESKTOP-1N4R894 | `\\74.118.139.11\M4Projects` |
+| 2018-07-23 16:00:53 | 74.118.139.11 | mpowers | WIN-29U41M70JCO | `\\74.118.139.11\M4Projects` |
 
 User `mpowers` connected to `\\74.118.139.11\M4Projects` from two different machines — evidence of lateral movement that **does not appear in any EVTX file**. This was found exclusively in the registry.
 
@@ -114,12 +114,12 @@ If transaction logs are found alongside the NTUSER.DAT in the forensic image, th
 | Artifact | Survives log clearing? | Shows user? | Shows destination? | Shows timestamp? |
 |----------|----------------------|-------------|-------------------|-----------------|
 | Security.evtx (4624) | No | Yes | Yes | Yes |
-| UAL (.mdb) | Yes | Yes | IP only | Yes |
+| UAL (.mdb) | Yes | Yes | It is the server itself; it keeps the **source** address | Yes |
 | MountPoints2 | **Yes** | **Yes** | **Server + Share** | **Yes** |
 | Scheduled Tasks XML | Yes | Partial | Author machine | Yes |
 | VSS (recovered EVTX) | Depends | Yes | Yes | Yes |
 
-MountPoints2 is unique because it provides the **share name** (e.g., `C$`, `ADMIN$`, `Projects`) — no other artifact gives you this level of detail about what the attacker accessed.
+What makes MountPoints2 special is where it lives: in the user's profile, on the **source** machine, and it gives the **share name** (e.g. `C$`, `ADMIN$`, `Projects`). Security.evtx 5140 events name the share too, but they are written on the server and are lost when that log rotates.
 
 ---
 

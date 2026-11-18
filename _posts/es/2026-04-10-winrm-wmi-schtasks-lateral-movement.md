@@ -36,8 +36,8 @@ Masstin extrae el host destino de este campo y genera un evento `CONNECT`. La co
 
 | Campo | Valor |
 |-------|-------|
-| `dst_computer` | Sistema origen (donde se registró el evento) |
-| `src_ip` / `src_computer` | Host destino (parseado de la URL de conexión) |
+| `dst_computer` | Host destino (sacado de la cadena de conexión del evento) |
+| `src_computer` | Sistema origen (la máquina donde se registró el evento) |
 | `event_id` | `6` |
 | `event_type` | `CONNECT` |
 | `detail` | `WinRM: <cadena de conexión completa>` |
@@ -78,19 +78,19 @@ Cuando un atacante programa una tarea remotamente (vía `schtasks /CREATE /S tar
 </Actions>
 ```
 
-Para tareas creadas localmente, el campo Author no tiene prefijo de máquina o usa el hostname local. Para tareas creadas remotamente, el Author contiene el **nombre de la máquina origen** — el sistema desde el cual se registró la tarea.
+El campo Author guarda quién registró la tarea, normalmente como `MÁQUINA\usuario` o `DOMINIO\usuario`. Cuando la parte de la máquina no es la del propio equipo, la tarea pudo registrarse desde otro sitio, y eso es lo que masstin señala.
 
 | Campo | Valor |
 |-------|-------|
-| `dst_computer` | Hostname del sistema destino (extraído del EVTX) |
-| `src_ip` / `src_computer` | Nombre de máquina del campo Author |
+| `dst_computer` | Nombre de la máquina donde está la tarea (sacado de sus EVTX) |
+| `src_computer` | La parte de máquina o dominio del campo Author |
 | `target_user_name` | Nombre de usuario del campo Author |
 | `event_id` | `SCHTASK` |
 | `event_type` | `CONNECT` |
 | `detail` | `Task: <nombre> -> <comando>` |
 | `log_filename` | `image.e01:tasks:<NombreTarea>` |
 
-**Filtrado:** Masstin extrae el hostname de los propios ficheros EVTX de la imagen y lo compara con el nombre de máquina del Author. Solo se reportan tareas donde la máquina del Author es **diferente** del hostname local. Esto elimina tareas locales creadas con credenciales explícitas `DOMAIN\usuario`.
+**Filtrado, y sus límites:** masstin saca el nombre de la máquina de sus propios EVTX y lo compara con el del Author. Solo señala las tareas en las que no coinciden. Es una **pista, no una prueba**: también lo cumplen una tarea creada localmente con una cuenta de dominio (el prefijo es el dominio, no la máquina) y una máquina a la que se le cambió el nombre después de crear la tarea. Antes de afirmar que una tarea vino de fuera, comprueba que el nombre del Author es de verdad otra máquina de la red.
 
 **Por qué importa:** Las Scheduled Tasks son un mecanismo común de persistencia y movimiento lateral. Incluso cuando los atacantes eliminan la tarea después de la ejecución (limpiando Event IDs 4698/4699), el fichero XML puede seguir existiendo en disco — o ser recuperable desde snapshots VSS.
 

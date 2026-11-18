@@ -20,6 +20,12 @@ El problema no suele ser la falta de datos, sino el exceso. Security.evtx puede 
 
 Herramientas como [masstin](/es/tools/masstin-lateral-movement-rust/) parsean estos eventos automáticamente y los unifican en una timeline de movimiento lateral, ahorrándote horas de análisis manual.
 
+### Dónde está y cómo abrirlo
+
+El fichero es `C:\Windows\System32\winevt\Logs\Security.evtx`. En un triage o una imagen de disco está en esa misma ruta. Para verlo a mano sirve el Visor de eventos de Windows (doble clic sobre el fichero), y para leerlo entero de una vez, masstin.
+
+Cada evento se escribe en la máquina donde ocurre. Un inicio de sesión por red se apunta en la máquina **destino**; los eventos de Kerberos, en el **controlador de dominio**. Esto es lo primero que hay que tener claro: para saber quién entró en un servidor hay que mirar el log de ese servidor.
+
 ---
 
 ## Eventos de logon y logoff
@@ -101,6 +107,13 @@ Se genera cuando un proceso se autentica con credenciales distintas a las de la 
 
 Los eventos Kerberos son fundamentales para reconstruir la autenticación en entornos de Active Directory. Se generan **en el Domain Controller**.
 
+Cuatro palabras para no perderse:
+
+- **Kerberos:** el sistema con el que un dominio de Windows comprueba quién es cada uno. En vez de mandar la contraseña a cada servidor, reparte *tickets*.
+- **TGT:** el primer ticket, que se pide al iniciar sesión. Es la prueba de que ya te has identificado.
+- **TGS o ticket de servicio:** el que se pide después, con el TGT, para entrar en un servicio concreto (un recurso compartido, una base de datos).
+- **Pre-autenticación:** la comprobación de la contraseña antes de dar el TGT. Si una cuenta la tiene desactivada, cualquiera puede pedir material cifrado con su contraseña y probar a romperlo en casa. Ese ataque se llama *AS-REP Roasting*. El equivalente con tickets de servicio es *Kerberoasting*.
+
 > **Un ticket no es un inicio de sesión en el controlador de dominio.** Un 4768, 4769 o 4770 correcto (y también un 4776) es una autenticación *en* el DC de camino a otro sitio. En la ventana de masstin se tratan como «connect», así que un camino no salta a un DC solo porque alguien le pidió un ticket. En el CSV siguen escritos igual que siempre.
 
 ### Event ID 4768 — Solicitud de TGT (AS-REQ)
@@ -111,7 +124,7 @@ Se registra cuando un usuario solicita un Ticket Granting Ticket al KDC. Es el p
 |-------|-----------|
 | TargetUserName | Cuenta que solicita el TGT |
 | IpAddress | IP desde donde se solicita |
-| TicketEncryptionType | 0x17 (RC4) indica posible Pass-the-Hash o AS-REP Roasting |
+| TicketEncryptionType | 0x17 (RC4) es un cifrado antiguo. En un dominio moderno, verlo es motivo para mirar esa petición: lo usan herramientas de ataque que piden tickets a partir del hash de la contraseña |
 | PreAuthType | Tipo de pre-autenticación utilizada |
 
 > **Ataque relacionado:** Los atacantes que hacen **AS-REP Roasting** buscan cuentas sin pre-autenticación requerida. Verás 4768 con `PreAuthType` 0 (sin pre-auth).
@@ -140,7 +153,7 @@ Equivalente Kerberos del 4625. Indica que la contraseña proporcionada no coinci
 | Failure Code | Significado |
 |:------------:|------------|
 | 0x6 | El principal no existe |
-| 0x12 | Credenciales caducadas |
+| 0x12 | Credenciales revocadas: la cuenta está deshabilitada, caducada o bloqueada |
 | 0x17 | Contraseña caducada |
 | 0x18 | **Contraseña incorrecta** — el más común en fuerza bruta |
 | 0x25 | Desincronización de reloj |
@@ -193,7 +206,7 @@ Estos eventos complementan a los 4624 tipo 10 para reconstruir la actividad RDP 
 | 4634 | Logoff | Logoff del sistema | Media (duración de sesión) |
 | 4647 | Logoff | Logoff del usuario | Media (duración de sesión) |
 | 4648 | Credenciales | Logon explícito (RunAs) | Alta (escalada + movimiento) |
-| 4768 | Kerberos | Solicitud de TGT | Alta (AS-REP Roasting, Golden Ticket) |
+| 4768 | Kerberos | Solicitud de TGT | Alta (AS-REP Roasting) |
 | 4769 | Kerberos | Solicitud de Service Ticket | Alta (Kerberoasting) |
 | 4770 | Kerberos | Renovación de TGT | Media (Golden Ticket) |
 | 4771 | Kerberos | Fallo de pre-auth | Media-Alta (fuerza bruta Kerberos) |
@@ -227,7 +240,7 @@ Masstin combina todos estos artefactos en una sola timeline precisamente para su
 
 ## Cómo masstin parsea Security.evtx
 
-[Masstin](/es/tools/masstin-lateral-movement-rust/) extrae automáticamente los eventos 4624 (tipos 3 y 10), 4625, 4648 y otros de Security.evtx, y los normaliza en un formato CSV unificado con campos como timestamp, source IP, destination host, username y tipo de evento.
+[Masstin](/es/tools/masstin-lateral-movement-rust/) extrae automáticamente de Security.evtx los eventos 4624, 4625, 4634, 4647, 4648, 4768, 4769, 4770, 4771, 4776, 4778, 4779 y los accesos a recursos compartidos 5140 y 5145, y los pone en un CSV con el mismo formato para todos: cuándo, en qué máquina, desde dónde, con qué cuenta y qué tipo de evento.
 
 ```bash
 masstin -a parse -d /evidence/logs/ -o timeline.csv

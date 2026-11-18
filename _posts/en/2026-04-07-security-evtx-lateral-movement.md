@@ -20,6 +20,12 @@ The problem is usually not a lack of data, but an excess of it. Security.evtx ca
 
 Tools like [masstin](/en/tools/masstin-lateral-movement-rust/) parse these events automatically and unify them into a lateral movement timeline, saving you hours of manual analysis.
 
+### Where it is and how to open it
+
+The file is `C:\Windows\System32\winevt\Logs\Security.evtx`. In a triage or a disk image it is at that same path. To look at it by hand, Windows' Event Viewer will do (double-click the file); to read all of it at once, masstin.
+
+Each event is written on the machine where it happens. A network logon is recorded on the **destination** machine; Kerberos events, on the **domain controller**. This is the first thing to be clear about: to know who got into a server you have to look at that server's log.
+
 ---
 
 ## Logon and Logoff Events
@@ -101,6 +107,13 @@ Generated when a process authenticates with credentials different from those of 
 
 Kerberos events are fundamental for reconstructing authentication in Active Directory environments. They are generated **on the Domain Controller**.
 
+Four words so as not to get lost:
+
+- **Kerberos:** the system a Windows domain uses to check who everyone is. Instead of sending the password to every server, it hands out *tickets*.
+- **TGT:** the first ticket, requested at logon. It is the proof that you have already identified yourself.
+- **TGS or service ticket:** the one requested afterwards, with the TGT, to get into a particular service (a share, a database).
+- **Pre-authentication:** the password check before the TGT is given. If an account has it turned off, anyone can ask for material encrypted with its password and try to crack it at home. That attack is called *AS-REP Roasting*. The equivalent with service tickets is *Kerberoasting*.
+
 > **A ticket is not a logon on the domain controller.** A successful 4768, 4769 or 4770 (and a 4776 too) is an authentication *at* the DC on the way somewhere else. Masstin's window treats them as "connect", so a path does not jump to a DC just because someone asked it for a ticket. In the CSV they are written as they always were.
 
 ### Event ID 4768 — TGT Request (AS-REQ)
@@ -111,7 +124,7 @@ Logged when a user requests a Ticket Granting Ticket from the KDC. This is the f
 |-------|-----------|
 | TargetUserName | Account requesting the TGT |
 | IpAddress | IP where the request originated |
-| TicketEncryptionType | 0x17 (RC4) indicates possible Pass-the-Hash or AS-REP Roasting |
+| TicketEncryptionType | 0x17 (RC4) is an old cipher. In a modern domain, seeing it is a reason to look at that request: attack tools that ask for tickets from the password hash use it |
 | PreAuthType | Pre-authentication type used |
 
 > **Related attack:** Attackers performing **AS-REP Roasting** target accounts without required pre-authentication. You'll see 4768 events with `PreAuthType` 0 (no pre-auth).
@@ -140,7 +153,7 @@ The Kerberos equivalent of 4625. Indicates that the supplied password doesn't ma
 | Failure Code | Meaning |
 |:------------:|---------|
 | 0x6 | Principal does not exist |
-| 0x12 | Credentials expired |
+| 0x12 | Credentials revoked: the account is disabled, expired or locked out |
 | 0x17 | Password expired |
 | 0x18 | **Wrong password** — most common in brute force |
 | 0x25 | Clock skew |
@@ -193,7 +206,7 @@ These events complement 4624 type 10 events for complete RDP activity reconstruc
 | 4634 | Logoff | System logoff | Medium (session duration) |
 | 4647 | Logoff | User logoff | Medium (session duration) |
 | 4648 | Credentials | Explicit logon (RunAs) | High (escalation + movement) |
-| 4768 | Kerberos | TGT request | High (AS-REP Roasting, Golden Ticket) |
+| 4768 | Kerberos | TGT request | High (AS-REP Roasting) |
 | 4769 | Kerberos | Service Ticket request | High (Kerberoasting) |
 | 4770 | Kerberos | TGT renewal | Medium (Golden Ticket) |
 | 4771 | Kerberos | Pre-auth failure | Medium-High (Kerberos brute force) |
@@ -227,7 +240,7 @@ Masstin combines all these artifacts into a single timeline precisely to overcom
 
 ## How Masstin Parses Security.evtx
 
-[Masstin](/en/tools/masstin-lateral-movement-rust/) automatically extracts events 4624 (types 3 and 10), 4625, 4648, and others from Security.evtx, normalizing them into a unified CSV format with fields like timestamp, source IP, destination host, username, and event type.
+[Masstin](/en/tools/masstin-lateral-movement-rust/) automatically extracts from Security.evtx events 4624, 4625, 4634, 4647, 4648, 4768, 4769, 4770, 4771, 4776, 4778, 4779 and the share accesses 5140 and 5145, and puts them in a CSV with the same format for all: when, on which machine, from where, with which account and what kind of event.
 
 ```bash
 masstin -a parse -d /evidence/logs/ -o timeline.csv

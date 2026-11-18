@@ -35,7 +35,7 @@ Cada subclave representa un volumen montado o un share de red. Los shares de red
 
 ## Valor forense
 
-Cada subclave tiene un **LastWriteTime** — la última vez que se accedió a ese share. Combinado con la ubicación del NTUSER.DAT (`Users\<usuario>\NTUSER.DAT`), se obtienen tres piezas de información críticas:
+Cada subclave tiene un **LastWriteTime**: la última vez que Windows escribió esa clave. Suele coincidir con la primera vez que el usuario montó ese recurso o con una de las siguientes, pero no se actualiza en cada acceso, así que hay que leerlo como «para esta fecha ya se había conectado», no como «la última vez que entró». Combinado con la ubicación del NTUSER.DAT (`Users\<usuario>\NTUSER.DAT`), se obtienen tres piezas de información críticas:
 
 1. **Quién** — el nombre de usuario (de la ruta del fichero NTUSER.DAT)
 2. **Hacia dónde** — el servidor remoto y nombre del share (de la subclave)
@@ -77,12 +77,12 @@ Los eventos MountPoints2 aparecen en la timeline como eventos `CONNECT` con `eve
 | Columna | Valor |
 |---------|-------|
 | `time_created` | LastWriteTime de la subclave del registro |
-| `dst_computer` | Servidor remoto (ej: `74.118.139.11`, `DC01`) |
+| `dst_computer` | Servidor remoto, por nombre o por dirección (ej: `DC01`, `74.118.139.11`) |
 | `event_type` | `CONNECT` |
 | `event_id` | `MountPoints2` |
 | `target_user_name` | Usuario que se conectó (de la ruta del NTUSER.DAT) |
-| `src_computer` | Máquina donde se encontró el registro |
-| `src_ip` | Dirección IP si el servidor se accedió por IP |
+| `src_computer` | Máquina de la que salió el registro: el **origen** de la conexión |
+| `src_ip` | Vacío. El registro no guarda la dirección de la máquina origen |
 | `detail` | Ruta UNC completa (ej: `MountPoints2: \\74.118.139.11\M4Projects`) |
 | `log_filename` | Fichero origen (ej: `HRServer.e01:live:mpowers_NTUSER.DAT`) |
 
@@ -90,10 +90,10 @@ Los eventos MountPoints2 aparecen en la timeline como eventos `CONNECT` con `eve
 
 Procesando las imágenes del DEFCON DFIR CTF 2018 con masstin:
 
-```csv
-2018-07-12T21:24:27+00:00,74.118.139.11,CONNECT,MountPoints2,"",mpowers,"",DESKTOP-1N4R894,74.118.139.11,...,MountPoints2: \\74.118.139.11\M4Projects
-2018-07-23T16:00:53+00:00,74.118.139.11,CONNECT,MountPoints2,"",mpowers,"",WIN-29U41M70JCO,74.118.139.11,...,MountPoints2: \\74.118.139.11\M4Projects
-```
+| Cuándo | Destino (`dst_computer`) | Usuario | Origen (`src_computer`) | Detalle |
+|---|---|---|---|---|
+| 2018-07-12 21:24:27 | 74.118.139.11 | mpowers | DESKTOP-1N4R894 | `\\74.118.139.11\M4Projects` |
+| 2018-07-23 16:00:53 | 74.118.139.11 | mpowers | WIN-29U41M70JCO | `\\74.118.139.11\M4Projects` |
 
 El usuario `mpowers` se conectó a `\\74.118.139.11\M4Projects` desde dos máquinas diferentes — evidencia de movimiento lateral que **no aparece en ningún fichero EVTX**. Esto se encontró exclusivamente en el registro.
 
@@ -114,12 +114,12 @@ Si se encuentran transaction logs junto al NTUSER.DAT en la imagen forense, se e
 | Artefacto | ¿Sobrevive al borrado de logs? | ¿Muestra usuario? | ¿Muestra destino? | ¿Muestra timestamp? |
 |-----------|-------------------------------|--------------------|--------------------|---------------------|
 | Security.evtx (4624) | No | Sí | Sí | Sí |
-| UAL (.mdb) | Sí | Sí | Solo IP | Sí |
+| UAL (.mdb) | Sí | Sí | Es el propio servidor; guarda la dirección del **origen** | Sí |
 | MountPoints2 | **Sí** | **Sí** | **Servidor + Share** | **Sí** |
 | Scheduled Tasks XML | Sí | Parcial | Máquina del Author | Sí |
 | VSS (EVTX recuperados) | Depende | Sí | Sí | Sí |
 
-MountPoints2 es único porque proporciona el **nombre del share** (ej: `C$`, `ADMIN$`, `Projects`) — ningún otro artefacto da este nivel de detalle sobre a qué accedió el atacante.
+Lo que hace especial a MountPoints2 es dónde está: en el perfil del usuario, en la máquina **origen**, y da el **nombre del recurso** (ej: `C$`, `ADMIN$`, `Projects`). Los eventos 5140 de Security.evtx también nombran el recurso, pero se escriben en el servidor y se pierden cuando ese log rota.
 
 ---
 

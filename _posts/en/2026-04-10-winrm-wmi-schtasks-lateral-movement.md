@@ -36,8 +36,8 @@ Masstin extracts the destination host from this field and generates a `CONNECT` 
 
 | Field | Value |
 |-------|-------|
-| `dst_computer` | Source system (where the event was logged) |
-| `src_ip` / `src_computer` | Destination host (parsed from connection URL) |
+| `dst_computer` | Destination host (taken from the event's connection string) |
+| `src_computer` | Source system (the machine where the event was logged) |
 | `event_id` | `6` |
 | `event_type` | `CONNECT` |
 | `detail` | `WinRM: <full connection string>` |
@@ -78,19 +78,19 @@ When an attacker schedules a task remotely (via `schtasks /CREATE /S target` or 
 </Actions>
 ```
 
-For locally created tasks, the Author field either has no machine prefix or uses the local hostname. For remotely created tasks, the Author contains the **source machine name** — the system from which the task was registered.
+The Author field keeps who registered the task, usually as `MACHINE\user` or `DOMAIN\user`. When the machine part is not this computer's own, the task may have been registered from somewhere else, and that is what masstin points out.
 
 | Field | Value |
 |-------|-------|
-| `dst_computer` | Target system hostname (extracted from EVTX) |
-| `src_ip` / `src_computer` | Machine name from Author field |
+| `dst_computer` | Name of the machine holding the task (taken from its EVTX) |
+| `src_computer` | The machine or domain part of the Author field |
 | `target_user_name` | Username from Author field |
 | `event_id` | `SCHTASK` |
 | `event_type` | `CONNECT` |
 | `detail` | `Task: <name> -> <command>` |
 | `log_filename` | `image.e01:tasks:<TaskName>` |
 
-**Filtering:** Masstin extracts the hostname from the image's own EVTX files and compares it with the Author machine name. Only tasks where the Author machine is **different** from the local hostname are reported. This eliminates local tasks created with explicit `DOMAIN\user` credentials.
+**Filtering, and its limits:** masstin takes the machine's name from its own EVTX and compares it with the Author's. It only flags tasks where they differ. It is a **lead, not proof**: a task created locally with a domain account (the prefix is the domain, not the machine) and a machine renamed after the task was created both match too. Before stating that a task came from outside, check that the Author's name really is another machine on the network.
 
 **Why this matters:** Scheduled Tasks are a common persistence and lateral movement mechanism. Even when attackers delete the task after execution (cleaning up Event IDs 4698/4699), the task XML file may still exist on disk — or be recoverable from VSS snapshots.
 

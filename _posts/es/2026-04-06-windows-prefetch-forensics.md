@@ -16,7 +16,7 @@ Los archivos Prefetch son uno de los artefactos más valiosos en forense de Wind
 
 ## ¿Qué es Prefetch?
 
-Windows Superfetch/Prefetch es una característica de optimización del rendimiento que monitoriza los patrones de carga de las aplicaciones. Cada vez que se ejecuta un programa, Windows crea (o actualiza) un archivo `.pf` en `C:\Windows\Prefetch\`.
+Prefetch es una característica de optimización del rendimiento que monitoriza los patrones de carga de las aplicaciones. Cada vez que se ejecuta un programa, Windows crea (o actualiza) un archivo `.pf` en `C:\Windows\Prefetch\`.
 
 ## Formato del archivo
 
@@ -38,7 +38,7 @@ El hash se calcula basándose en la ruta del archivo y, en algunos casos, los ar
 |-------|--------------|
 | Nombre del ejecutable | Qué se ejecutó |
 | Contador de ejecuciones | Cuántas veces |
-| Última ejecución | Cuándo (hasta 8 timestamps en Win10+) |
+| Última ejecución | Cuándo (hasta 8 fechas desde Windows 8; una sola en Windows 7 y anteriores) |
 | Archivos/dirs referenciados | Qué tocó |
 | Información del volumen | Desde dónde se ejecutó |
 
@@ -66,7 +66,7 @@ PECmd.exe -d "C:\Windows\Prefetch" --csv "C:\output" --csvf prefetch_results.csv
 ## Limitaciones
 
 - Prefetch está **deshabilitado por defecto en SSDs** en algunas versiones de Windows (aunque Windows 10/11 lo mantiene habilitado).
-- Máximo de **1024 archivos Prefetch** (los más antiguos se eliminan).
+- Máximo de **1024 archivos Prefetch** desde Windows 8 (128 en Windows 7 y anteriores). Al llegar al límite, los más antiguos se eliminan.
 - Solo disponible en ediciones **Windows cliente** (no en Server por defecto).
 - Los timestamps pueden manipularse via timestomping, pero los metadatos de Prefetch son más difíciles de falsificar.
 

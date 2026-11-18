@@ -16,7 +16,7 @@ Prefetch files are one of the most valuable artifacts in Windows forensics. They
 
 ## What is Prefetch?
 
-Windows Superfetch/Prefetch is a performance optimization feature that monitors application loading patterns. Every time an executable runs, Windows creates (or updates) a `.pf` file in `C:\Windows\Prefetch\`.
+Prefetch is a performance optimization feature that monitors application loading patterns. Every time an executable runs, Windows creates (or updates) a `.pf` file in `C:\Windows\Prefetch\`.
 
 ## File Format
 
@@ -38,7 +38,7 @@ The hash is calculated based on the file path and, in some cases, command-line a
 |-------|---------------|
 | Executable name | What ran |
 | Run count | How many times |
-| Last execution time | When (up to 8 timestamps in Win10+) |
+| Last execution time | When (up to 8 timestamps since Windows 8; a single one on Windows 7 and earlier) |
 | Referenced files/dirs | What it touched |
 | Volume information | Where it ran from |
 
@@ -66,7 +66,7 @@ PECmd.exe -d "C:\Windows\Prefetch" --csv "C:\output" --csvf prefetch_results.csv
 ## Limitations
 
 - Prefetch is **disabled by default on SSDs** in some Windows versions (though Windows 10/11 keeps it enabled).
-- Maximum of **1024 Prefetch files** (older ones get deleted).
+- Maximum of **1024 Prefetch files** since Windows 8 (128 on Windows 7 and earlier). Once the limit is reached, older ones get deleted.
 - Only available on **Windows client** editions (not Server by default).
 - Timestamps can be manipulated via timestomping, but the Prefetch metadata itself is harder to forge.
 

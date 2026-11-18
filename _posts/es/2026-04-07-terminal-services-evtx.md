@@ -26,11 +26,13 @@ Windows registra la actividad RDP en varios logs de eventos especializados bajo 
 
 **Log:** `Microsoft-Windows-TerminalServices-LocalSessionManager/Operational`
 
+**Fichero:** `Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx`, en `C:\Windows\System32\winevt\Logs\`. Los demás logs de este artículo están en la misma carpeta, con el nombre del canal y `%4` en lugar de la barra.
+
 Este es el log más valioso para rastrear sesiones RDP en la máquina destino. Registra cada fase del ciclo de vida de la sesión.
 
 ### Event ID 21 — Logon de sesión exitoso
 
-Se genera cuando un usuario inicia sesión de forma remota y la sesión se crea correctamente.
+Se genera cuando se abre una sesión y se crea correctamente. Ojo: también lo escribe una sesión abierta en la consola física de la máquina. Se distinguen por el campo de origen, que en ese caso dice `LOCAL` en vez de una dirección.
 
 | Campo | Descripción |
 |-------|------------|
@@ -93,9 +95,11 @@ Se genera cuando el cliente RDP (mstsc.exe u otro) inicia una conexión hacia un
 
 > **Importancia forense:** Este evento en una workstation comprometida te dice a qué otras máquinas se conectó el atacante vía RDP. Es la perspectiva del **origen**, complementaria al Event ID 21 en el destino.
 
-### Event ID 1102 — Clearing de log de auditoría
+### Event ID 1102 — Conexión RDP saliente con dirección
 
-Aunque este Event ID tiene el mismo número en Security.evtx, en el contexto de RDPClient indica que el log de auditoría fue limpiado. Si un atacante borra este log, es un indicador de anti-forensics.
+El cliente escribe: *The client has initiated a multi-transport connection to the server*, seguido de la **dirección** del servidor. Acompaña al 1024 en una conexión saliente, y entre los dos dan el nombre y la dirección del destino.
+
+**No lo confundas con el 1102 de Security.evtx.** Allí ese mismo número significa «se borró el log de auditoría». Son dos eventos distintos que comparten número porque están en logs distintos. Antes de interpretar un Event ID, mira siempre de qué log viene.
 
 ---
 
@@ -103,17 +107,21 @@ Aunque este Event ID tiene el mismo número en Security.evtx, en el contexto de 
 
 **Log:** `Microsoft-Windows-TerminalServices-RemoteConnectionManager/Operational`
 
-### Event ID 1149 — Conexión RDP recibida
+### Event ID 1149 — Autenticación de usuario aceptada
 
-Se genera en la máquina destino cuando se recibe una conexión RDP, **antes de la autenticación**. Es decir, este evento indica que alguien intentó conectar, independientemente de si las credenciales eran correctas.
+El texto del evento es *Remote Desktop Services: User authentication succeeded*. Se escribe en la máquina destino cuando el servicio de escritorio remoto acepta una conexión con un nombre de usuario.
 
 | Campo | Descripción |
 |-------|------------|
-| User | Cuenta con la que se intentó conectar |
+| User | Cuenta con la que se conectó |
 | Domain | Dominio proporcionado |
 | Source Network Address | IP de origen |
 
-> **Valor forense clave:** Un 1149 sin un 21 posterior indica un intento de conexión RDP fallido. Esto es muy útil para detectar reconocimiento o fuerza bruta por RDP, especialmente cuando los 4625 de Security.evtx no están disponibles.
+Masstin lo escribe como `SUCCESSFUL_LOGON`.
+
+> **Cómo leerlo con cuidado:** a pesar de su nombre, un 1149 no demuestra por sí solo que se abriera un escritorio. Dice que la conexión llegó y que la autenticación de red se aceptó. Para afirmar que hubo sesión, busca a continuación el **21** de LocalSessionManager y el **4624 tipo 10** de Security.evtx. Un 1149 sin ninguno de los dos es una conexión que no llegó a convertirse en sesión.
+>
+> Su gran valor es que este log rota mucho menos que Security.evtx: a menudo conserva la dirección de origen de conexiones de hace meses.
 
 ---
 
@@ -121,16 +129,20 @@ Se genera en la máquina destino cuando se recibe una conexión RDP, **antes de 
 
 **Log:** `Microsoft-Windows-RemoteDesktopServices-RdpCoreTS/Operational`
 
-### Event ID 131 — Negociación de seguridad del transporte
+### Event ID 131 — Conexión aceptada
 
-Se genera durante la fase de negociación TLS/NLA de la conexión RDP. Registra el protocolo de seguridad acordado entre cliente y servidor.
+El texto es *The server accepted a new TCP connection from client*, con la dirección y el puerto del cliente. Se escribe en el destino en cuanto llega la conexión, **antes de cualquier autenticación**.
 
 | Campo | Descripción |
 |-------|------------|
-| ClientIP | IP del cliente que se conecta |
-| SecurityProtocol | Protocolo negociado (TLS, CredSSP/NLA, etc.) |
+| ConnType | TCP o UDP |
+| ClientIP | Dirección y puerto del cliente que se conecta |
 
-> **Relevancia:** Las conexiones con seguridad reducida (sin NLA) pueden indicar configuraciones inseguras o ataques de downgrade.
+> **Relevancia:** es el único de estos eventos que queda aunque nadie llegue a escribir un usuario. Un escaneo o una fuerza bruta contra RDP dejan aquí la dirección de origen, sin cuenta. Masstin lo escribe como `CONNECT`.
+
+### Event ID 140 — Usuario o contraseña incorrectos
+
+El texto es *A connection from the client computer with an IP address of … failed because the user name or password is not correct*. Es el fallo de autenticación de red visto desde el destino, con la dirección del cliente. Masstin lo escribe como `FAILED_LOGON`.
 
 ---
 
@@ -142,35 +154,36 @@ Se genera durante la fase de negociación TLS/NLA de la conexión RDP. Registra 
 | LocalSessionManager | 22 | Destino | Inicio del shell | Media — confirma escritorio activo |
 | LocalSessionManager | 24 | Destino | Desconexión | Media — sesión aún activa |
 | LocalSessionManager | 25 | Destino | Reconexión | Alta — posible cambio de origen |
-| RDPClient | 1024 | Origen | Conexión saliente | Alta — identifica máquina origen |
-| RDPClient | 1102 | Origen | Limpieza de log | Alta — anti-forensics |
-| RemoteConnectionManager | 1149 | Destino | Conexión recibida (pre-auth) | Alta — incluye intentos fallidos |
-| RdpCoreTS | 131 | Destino | Negociación de seguridad | Media — protocolo y IP |
+| RDPClient | 1024 | Origen | Conexión saliente (nombre del destino) | Alta — dice a dónde se conectó esta máquina |
+| RDPClient | 1102 | Origen | Conexión saliente (dirección del destino) | Alta — completa al 1024 |
+| RemoteConnectionManager | 1149 | Destino | Autenticación aceptada | Alta — conserva el origen durante meses |
+| RdpCoreTS | 131 | Destino | Conexión aceptada, sin autenticar | Media — dirección de origen de escaneos |
+| RdpCoreTS | 140 | Destino | Usuario o contraseña incorrectos | Alta — fuerza bruta por RDP |
 
 ---
 
 ## Reconstrucción de una sesión RDP completa
 
-Para reconstruir una sesión RDP de principio a fin, correlaciona los eventos en este orden:
+Para reconstruir una sesión RDP de principio a fin, correlaciona los eventos en este orden. Los que dicen Security.evtx están en otro fichero, `Security.evtx`, de la misma máquina destino:
 
-1. **1149** (RemoteConnectionManager) — Conexión recibida, IP de origen
-2. **131** (RdpCoreTS) — Negociación de seguridad
-3. **4624 tipo 10** (Security.evtx) — Autenticación exitosa
+1. **131** (RdpCoreTS) — Llega la conexión: dirección de origen
+2. **1149** (RemoteConnectionManager) — Autenticación aceptada: cuenta y dirección
+3. **4624 tipo 10** (Security.evtx) — Inicio de sesión
 4. **21** (LocalSessionManager) — Sesión creada
-5. **22** (LocalSessionManager) — Shell iniciado
+5. **22** (LocalSessionManager) — Escritorio arrancado
 6. *...actividad del atacante...*
 7. **24** (LocalSessionManager) — Desconexión
 8. **25** (LocalSessionManager) — Posible reconexión
 9. **4779** (Security.evtx) — Desconexión RDP registrada
-10. **4647/4634** (Security.evtx) — Logoff
+10. **4647/4634** (Security.evtx) — Cierre de sesión
 
-En el origen, busca el **1024** (RDPClient) para confirmar qué máquina inició la conexión.
+En la máquina **origen**, busca el **1024** y el **1102** (RDPClient) para confirmar desde dónde se inició la conexión.
 
 ---
 
 ## Cómo masstin procesa Terminal Services
 
-[Masstin](/es/tools/masstin-lateral-movement-rust/) parsea los logs de TerminalServices-LocalSessionManager y RemoteConnectionManager automáticamente, extrayendo los Event IDs 21, 22, 24, 25 y 1149, y los integra en la timeline unificada CSV junto con los eventos de Security.evtx y otros artefactos.
+[Masstin](/es/tools/masstin-lateral-movement-rust/) lee estos cuatro logs automáticamente: los Event IDs 21, 22, 24 y 25 de LocalSessionManager, el 1149 de RemoteConnectionManager, el 1024 y el 1102 de RDPClient y el 131 y el 140 de RdpCoreTS. Los integra en la timeline CSV junto con los eventos de Security.evtx y otros artefactos.
 
 ```bash
 masstin -a parse -d /evidence/logs/ -o timeline.csv
