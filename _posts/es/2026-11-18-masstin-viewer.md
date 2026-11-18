@@ -59,10 +59,32 @@ Los filtros se suman («contiene», «no contiene», por columna) y la tabla agu
 
 La ventana ha ido creciendo y cada parte tiene su artículo:
 
+**Mirar**
+
+- [El grafo: estilos, colores y movimiento](/es/tools/masstin-viewer-graph-styles/)
+- [Filtros, vistas y búsqueda](/es/tools/masstin-viewer-filters/)
+- [El inspector y la franja de tiempo](/es/tools/masstin-viewer-inspector-time/)
+- [Modo Timeline: las filas del CSV](/es/tools/masstin-viewer-timeline/)
+
+**Preguntar**
+
 - [Find path: caminos entre dos máquinas](/es/tools/masstin-viewer-find-path/)
 - [Árboles: todo lo que sale de un origen o llega a un destino](/es/tools/masstin-viewer-trees/)
 - [Caminos por sesión: cuando la máquina deja escrito quién dio el salto](/es/tools/masstin-viewer-session-paths/)
+- [Questions: las preguntas de siempre](/es/tools/masstin-viewer-questions/)
+
+**Ordenar y apuntar**
+
 - [Hosts y direcciones: unir el nombre con su IP](/es/tools/masstin-viewer-hosts-addresses/)
+- [Subredes](/es/tools/masstin-viewer-subnets/)
+- [Marcas, notas y fichero de caso](/es/tools/masstin-viewer-marks-case/)
+
+**Meter evidencia y contarlo**
+
+- [El asistente de ingesta](/es/tools/masstin-viewer-ingest/)
+- [El asistente de Cortex XDR](/es/tools/masstin-viewer-cortex/)
+- [Presentación, historia y grabación](/es/tools/masstin-viewer-presentation/)
+- [Escritorio remoto y máquinas sin GPU](/es/tools/masstin-viewer-remote-desktop/)
 
 ## Lo que no hace
 

@@ -59,10 +59,32 @@ Filters add up ("contains", "does not contain", per column), and the table handl
 
 The window has kept growing and each part has its own article:
 
+**Looking**
+
+- [The graph: styles, colours and motion](/en/tools/masstin-viewer-graph-styles/)
+- [Filters, views and search](/en/tools/masstin-viewer-filters/)
+- [The inspector and the time strip](/en/tools/masstin-viewer-inspector-time/)
+- [Timeline mode: the rows of the CSV](/en/tools/masstin-viewer-timeline/)
+
+**Asking**
+
 - [Find path: paths between two machines](/en/tools/masstin-viewer-find-path/)
 - [Trees: everything that leaves an origin or reaches a destination](/en/tools/masstin-viewer-trees/)
 - [Paths by session: when the machine wrote down who made the hop](/en/tools/masstin-viewer-session-paths/)
+- [Questions: the usual questions](/en/tools/masstin-viewer-questions/)
+
+**Tidying up and writing down**
+
 - [Hosts and addresses: joining a name to its IP](/en/tools/masstin-viewer-hosts-addresses/)
+- [Subnets](/en/tools/masstin-viewer-subnets/)
+- [Marks, notes and the case file](/en/tools/masstin-viewer-marks-case/)
+
+**Getting evidence in and telling the story**
+
+- [The ingest wizard](/en/tools/masstin-viewer-ingest/)
+- [The Cortex XDR wizard](/en/tools/masstin-viewer-cortex/)
+- [Presentation, story and recording](/en/tools/masstin-viewer-presentation/)
+- [Remote desktop and machines without a GPU](/en/tools/masstin-viewer-remote-desktop/)
 
 ## What it does not do
 

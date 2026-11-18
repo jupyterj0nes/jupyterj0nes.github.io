@@ -1,0 +1,73 @@
+---
+layout: post
+title: "De la evidencia al grafo sin abrir una terminal"
+short: "El asistente de ingesta"
+date: 2026-11-18 15:30:00 +0100
+category: tools
+section: masstin-viewer
+order: 130
+lang: es
+ref: tool-masstin-viewer-ingest
+tags: [masstin, visor, ingesta, evtx, dfir]
+description: "El asistente de ingesta del visor de masstin: sueltas una carpeta, una imagen o un triage, masstin dice qué ha encontrado, lo analiza y abre la timeline."
+comments: true
+---
+masstin nació como herramienta de línea de comandos y lo sigue siendo. Pero no todo el mundo que tiene que mirar una evidencia vive en una terminal, y hasta quien sí vive ahí agradece no tener que acordarse de los parámetros un viernes por la tarde.
+
+Desde el [visor](/es/tools/masstin-viewer/) se puede hacer el recorrido entero: evidencia, timeline y grafo.
+
+## Empezar
+
+Lanzas `masstin` sin argumentos, o haces doble clic en el ejecutable. Sale una pantalla de bienvenida con una zona para soltar cosas, botones para abrir una timeline o ingerir una carpeta, y las timelines recientes.
+
+Con la ventana ya abierta, la evidencia entra de tres maneras: **soltándola** encima, con el botón **Ingest** de la barra o desde **Evidence › Ingest evidence…**. Si lo que sueltas es una timeline, se abre. Cualquier otra cosa va al asistente.
+
+## Paso 1: qué hay
+
+[![Primer paso del asistente: la carpeta dada, lo que masstin ha encontrado (4 EVTX) y su conclusión, evidencia Windows que lee masstin -a parse](/assets/images/viewer/i-step1.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/i-step1.webp)
+
+En cuanto le das algo, masstin lo mira y te dice qué ha encontrado. Aquí le he dado una carpeta con los logs de cuatro máquinas del laboratorio y contesta: 4 EVTX, evidencia Windows.
+
+La mirada está acotada (doce niveles de carpetas, sesenta mil entradas, ocho segundos) para que soltarle un disco entero no cuelgue la ventana. Lo que reconoce sale como fichas: EVTX, bases de datos UAL, paquetes de triage por tipo (KAPE, Velociraptor, Cortex XDR, UAC), imágenes de disco, logs de Linux por familia, logs de macOS, JSON de Winlogbeat, timelines ya hechas.
+
+Y cuando no lo tiene claro, lo dice. Si hay evidencia Windows y Linux mezclada, o archivos con una estructura que no conoce, el paso siguiente pregunta en vez de suponer.
+
+Abajo, en gris, va la línea de comandos equivalente. Está en todos los pasos.
+
+## Paso 2: con qué
+
+[![Segundo paso: los seis analizadores como tarjetas, con Windows marcado como recomendado, y debajo la caja para añadir reglas YAML](/assets/images/viewer/i-step2.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/i-step2.webp)
+
+Los seis analizadores, con el recomendado marcado: Windows, Linux, macOS, imagen de disco, «todo» (una carpeta de evidencia mezclada) y eventos de Windows en JSON. Puedes elegir otro si sabes algo que masstin no.
+
+Debajo hay una caja que mucha gente no ve: **Logs masstin does not know**. Si tienes logs de una VPN, un cortafuegos o un proxy, aquí le das un fichero de [reglas YAML](/es/tools/masstin-custom-parsers/) y sus filas entran en la misma timeline.
+
+## Paso 3: dónde
+
+El CSV que se va a escribir (por defecto, junto a la evidencia) y qué hacer con él al terminar: abrirlo aquí en lugar de lo que hay, añadirlo a lo que hay, abrirlo como tabla o con la aplicación de CSV del sistema.
+
+Si la evidencia está en un recurso que no debe modificarse, este es el momento de cambiar la ruta de salida.
+
+## Paso 4: en marcha
+
+[![Último paso, terminado: las tres fases con su marca, el desglose por carpeta con los eventos de cada máquina y el resumen final con 3 792 eventos](/assets/images/viewer/i-step4.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/i-step4.webp)
+
+masstin se lanza como un proceso aparte, y lo que diría en la consola se dibuja aquí: las tres fases con una marca según acaban, la barra de progreso con el fichero que está leyendo, el desglose por carpeta y el resumen. En este caso, cuatro artefactos, 3 792 eventos, medio segundo.
+
+**Stop** mata el proceso. Cuando termina, eliges: abrirla aquí, verla como tabla, abrirla con otro programa, enseñarla en la carpeta o analizar más.
+
+Detrás del asistente, ya se ve el grafo de lo que acaba de leer.
+
+## La línea de comandos, siempre a la vista
+
+Todos los pasos enseñan abajo el comando exacto que se va a ejecutar:
+
+```bash
+masstin -a parse -d D:\demo\lab-session\evtx -o D:\demo\blog\v2\ingest-out.csv --overwrite
+```
+
+El asistente no hace nada que no puedas hacer tú desde una terminal. Es la misma orden. Sirve para aprender los parámetros sin leer la ayuda, y para copiar el comando a un script cuando la próxima vez sean cuarenta carpetas en vez de una.
+
+## Si la evidencia no está en disco
+
+En el primer paso hay un botón más: **Read it from a Cortex XDR tenant…**. Abre otro asistente, que tiene [su propio artículo](/es/tools/masstin-viewer-cortex/).
