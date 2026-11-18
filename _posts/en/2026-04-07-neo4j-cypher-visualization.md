@@ -22,14 +22,14 @@ Neo4j turns [masstin's](/en/tools/masstin-lateral-movement-rust/) timeline into 
 
 ## Data transformations
 
-Masstin preserves the original values from the evidence as much as possible. Node names (hostnames, IPs) and properties are stored **without transformation** — `SRV-FILE01` stays as `SRV-FILE01`, `10.10.1.50` stays as `10.10.1.50`.
+Masstin preserves the original values from the evidence as much as possible. Node names (hostnames, IPs) are stored as they are, only turned to **upper case** so that `srv-file01` and `SRV-FILE01` are one node. Dots and hyphens are left alone: `10.10.1.50` stays `10.10.1.50`.
 
 The only transformation applies to **relationship types** (the edge label, which represents the user account). This is a Cypher language restriction — relationship types must be valid identifiers and cannot contain dots, hyphens, or start with a number:
 
 | What | Transformation | Example |
 |------|----------------|---------|
 | Relationship type (user) | Dots, hyphens, spaces → `_`, UPPERCASE, strip `@domain` | `j.garcia@ACME.LOCAL` → `J_GARCIA` |
-| Node names (hostnames, IPs) | **No transformation** — original value preserved | `SRV-FILE01` stays `SRV-FILE01` |
+| Node names (hostnames, IPs) | UPPERCASE only | `srv-file01` → `SRV-FILE01` |
 | Properties (src_ip, etc.) | **No transformation** — original value preserved | `10.10.1.50` stays `10.10.1.50` |
 | Usernames in properties | Only `@domain` suffix stripped | `j.garcia@ACME.LOCAL` → `j.garcia` |
 
@@ -177,7 +177,7 @@ ORDER BY datetime(r.time)
 
 ### Filter by specific users, hosts, and IPs
 
-When you've identified suspicious accounts or machines, this query traces their full activity. Remember to use transformed values (underscores, uppercase):
+When you've identified suspicious accounts or machines, this query traces their full activity. Machine names and addresses are written as they are in the evidence, in upper case. Accounts, as they appear in the log:
 
 ```cypher
 MATCH (h1:host)-[r]->(h2:host)
@@ -187,10 +187,10 @@ WHERE datetime(r.time) >= datetime("2026-03-12T00:00:00.000000000Z")
   AND NOT r.target_user_name = 'NO_USER'
   AND r.logon_type IN ['3', '10']
   AND (
-    (h1.name = 'WS_HR02' OR h2.name = 'WS_HR02')
-    OR r.target_user_name IN ['ADM_DOMAIN', 'M_LOPEZ']
-    OR r.subject_user_name IN ['ADM_DOMAIN', 'M_LOPEZ']
-    OR r.src_ip IN ['10_99_88_77', '10_10_1_80']
+    (h1.name = 'WS-HR02' OR h2.name = 'WS-HR02')
+    OR r.target_user_name IN ['adm.domain', 'm.lopez']
+    OR r.subject_user_name IN ['adm.domain', 'm.lopez']
+    OR r.src_ip IN ['10.99.88.77', '10.10.1.80']
   )
 RETURN h1, r, h2
 ORDER BY datetime(r.time)
@@ -200,7 +200,7 @@ ORDER BY datetime(r.time)
 
 ```cypher
 MATCH (h1:host)-[r]->(h2:host)
-WHERE r.target_user_name = 'ADM_DOMAIN'
+WHERE r.target_user_name = 'adm.domain'
 RETURN h1, r, h2
 ORDER BY datetime(r.time)
 ```
@@ -221,7 +221,7 @@ LIMIT 10
 This is one of the most powerful queries for incident reconstruction. It finds all paths between two hosts where **each hop is chronologically later than the previous one** — giving you the actual attack chain as it happened in time:
 
 ```cypher
-MATCH path = (start:host {name:'10_99_88_77'})-[*]->(end:host {name:'SRV_BACKUP'})
+MATCH path = (start:host {name:'10.99.88.77'})-[*]->(end:host {name:'SRV-BACKUP'})
 WHERE ALL(i IN range(0, size(relationships(path))-2)
   WHERE datetime(relationships(path)[i].time) < datetime(relationships(path)[i+1].time))
 RETURN path

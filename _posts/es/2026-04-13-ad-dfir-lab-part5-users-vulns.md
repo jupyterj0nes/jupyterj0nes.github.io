@@ -275,6 +275,6 @@ jon.snow      user
 
 ---
 
-*Siguiente: Part 6 — The Watchers on the Wall: audit configuration with Sysmon (próximamente)*
+*Siguiente: [Part 6 — Ravens and Whispers: configuración de auditoría con Sysmon y auditd](/es/laboratorio/ad-dfir-lab-part6-audit/)*
 
 *Anterior: [Part 4 — Crowning the Domain Controllers: AD with GOAD]({% post_url es/2026-04-13-ad-dfir-lab-part4-goad %})*

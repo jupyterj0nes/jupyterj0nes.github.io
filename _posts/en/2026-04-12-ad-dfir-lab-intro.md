@@ -71,7 +71,7 @@ The entire process is automated with scripts and documented step by step:
 | **Part 7.5** | [Keeping the Kingdoms Alive — Eval Licenses and Lab Longevity]({% post_url en/2026-04-13-ad-dfir-lab-part7-5-licenses %}) | Wall-clock eval test, rearm limits, Telegram alerts |
 | **Part 8** | [A Day in the Realm — Generating Two Years of Historical Noise]({% post_url en/2026-04-13-ad-dfir-lab-part8-historical-noise %}) | Day-as-iteration, Spanish calendar, personas, parallel clock travel, wlms gotcha |
 | **Part 9** | [Collecting the Evidence — Forensic Imaging Pipeline]({% post_url en/2026-04-15-ad-dfir-lab-part9-forensic-imaging %}) | ZFS clones, dd + zstd streaming over SSH, real 52m 42GB benchmark |
-| **Part 9** | Fire and Blood — Attack Scenarios and Forensic Analysis | Attacks, image export, analysis with masstin |
+| **Part 10** | Fire and Blood — Attack Scenarios and Forensic Analysis | Attacks, image export, analysis with masstin |
 
 ## Cost
 

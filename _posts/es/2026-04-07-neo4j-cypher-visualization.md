@@ -22,14 +22,14 @@ Neo4j convierte la timeline de [masstin](/es/tools/masstin-lateral-movement-rust
 
 ## Transformaciones de datos
 
-Masstin preserva los valores originales de la evidencia en la medida de lo posible. Los nombres de nodos (hostnames, IPs) y propiedades se almacenan **sin transformación** — `SRV-FILE01` se mantiene como `SRV-FILE01`, `10.10.1.50` se mantiene como `10.10.1.50`.
+Masstin preserva los valores originales de la evidencia en la medida de lo posible. Los nombres de nodos (hostnames, IPs) se guardan tal cual, solo pasados a **mayúsculas** para que `srv-file01` y `SRV-FILE01` sean el mismo nodo. Los puntos y los guiones no se tocan: `10.10.1.50` se mantiene como `10.10.1.50`.
 
 La única transformación se aplica a los **tipos de relación** (la etiqueta del edge, que representa la cuenta de usuario). Es una restricción del lenguaje Cypher — los tipos de relación deben ser identificadores válidos y no pueden contener puntos, guiones ni empezar por un número:
 
 | Qué | Transformación | Ejemplo |
 |-----|----------------|---------|
 | Tipo de relación (usuario) | Puntos, guiones, espacios → `_`, MAYÚSCULAS, eliminar `@dominio` | `j.garcia@ACME.LOCAL` → `J_GARCIA` |
-| Nombres de nodo (hostnames, IPs) | **Sin transformación** — valor original | `SRV-FILE01` se mantiene `SRV-FILE01` |
+| Nombres de nodo (hostnames, IPs) | Solo a MAYÚSCULAS | `srv-file01` → `SRV-FILE01` |
 | Propiedades (src_ip, etc.) | **Sin transformación** — valor original | `10.10.1.50` se mantiene `10.10.1.50` |
 | Usuarios en propiedades | Solo se elimina el sufijo `@dominio` | `j.garcia@ACME.LOCAL` → `j.garcia` |
 
@@ -177,7 +177,7 @@ ORDER BY datetime(r.time)
 
 ### Filtrar por usuarios, máquinas e IPs específicas
 
-Cuando ya has identificado cuentas o máquinas sospechosas, esta query traza su actividad completa. Recuerda usar los valores transformados (guiones bajos, mayúsculas):
+Cuando ya has identificado cuentas o máquinas sospechosas, esta query traza su actividad completa. Los nombres de máquina y las direcciones se escriben como están en la evidencia, en mayúsculas. Las cuentas, tal como aparecen en el log:
 
 ```cypher
 MATCH (h1:host)-[r]->(h2:host)
@@ -187,10 +187,10 @@ WHERE datetime(r.time) >= datetime("2026-03-12T00:00:00.000000000Z")
   AND NOT r.target_user_name = 'NO_USER'
   AND r.logon_type IN ['3', '10']
   AND (
-    (h1.name = 'WS_HR02' OR h2.name = 'WS_HR02')
-    OR r.target_user_name IN ['ADM_DOMAIN', 'M_LOPEZ']
-    OR r.subject_user_name IN ['ADM_DOMAIN', 'M_LOPEZ']
-    OR r.src_ip IN ['10_99_88_77', '10_10_1_80']
+    (h1.name = 'WS-HR02' OR h2.name = 'WS-HR02')
+    OR r.target_user_name IN ['adm.domain', 'm.lopez']
+    OR r.subject_user_name IN ['adm.domain', 'm.lopez']
+    OR r.src_ip IN ['10.99.88.77', '10.10.1.80']
   )
 RETURN h1, r, h2
 ORDER BY datetime(r.time)
@@ -200,7 +200,7 @@ ORDER BY datetime(r.time)
 
 ```cypher
 MATCH (h1:host)-[r]->(h2:host)
-WHERE r.target_user_name = 'ADM_DOMAIN'
+WHERE r.target_user_name = 'adm.domain'
 RETURN h1, r, h2
 ORDER BY datetime(r.time)
 ```
@@ -221,7 +221,7 @@ LIMIT 10
 Esta es una de las queries más potentes para la reconstrucción de incidentes. Encuentra todos los caminos entre dos hosts donde **cada salto es cronológicamente posterior al anterior** — dándote la cadena real del ataque tal como ocurrió en el tiempo:
 
 ```cypher
-MATCH path = (start:host {name:'10_99_88_77'})-[*]->(end:host {name:'SRV_BACKUP'})
+MATCH path = (start:host {name:'10.99.88.77'})-[*]->(end:host {name:'SRV-BACKUP'})
 WHERE ALL(i IN range(0, size(relationships(path))-2)
   WHERE datetime(relationships(path)[i].time) < datetime(relationships(path)[i+1].time))
 RETURN path

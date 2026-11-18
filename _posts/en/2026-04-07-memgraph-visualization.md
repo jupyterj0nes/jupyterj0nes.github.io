@@ -146,7 +146,7 @@ masstin -a load-memgraph -f timeline.csv --database localhost:7687
 
 By default, Memgraph has no authentication enabled. If you've configured credentials on your instance, use the corresponding parameters. But for a quick analysis deployment, the default configuration is all you need.
 
-Masstin preserves original values from the evidence. Node names and properties are stored without transformation. Only relationship types (user accounts) are normalized to valid Cypher identifiers (uppercase, underscores, `@domain` stripped, any non-alphanumeric character replaced — including the trailing `$` of machine accounts). See the [Neo4j article](/en/tools/neo4j-cypher-visualization/) for details.
+Masstin preserves original values from the evidence. Node names are stored as they are, only turned to upper case; dots and hyphens are left alone. Only relationship types (user accounts) are normalized to valid Cypher identifiers (uppercase, underscores, `@domain` stripped, any non-alphanumeric character replaced — including the trailing `$` of machine accounts). See the [Neo4j article](/en/tools/neo4j-cypher-visualization/) for details.
 
 ### Two loading modes: grouped vs ungrouped
 
@@ -195,10 +195,10 @@ While Memgraph is openCypher compatible, there are a few differences you need to
 Memgraph uses `localDateTime()` instead of `datetime()` for timestamps:
 
 ```cypher
--- Neo4j
+// Neo4j
 WHERE datetime(r.time) >= datetime("2026-03-12T00:00:00.000000000Z")
 
--- Memgraph
+// Memgraph
 WHERE localDateTime(r.time) >= localDateTime("2026-03-12T00:00:00")
 ```
 
@@ -207,12 +207,12 @@ WHERE localDateTime(r.time) >= localDateTime("2026-03-12T00:00:00")
 The syntax changes. Instead of `shortestPath()`, Memgraph uses BFS notation on the relationship:
 
 ```cypher
--- Neo4j
-MATCH path = shortestPath((a:host {name:'WS_HR02'})-[*]->(b:host {name:'SRV_BACKUP'}))
+// Neo4j
+MATCH path = shortestPath((a:host {name:'WS-HR02'})-[*]->(b:host {name:'SRV-BACKUP'}))
 RETURN path
 
--- Memgraph
-MATCH path = (a:host {name:'WS_HR02'})-[*BFS]->(b:host {name:'SRV_BACKUP'})
+// Memgraph
+MATCH path = (a:host {name:'WS-HR02'})-[*BFS]->(b:host {name:'SRV-BACKUP'})
 RETURN path
 ```
 
@@ -262,7 +262,7 @@ ORDER BY localDateTime(r.time)
 The temporal path query works the same way — the `ALL()` + `range()` logic is compatible:
 
 ```cypher
-MATCH path = (start:host {name:'10_99_88_77'})-[*]->(end:host {name:'SRV_BACKUP'})
+MATCH path = (start:host {name:'10.99.88.77'})-[*]->(end:host {name:'SRV-BACKUP'})
 WHERE ALL(i IN range(0, size(relationships(path))-2)
   WHERE localDateTime(relationships(path)[i].time) < localDateTime(relationships(path)[i+1].time))
 RETURN path

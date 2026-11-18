@@ -252,6 +252,6 @@ Remaining playbooks: `ad-data.yml`, `ad-relations.yml`, `ad-acl.yml` create Jon 
 
 ---
 
-*Next: Part 5 — The Smallfolk: Users, Groups, Shares and Vulnerabilities (coming soon)*
+*Next: [Part 5 — The Smallfolk: Users, Groups and Vulnerabilities in GOAD](/en/laboratorio/ad-dfir-lab-part5-users-vulns/)*
 
 *Previous: [Part 3 — Beyond the Wall: pfSense, VLANs and Network Segmentation]({% post_url en/2026-04-12-ad-dfir-lab-part3-pfsense %})*

@@ -85,7 +85,7 @@ La lógica está bien pensada: si es una instalación nueva, usa `-i`; si ya est
 | 13 | RegistryValueSet | Modificación del registro (persistencia) |
 | 22 | DnsQuery | Resolución DNS — gold para detectar C2 |
 
-Después de los ataques, tendremos miles de estos eventos en `Microsoft-Windows-Sysmon/Operational.evtx`.
+Después de los ataques, tendremos miles de estos eventos en `Microsoft-Windows-Sysmon/Operational` (en disco, el fichero `Microsoft-Windows-Sysmon%4Operational.evtx`).
 
 ## Windows Advanced Audit Policy
 
@@ -308,6 +308,6 @@ Las 7 máquinas del dominio están instrumentadas. Cuando lancemos los ataques e
 
 ---
 
-*Siguiente: Part 7 — Fire and Blood: Attack Scenarios and Forensic Analysis (próximamente)*
+*Siguiente: [Part 7 — The Night King Rises: Kali como plataforma de ataque](/es/laboratorio/ad-dfir-lab-part7-kali/)*
 
 *Anterior: [Part 5 — The Smallfolk: Users, Groups and Vulnerabilities]({% post_url es/2026-04-13-ad-dfir-lab-part5-users-vulns %})*

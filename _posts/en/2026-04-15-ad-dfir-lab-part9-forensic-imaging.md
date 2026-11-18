@@ -173,9 +173,7 @@ do_dump() {
     dd if="$zvol_device" bs="16M" status=none 2>/dev/null \
         | zstd -T0 "-${level}" --quiet
 
-    local rc zst_rc
-    rc=${PIPESTATUS[0]}
-    zst_rc=${PIPESTATUS[1]:-0}
+    local rc=${PIPESTATUS[0]} zst_rc=${PIPESTATUS[1]:-0}
 
     zfs destroy "$clone" 2>/dev/null || true
     CLONE=""

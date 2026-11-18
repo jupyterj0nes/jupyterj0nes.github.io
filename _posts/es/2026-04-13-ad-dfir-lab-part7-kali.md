@@ -210,7 +210,7 @@ Get-WinEvent -FilterHashtable @{LogName="Security"; Id=4768} |
 
 Solución: revertir las VMs Windows al snapshot anterior (`audit-configured`), dejar Kali intocada (su estado con tools instaladas es correcto), y retomar `clean-ad` con Windows limpios + Kali armado. ZFS snapshots por VM son independientes, así que podemos revertir solo algunas VMs y snapshottar diferentes estados en el mismo "punto lógico".
 
-**Regla**: cualquier acción que toque el dominio deja rastros en EVTX. Haz tus tests **antes** del snapshot target, no después.
+**Regla**: cualquier acción que toque el dominio deja rastros en EVTX. Haz el snapshot target **antes** de cualquier test, no después.
 
 El siguiente paso será generar el snapshot contrario: un AD con **un año de actividad corporativa simulada** encima, donde los mismos ataques se esconden entre miles de eventos legítimos. Los dos snapshots servirán para casos de uso diferentes:
 
