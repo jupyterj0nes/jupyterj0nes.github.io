@@ -22,6 +22,8 @@ masstin -a parse -d /evidence/case -o timeline.csv
 
 `-d` is a folder, walked whole. `-f` is a file, and only that file is read. Both can be repeated and mixed.
 
+<figure class="diagram"><img src="/assets/images/diagrams/one-timeline-en.svg" alt="What masstin does: many ways of recording a login, one file at the end." loading="lazy"><figcaption>What masstin does: many ways of recording a login, one file at the end.</figcaption></figure>
+
 ## It looks first
 
 The first thing `parse` does is count what you gave it. This is our lab's case, as we collected it:
@@ -36,6 +38,13 @@ Disk images: --carve also carves the EVTX records of deleted or overwritten logs
 One disk image, four zipped KAPE triages, a folder of loose EVTX and two Linux triages. Four different formats, and the command is the same as for a folder with a single `Security.evtx`.
 
 It recognises: EVTX files and ZIPs of EVTX, UAL databases, KAPE, Velociraptor, Cortex XDR and UAC triages, disk images (E01, VMDK, VHD/VHDX, dd), Linux logs and triages, macOS `.logarchive` bundles, Winlogbeat JSON and masstin timelines already made.
+
+<video autoplay loop muted playsinline controls style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
+  <source src="/assets/video/masstin-parse.mp4" type="video/mp4">
+  masstin reading a folder of Windows logs: it detects what is there, parses it and writes the timeline.
+</video>
+
+<p class="video-cap">masstin reading a folder of Windows logs: it detects what is there, parses it and writes the timeline.</p>
 
 ## Then it reads everything
 

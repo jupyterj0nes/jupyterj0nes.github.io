@@ -29,6 +29,8 @@ First, a figure to get your bearings. In our lab's case (seven machines) 6,162 e
 
 Nearly 60 % of the entries are services and their DLLs. Run keys, which is where anyone looking by hand starts, are six entries in six thousand. What the lab planted was in one of those six and in one of the 900 tasks.
 
+<figure class="diagram"><img src="/assets/images/diagrams/persistence-en.svg" alt="Every group on this page is a variant of the middle column: a place to hook something to a moment." loading="lazy"><figcaption>Every group on this page is a variant of the middle column: a place to hook something to a moment.</figcaption></figure>
+
 ## Autostart
 
 What runs at power-on or at logon, with no further conditions.
@@ -138,7 +140,7 @@ Every technique above is also looked for in what was deleted:
 - **The ext4 journal.** Files deleted or rewritten in Linux's persistence locations.
 - **`--carve`.** Whole hives recovered from the bytes of the image.
 
-In the lab's case that was 44 deleted entries and 3 that were only in the shadow copy.
+In the lab's case that was 44 deleted persistence entries and 3 that were only in the shadow copy. That is far fewer than the deleted keys recovered from a hive, because most of those keys are not persistence locations.
 
 ## Running only a part
 

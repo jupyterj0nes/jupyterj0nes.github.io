@@ -20,6 +20,8 @@ Son públicas y se pueden usar por separado. Este artículo es para quien quiera
 
 ## evidencefs: una sola forma de abrir la evidencia
 
+<figure class="diagram"><img src="/assets/images/diagrams/evidence-layers-es.svg" alt="Las capas que hay que abrir para llegar a un fichero dentro de una imagen de disco." loading="lazy"><figcaption>Las capas que hay que abrir para llegar a un fichero dentro de una imagen de disco.</figcaption></figure>
+
 El problema que resuelve es aburrido y enorme. Antes de leer un solo log hay que saber si la entrada es una imagen o un archivo, qué formato tiene, qué particiones lleva dentro, cuáles tienen un sistema de ficheros que se pueda leer, si hay copias de sombra, si el zip es un triage de KAPE o de Velociraptor y dónde está en él la raíz de Windows.
 
 evidencefs recibe una ruta y devuelve una lista de **montajes**: sistemas de ficheros de solo lectura que se recorren todos igual, vengan de donde vengan.

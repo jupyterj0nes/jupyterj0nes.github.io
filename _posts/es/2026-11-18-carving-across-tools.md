@@ -16,6 +16,8 @@ Borrar un fichero no borra sus bytes. Borra la anotación que decía dónde esta
 
 Todas las herramientas de esta página recuperan cosas borradas, y todas lo hacen en dos niveles que conviene no confundir, porque uno es gratis y el otro cuesta una lectura entera del disco.
 
+<figure class="diagram"><img src="/assets/images/diagrams/recovery-levels-es.svg" alt="El nivel uno va incluido siempre. El nivel dos se pide con --carve y cuesta una lectura entera del disco." loading="lazy"><figcaption>El nivel uno va incluido siempre. El nivel dos se pide con --carve y cuesta una lectura entera del disco.</figcaption></figure>
+
 ## Nivel uno: lo que todavía está descrito
 
 Se lee **siempre**, sin pedir nada. Son estructuras que la herramienta ya está recorriendo y que conservan lo borrado en su interior:
@@ -25,7 +27,7 @@ Se lee **siempre**, sin pedir nada. Son estructuras que la herramienta ya está 
 | Registros sin usar del `$MFT` | El nombre, las fechas y el tamaño de un fichero borrado, hasta que otro fichero reutiliza el registro |
 | Celdas libres de un hive | Claves y valores de registro borrados |
 | Copias de sombra | El volumen entero tal como estaba en el momento de la instantánea |
-| El diario de ext4 | Copias de inodos y de directorios de antes de cada cambio |
+| El diario de ext4 | Copias de inodos y de directorios de antes de cada cambio. faramir y etcdump lo leen siempre; allymacb, solo con `--carve` |
 | Huecos en los directorios de XFS | El nombre de un fichero borrado |
 
 Es lo que explica que, en el caso de nuestro laboratorio y sin ninguna opción especial, [caarea](/es/tools/caarea-execution/) diera 1 180 filas de cosas borradas y 1 136 que solo existían en la copia de sombra, y [faramir](/es/tools/faramir-persistence/) recuperase 711 claves borradas de un solo hive.
@@ -77,6 +79,13 @@ La comparación es por identidad (qué es), nunca por posición en el disco.
 
 El primer caso tiene una consecuencia que no se ve venir. Si el estado antiguo de un fichero tiene una fecha **posterior** a la del estado actual, alguien movió sus fechas hacia atrás. Es la regla `backdated` de allymacb, y solo se puede comprobar con carving. Una versión vieja no puede ser más nueva.
 
+<video autoplay loop muted playsinline controls style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
+  <source src="/assets/video/allymacb-carve.mp4" type="video/mp4">
+  allymacb --carve sobre un volumen de prueba: los ficheros recuperados salen con la marca carved y la posición exacta donde estaban.
+</video>
+
+<p class="video-cap">allymacb --carve sobre un volumen de prueba: los ficheros recuperados salen con la marca carved y la posición exacta donde estaban.</p>
+
 ## Cómo se marcan
 
 Una fila recuperada por carving no es la misma clase de evidencia que una leída de la tabla viva, y la timeline no lo mezcla. Cada una lleva su origen y la posición exacta en la que se encontró:
@@ -95,6 +104,10 @@ Con esa posición, otro analista puede ir a ese byte de la imagen y comprobarlo.
 
 Una medida real. allymacb con `--carve` sobre la imagen de 50 GB de nuestro laboratorio:
 
+```bash
+allymacb -f dev-srv01.vmdk --carve -o srv01-carve.csv
+```
+
 ```
 Carving: 534092 FILE record(s) seen, 30 not in the live $MFT;
          58485 INDX block(s), 838063 entries, 8727 not in the live $MFT;
@@ -111,7 +124,7 @@ Lo que dio:
 
 - **De 534 092 registros del `$MFT` encontrados, 30 no estaban en la tabla viva.** Los demás eran copias de lo que ya se tenía, y se descartaron. Es lo normal en un disco joven que nunca se ha formateado: casi nada se ha reutilizado todavía.
 - **De 838 063 entradas de índice, 8 727 no estaban en el `$MFT` vivo.** Aquí está el grueso: los índices de las carpetas conservan nombres de ficheros que la tabla viva ya no tiene.
-- **18 730 filas nuevas** sobre un millón y medio.
+- **18 730 filas nuevas** sobre un millón y medio. Son más filas que elementos recuperados porque cada uno da una fila por cada fecha distinta que tiene.
 
 Entre ellas, `invoice.pdf.exe` otra vez, ahora en el índice de su carpeta:
 

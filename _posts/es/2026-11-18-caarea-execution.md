@@ -20,6 +20,13 @@ comments: true
 caarea -f servidor.E01 -o servidor.csv --hunt
 ```
 
+<video autoplay loop muted playsinline controls style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
+  <source src="/assets/video/caarea-hunt.mp4" type="video/mp4">
+  caarea sobre un triage de Windows y un Linux: lee las fuentes, escribe la timeline y termina con las filas que merece la pena leer primero.
+</video>
+
+<p class="video-cap">caarea sobre un triage de Windows y un Linux: lee las fuentes, escribe la timeline y termina con las filas que merece la pena leer primero.</p>
+
 ## Lo que lee
 
 Más de sesenta fuentes:
@@ -67,6 +74,8 @@ Otro usuario inicia sesión y la clave Run hace su trabajo: `explorer.exe` lanza
 Ninguna de esas fuentes cuenta la historia sola. El 4688 no sabe que el fichero acababa de crearse. El `$MFT` no sabe quién lo creó. La clave Run no sabe si llegó a ejecutarse. Ordenadas por tiempo en el mismo CSV, sí.
 
 ## El árbol de procesos
+
+<figure class="diagram"><img src="/assets/images/diagrams/process-tree-es.svg" alt="Subiendo de padre en padre se ve que el binario llegó por una sesión SSH." loading="lazy"><figcaption>Subiendo de padre en padre se ve que el binario llegó por una sesión SSH.</figcaption></figure>
 
 Con `--hunt`, caarea reconstruye antes de nada el árbol de procesos de cada máquina, a partir de los PID de creador que dan el 4688, Sysmon, `auditd` y `pacct`. Cada fila juzgada lleva su genealogía:
 
@@ -116,7 +125,7 @@ Con `--carve` va más allá: recorre los bytes de la imagen (o de un `pagefile`,
 
 Las cifras del hunt en esta ejecución, miradas una por una:
 
-**De las 85 filas significativas, 29 son los dos binarios de arriba.** Buena parte del resto es una misma regla (`NAM-SYSTEM-PATH`, binario de sistema fuera de su carpeta) saltando donde no debe: sobre ficheros cuya carpeta no se pudo reconstruir y aparece como `[UNKNOWN]`, sobre un acceso directo que escribe la ruta como `My Computer\C:\...`, y sobre entradas de UserAssist con `{System}\notepad.exe`. En los tres casos el binario está donde tiene que estar; lo que falla es la forma en que llega escrita la ruta. Se descartan rápido, pero hay que saberlo.
+**De las 85 filas significativas, 29 son los dos binarios de arriba:** las 17 que se ven en la consola y otras 12 de sus copias borradas, que salen como entradas aparte. Buena parte del resto es una misma regla (`NAM-SYSTEM-PATH`, binario de sistema fuera de su carpeta) saltando donde no debe: sobre ficheros cuya carpeta no se pudo reconstruir y aparece como `[UNKNOWN]`, sobre un acceso directo que escribe la ruta como `My Computer\C:\...`, y sobre entradas de UserAssist con `{System}\notepad.exe`. En los tres casos el binario está donde tiene que estar; lo que falla es la forma en que llega escrita la ruta. Se descartan rápido, pero hay que saberlo.
 
 **De las 1 555 candidatas, 1 367 son una sola cosa:** un script del laboratorio en `Users\Public` que una tarea programada lanza una y otra vez. La consola lo cuenta como una entrada con su número de repeticiones, así que en la práctica se lee una vez.
 

@@ -24,6 +24,8 @@ faramir -d /evidencia/caso -o persistencia.csv
 
 Es el sucesor en Rust de [Boromir](/es/tools/persistence-boromir/), el cazador de persistencia en Python de Alejandro Gamboa.
 
+<figure class="diagram"><img src="/assets/images/diagrams/persistence-es.svg" alt="Tres formas de que la máquina ejecute algo sola. Es lo que plantó el laboratorio, y lo que faramir encuentra." loading="lazy"><figcaption>Tres formas de que la máquina ejecute algo sola. Es lo que plantó el laboratorio, y lo que faramir encuentra.</figcaption></figure>
+
 ## Lo que lee
 
 Lo mismo que el resto de la familia, sin montar ni extraer nada antes: imágenes E01, raw, VMDK y VHD/VHDX con NTFS, ext4 o XFS; triages de KAPE, Velociraptor, Cortex XDR, CyLR y UAC; volúmenes montados; o un único hive del registro.

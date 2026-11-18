@@ -1,0 +1,9 @@
+{%- assign g_lang = page.lang | default: "es" -%}
+{%- assign g = site.data.guide[page.ref][g_lang] -%}
+{%- if g and g.steps and g.steps.size > 0 %}
+<aside class="guide guide-end" id="paso-a-paso">
+  <div class="guide-head"><span class="guide-kicker">{% if g_lang == "en" %}Recap{% else %}Resumen{% endif %}</span></div>
+  <h2>{% if g_lang == "en" %}Step by step, in short{% else %}Paso a paso, en corto{% endif %}</h2>
+  <ol class="guide-steps">{% for i in g.steps %}<li>{{ i | markdownify | remove: "<p>" | remove: "</p>" }}</li>{% endfor %}</ol>
+</aside>
+{%- endif %}

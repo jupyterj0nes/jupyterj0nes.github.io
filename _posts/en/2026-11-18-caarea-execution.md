@@ -20,6 +20,13 @@ comments: true
 caarea -f server.E01 -o server.csv --hunt
 ```
 
+<video autoplay loop muted playsinline controls style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
+  <source src="/assets/video/caarea-hunt.mp4" type="video/mp4">
+  caarea over a Windows triage and a Linux host: it reads the sources, writes the timeline and ends with the rows worth reading first.
+</video>
+
+<p class="video-cap">caarea over a Windows triage and a Linux host: it reads the sources, writes the timeline and ends with the rows worth reading first.</p>
+
 ## What it reads
 
 More than sixty sources:
@@ -67,6 +74,8 @@ Another user logs on and the Run key does its job: `explorer.exe` launches the `
 None of those sources tells the story alone. The 4688 does not know the file had just been created. The `$MFT` does not know who created it. The Run key does not know whether it ever ran. Sorted by time in the same CSV, they do.
 
 ## The process tree
+
+<figure class="diagram"><img src="/assets/images/diagrams/process-tree-en.svg" alt="Climbing from parent to parent shows the binary came in through an SSH session." loading="lazy"><figcaption>Climbing from parent to parent shows the binary came in through an SSH session.</figcaption></figure>
 
 With `--hunt`, caarea first rebuilds each machine's process tree, from the creator PIDs given by 4688, Sysmon, `auditd` and `pacct`. Every judged row carries its lineage:
 
@@ -116,7 +125,7 @@ It also repairs dirty hives before reading them. On this image it replayed the t
 
 The hunt's figures in this run, looked at one by one:
 
-**Of the 85 significant rows, 29 are the two binaries above.** A good part of the rest is one rule (`NAM-SYSTEM-PATH`, a system binary outside its folder) firing where it should not: on files whose folder could not be rebuilt and shows as `[UNKNOWN]`, on a shortcut that writes the path as `My Computer\C:\...`, and on UserAssist entries with `{System}\notepad.exe`. In all three the binary is where it belongs; what fails is the way the path arrives written. They are quick to dismiss, but you need to know.
+**Of the 85 significant rows, 29 are the two binaries above:** the 17 shown in the console and another 12 from their deleted copies, which come out as separate entries. A good part of the rest is one rule (`NAM-SYSTEM-PATH`, a system binary outside its folder) firing where it should not: on files whose folder could not be rebuilt and shows as `[UNKNOWN]`, on a shortcut that writes the path as `My Computer\C:\...`, and on UserAssist entries with `{System}\notepad.exe`. In all three the binary is where it belongs; what fails is the way the path arrives written. They are quick to dismiss, but you need to know.
 
 **Of the 1,555 candidates, 1,367 are one single thing:** a lab script in `Users\Public` that a scheduled task launches over and over. The console counts it as one entry with its number of repetitions, so in practice it is read once.
 

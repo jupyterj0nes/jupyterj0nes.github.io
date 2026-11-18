@@ -1,0 +1,35 @@
+{%- comment -%}
+  The guide card at the top of an article: level, what you will learn, what
+  you need and the words a beginner may not know. The text lives in
+  _data/guide.json, keyed by the article's `ref`, in both languages.
+{%- endcomment -%}
+{%- assign g_lang = page.lang | default: "es" -%}
+{%- assign g = site.data.guide[page.ref][g_lang] -%}
+{%- if g %}
+<aside class="guide guide-top">
+  <div class="guide-head">
+    <span class="guide-kicker">{% if g_lang == "en" %}Before you start{% else %}Antes de empezar{% endif %}</span>
+    {%- if g.level %}<span class="guide-level guide-level-{{ g.level | slugify }}">{% if g_lang == "en" %}Level{% else %}Nivel{% endif %}: {{ g.level }}</span>{% endif %}
+  </div>
+  <div class="guide-cols">
+    {%- if g.learn %}
+    <div>
+      <h2>{% if g_lang == "en" %}What you will learn{% else %}Qué vas a aprender{% endif %}</h2>
+      <ul class="guide-learn">{% for i in g.learn %}<li>{{ i | markdownify | remove: "<p>" | remove: "</p>" }}</li>{% endfor %}</ul>
+    </div>
+    {%- endif %}
+    {%- if g.need %}
+    <div>
+      <h2>{% if g_lang == "en" %}What you need{% else %}Qué necesitas{% endif %}</h2>
+      <ul class="guide-need">{% for i in g.need %}<li>{{ i | markdownify | remove: "<p>" | remove: "</p>" }}</li>{% endfor %}</ul>
+    </div>
+    {%- endif %}
+  </div>
+  {%- if g.terms and g.terms.size > 0 %}
+  <details class="guide-terms">
+    <summary>{% if g_lang == "en" %}Words you will meet{% else %}Palabras que vas a ver{% endif %} <span>{{ g.terms.size }}</span></summary>
+    <dl>{% for tm in g.terms %}<div><dt>{{ tm[0] | markdownify | remove: "<p>" | remove: "</p>" }}</dt><dd>{{ tm[1] | markdownify | remove: "<p>" | remove: "</p>" }}</dd></div>{% endfor %}</dl>
+  </details>
+  {%- endif %}
+</aside>
+{%- endif %}

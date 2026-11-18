@@ -31,6 +31,8 @@ One word is missing on purpose: *suspicious*. A person decides that, and it goes
 
 ## The scale
 
+<figure class="diagram"><img src="/assets/images/diagrams/hunt-scale-en.svg" alt="The scale is logarithmic: from 20 to 30 points is not a bit rarer, it is ten times rarer." loading="lazy"><figcaption>The scale is logarithmic: from 20 to 30 points is not a bit rarer, it is ten times rarer.</figcaption></figure>
+
 `hunt_score` runs from 0 to 100 and measures **how rare the row is**, not how sure the tool is.
 
 The sum is `−10 · log10(p)`, where `p` is the share of normal rows that look at least this rare. Without the formula, every ten points are one order of magnitude:
@@ -58,7 +60,7 @@ A rule's author states only its **level** (high, medium or low), which decides t
 - A rule that never fired is not worth "infinity". It is worth what the size of the reference allows you to claim: one in 2,004, which is 33 points.
 - A rule that fires on more than one clean row in ten is noise: it gives no state and no points, it is only noted.
 
-That last line is the one that changes things most. The classic timestomping rule, `$SI` earlier than `$FN`, fires on one file in four of a clean modern Windows. In [allymacb](/en/tools/allymacb-timestomping-rules/) it is worth zero.
+That last line is the one that changes things most. The classic timestomping rule, `$SI` earlier than `$FN`, fires on one file in four of a clean modern Windows. In [allymacb](/en/tools/allymacb-timestomping-rules/) it stays at 6 points, below the minimum, so it does not score.
 
 And it explains an oddity: the ceiling of a single rule depends on how large the clean reference is. That is why a rule that never fails is worth 33 in faramir (2,003 reference rows), 39 in caarea (8,671), 40 in etcdump (10,017) and 56 in allymacb (431,153). allymacb is not more certain. It has more clean files to compare with than faramir has persistence entries.
 
@@ -75,7 +77,7 @@ It shows on a single screen of [etcdump](/en/tools/etcdump-linux-configuration/)
 [   4] ubuntu = ALL=(ALL) NOPASSWD:ALL         <<< habitual rule LNX-SUDO-NOPASSWD-ALL (medium)
 ```
 
-The same rule, on two lines that grant the same thing. Ubuntu ships with the second.
+The same rule, on two lines that grant the same thing. Ubuntu ships with the second. (The numbers in brackets are the line of the file, not a score.)
 
 ## The statistics
 

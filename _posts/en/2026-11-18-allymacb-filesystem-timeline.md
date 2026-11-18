@@ -22,6 +22,13 @@ That is where the questions a case always ends up asking come from. When did thi
 allymacb -f disk.E01 -o timeline.csv
 ```
 
+<video autoplay loop muted playsinline controls style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
+  <source src="/assets/video/allymacb-hunt.mp4" type="video/mp4">
+  allymacb at work: it reads the volume, writes the timeline and shows the files with tampered timestamps first.
+</video>
+
+<p class="video-cap">allymacb at work: it reads the volume, writes the timeline and shows the files with tampered timestamps first.</p>
+
 ## What it reads
 
 - **NTFS:** the `$MFT` and the `$UsnJrnl:$J` journal.
@@ -47,6 +54,8 @@ Elapsed time             : 35.04s
 A million and a half entries in 35 seconds, and with any number of threads the output is identical byte for byte.
 
 ## What MACB is
+
+<figure class="diagram"><img src="/assets/images/diagrams/macb-en.svg" alt="A file's four timestamps and how the timeline writes them." loading="lazy"><figcaption>A file's four timestamps and how the timeline writes them.</figcaption></figure>
 
 Every file has four timestamps, and the timeline has one row per distinct instant, with a mark saying which of them fall on it:
 
@@ -101,6 +110,8 @@ Seventy-eight milliseconds earlier, `update.bat` is born in `C:\Users\Public`. T
 Two tools, two sources of evidence that have nothing to do with each other, and the same file. The registry says it will run on every boot; the file system, when it arrived and what it came with.
 
 ## How it catches forged dates
+
+<figure class="diagram"><img src="/assets/images/diagrams/si-fn-en.svg" alt="The two copies of the timestamps in NTFS. The timestomping tool changes the first; the second still says when the file arrived." loading="lazy"><figcaption>The two copies of the timestamps in NTFS. The timestomping tool changes the first; the second still says when the file arrived.</figcaption></figure>
 
 NTFS keeps each file's timestamps twice: in `$STANDARD_INFORMATION`, which is what Explorer shows and what any tool can change, and in `$FILE_NAME`, which only the system touches. Timestomping tools change the first and leave the second. Compare them and the seam shows.
 

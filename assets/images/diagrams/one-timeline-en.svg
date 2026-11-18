@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="440" viewBox="0 0 1200 440" role="img" aria-label="Many sources, one timeline">
+<defs><radialGradient id="g" cx="0.5" cy="0.1" r="1"><stop offset="0" stop-color="#14213a"/><stop offset="0.7" stop-color="#0b1322"/><stop offset="1" stop-color="#070c15"/></radialGradient><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#9aa8bb"/></marker><marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#e3a44f"/></marker></defs>
+<rect width="1200" height="440" fill="url(#g)"/>
+<text x="60" y="62" font-family="Fraunces, Georgia, 'Times New Roman', serif" font-size="28" fill="#f6eedd" text-anchor="start" font-weight="600">Many sources, one timeline</text>
+<text x="60" y="96" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#9aa8bb" text-anchor="start" font-weight="400">Every system records logins its own way. masstin leaves them all in the same format.</text>
+<rect x="60" y="130" width="340" height="56" rx="10" fill="#0f1826" stroke="#7aa6f2" stroke-width="1.6"/>
+<text x="84" y="165" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#f6eedd" text-anchor="start" font-weight="600">Windows</text>
+<text x="376" y="165" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="13" fill="#7aa6f2" text-anchor="end" font-weight="400">EVTX · UAL</text>
+<path d="M402 158 L498 264" stroke="#e3a44f" stroke-width="2" fill="none" marker-end="url(#aa)"/>
+<rect x="60" y="202" width="340" height="56" rx="10" fill="#0f1826" stroke="#58c98f" stroke-width="1.6"/>
+<text x="84" y="237" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#f6eedd" text-anchor="start" font-weight="600">Linux</text>
+<text x="376" y="237" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="13" fill="#58c98f" text-anchor="end" font-weight="400">auth.log · wtmp · journal</text>
+<path d="M402 230 L498 264" stroke="#e3a44f" stroke-width="2" fill="none" marker-end="url(#aa)"/>
+<rect x="60" y="274" width="340" height="56" rx="10" fill="#0f1826" stroke="#e3a44f" stroke-width="1.6"/>
+<text x="84" y="309" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#f6eedd" text-anchor="start" font-weight="600">macOS</text>
+<text x="376" y="309" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="13" fill="#e3a44f" text-anchor="end" font-weight="400">logarchive</text>
+<path d="M402 302 L498 264" stroke="#e3a44f" stroke-width="2" fill="none" marker-end="url(#aa)"/>
+<rect x="60" y="346" width="340" height="56" rx="10" fill="#0f1826" stroke="#ef6a7d" stroke-width="1.6"/>
+<text x="84" y="381" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#f6eedd" text-anchor="start" font-weight="600">EDR and network</text>
+<text x="376" y="381" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="13" fill="#ef6a7d" text-anchor="end" font-weight="400">VPN · firewall</text>
+<path d="M402 374 L498 264" stroke="#e3a44f" stroke-width="2" fill="none" marker-end="url(#aa)"/>
+<rect x="500" y="214" width="200" height="100" rx="10" fill="#0f1826" stroke="#e3a44f" stroke-width="2.2"/>
+<text x="600" y="258" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="24" fill="#e3a44f" text-anchor="middle" font-weight="700">masstin</text>
+<text x="600" y="286" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="15" fill="#9aa8bb" text-anchor="middle" font-weight="400">-a parse</text>
+<path d="M702 264 L778 264" stroke="#e3a44f" stroke-width="2" fill="none" marker-end="url(#aa)"/>
+<rect x="780" y="150" width="360" height="228" rx="10" fill="#0f1826" stroke="#2c4164" stroke-width="1.6"/>
+<text x="804" y="186" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="18" fill="#f6eedd" text-anchor="start" font-weight="700">timeline.csv</text>
+<circle cx="812" cy="216" r="4" fill="#58c98f"/>
+<text x="830" y="222" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#c3cdda" text-anchor="start" font-weight="400">when</text>
+<circle cx="812" cy="248" r="4" fill="#58c98f"/>
+<text x="830" y="254" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#c3cdda" text-anchor="start" font-weight="400">on which machine</text>
+<circle cx="812" cy="280" r="4" fill="#58c98f"/>
+<text x="830" y="286" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#c3cdda" text-anchor="start" font-weight="400">from where</text>
+<circle cx="812" cy="312" r="4" fill="#58c98f"/>
+<text x="830" y="318" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#c3cdda" text-anchor="start" font-weight="400">with which account</text>
+<circle cx="812" cy="344" r="4" fill="#58c98f"/>
+<text x="830" y="350" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#c3cdda" text-anchor="start" font-weight="400">how (RDP, SSH, SMB…)</text>
+</svg>

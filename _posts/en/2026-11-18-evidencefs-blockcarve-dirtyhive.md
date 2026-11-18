@@ -20,6 +20,8 @@ They are public and can be used on their own. This article is for anyone who wan
 
 ## evidencefs: one way to open evidence
 
+<figure class="diagram"><img src="/assets/images/diagrams/evidence-layers-en.svg" alt="The layers to open before reaching a file inside a disk image." loading="lazy"><figcaption>The layers to open before reaching a file inside a disk image.</figcaption></figure>
+
 The problem it solves is dull and huge. Before a single log is read you have to know whether the input is an image or an archive, what format it is, which partitions are inside, which of them hold a file system that can be read, whether there are shadow copies, whether the zip is a KAPE or a Velociraptor triage and where the Windows root is inside it.
 
 evidencefs takes a path and returns a list of **mounts**: read-only file systems that are all walked the same way, wherever they come from.

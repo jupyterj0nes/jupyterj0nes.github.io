@@ -16,6 +16,8 @@ Deleting a file does not delete its bytes. It deletes the note that said where t
 
 Every tool on this page recovers deleted things, and they all do it at two levels worth keeping apart, because one is free and the other costs a full read of the disk.
 
+<figure class="diagram"><img src="/assets/images/diagrams/recovery-levels-en.svg" alt="Level one is always included. Level two is asked for with --carve and costs a full read of the disk." loading="lazy"><figcaption>Level one is always included. Level two is asked for with --carve and costs a full read of the disk.</figcaption></figure>
+
 ## Level one: what is still described
 
 It is **always** read, without asking. These are structures the tool is already walking and that keep what was deleted inside them:
@@ -25,7 +27,7 @@ It is **always** read, without asking. These are structures the tool is already 
 | Unused `$MFT` records | The name, times and size of a deleted file, until another file reuses the record |
 | Free cells of a hive | Deleted registry keys and values |
 | Shadow copies | The whole volume as it was at snapshot time |
-| The ext4 journal | Copies of inodes and directories from before each change |
+| The ext4 journal | Copies of inodes and directories from before each change. faramir and etcdump always read it; allymacb, only with `--carve` |
 | Gaps in XFS directories | The name of a deleted file |
 
 That is why, in our lab's case and with no special option, [caarea](/en/tools/caarea-execution/) gave 1,180 rows about deleted things and 1,136 that existed only in the shadow copy, and [faramir](/en/tools/faramir-persistence/) recovered 711 deleted keys from a single hive.
@@ -77,6 +79,13 @@ The comparison is by identity (what it is), never by position on the disk.
 
 The first case has a consequence you do not see coming. If the old state of a file has a **later** time than the current state, someone moved its times back. That is allymacb's `backdated` rule, and it can only be checked with carving. An older version cannot be newer.
 
+<video autoplay loop muted playsinline controls style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
+  <source src="/assets/video/allymacb-carve.mp4" type="video/mp4">
+  allymacb --carve on a test volume: recovered files come out with the carved mark and the exact position where they were.
+</video>
+
+<p class="video-cap">allymacb --carve on a test volume: recovered files come out with the carved mark and the exact position where they were.</p>
+
 ## How they are marked
 
 A row recovered by carving is not the same kind of evidence as one read from the live table, and the timeline does not blur that. Each carries its origin and the exact position where it was found:
@@ -95,6 +104,10 @@ With that position, another analyst can go to that byte of the image and check i
 
 A real measurement. allymacb with `--carve` on our lab's 50 GB image:
 
+```bash
+allymacb -f dev-srv01.vmdk --carve -o srv01-carve.csv
+```
+
 ```
 Carving: 534092 FILE record(s) seen, 30 not in the live $MFT;
          58485 INDX block(s), 838063 entries, 8727 not in the live $MFT;
@@ -111,7 +124,7 @@ What it gave:
 
 - **Of 534,092 `$MFT` records found, 30 were not in the live table.** The rest were copies of what was already there, and were dropped. That is normal for a young disk that has never been formatted: hardly anything has been reused yet.
 - **Of 838,063 index entries, 8,727 were not in the live `$MFT`.** This is the bulk: folder indexes keep names of files the live table no longer has.
-- **18,730 new rows** on top of a million and a half.
+- **18,730 new rows** on top of a million and a half. There are more rows than recovered items because each one gives a row per distinct timestamp it has.
 
 Among them, `invoice.pdf.exe` again, now in its folder's index:
 

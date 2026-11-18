@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="440" viewBox="0 0 1200 440" role="img" aria-label="From a disk image to its files">
+<defs><radialGradient id="g" cx="0.5" cy="0.1" r="1"><stop offset="0" stop-color="#14213a"/><stop offset="0.7" stop-color="#0b1322"/><stop offset="1" stop-color="#070c15"/></radialGradient><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#9aa8bb"/></marker><marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#e3a44f"/></marker></defs>
+<rect width="1200" height="440" fill="url(#g)"/>
+<text x="60" y="62" font-family="Fraunces, Georgia, 'Times New Roman', serif" font-size="28" fill="#f6eedd" text-anchor="start" font-weight="600">What is inside a disk image</text>
+<text x="60" y="96" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#9aa8bb" text-anchor="start" font-weight="400">Four layers have to be opened before a single log is read. The tools do it by themselves.</text>
+<rect x="60" y="150" width="250" height="110" rx="10" fill="#0f1826" stroke="#7aa6f2" stroke-width="1.6"/>
+<text x="185" y="196" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="21" fill="#f6eedd" text-anchor="middle" font-weight="600">Image</text>
+<text x="185" y="228" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="13.5" fill="#7aa6f2" text-anchor="middle" font-weight="400">E01 · VMDK · VHDX · raw</text>
+<path d="M312 205 L340 205" stroke="#9aa8bb" stroke-width="2" fill="none" marker-end="url(#a)"/>
+<rect x="342" y="150" width="250" height="110" rx="10" fill="#0f1826" stroke="#58c98f" stroke-width="1.6"/>
+<text x="467" y="196" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="21" fill="#f6eedd" text-anchor="middle" font-weight="600">Partitions</text>
+<text x="467" y="228" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="13.5" fill="#58c98f" text-anchor="middle" font-weight="400">MBR · GPT · LVM</text>
+<path d="M594 205 L622 205" stroke="#9aa8bb" stroke-width="2" fill="none" marker-end="url(#a)"/>
+<rect x="624" y="150" width="250" height="110" rx="10" fill="#0f1826" stroke="#e3a44f" stroke-width="1.6"/>
+<text x="749" y="196" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="21" fill="#f6eedd" text-anchor="middle" font-weight="600">File system</text>
+<text x="749" y="228" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="13.5" fill="#e3a44f" text-anchor="middle" font-weight="400">NTFS · ext4 · XFS</text>
+<path d="M876 205 L904 205" stroke="#9aa8bb" stroke-width="2" fill="none" marker-end="url(#a)"/>
+<rect x="906" y="150" width="250" height="110" rx="10" fill="#0f1826" stroke="#ef6a7d" stroke-width="1.6"/>
+<text x="1031" y="196" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="21" fill="#f6eedd" text-anchor="middle" font-weight="600">Files</text>
+<text x="1031" y="228" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="13.5" fill="#ef6a7d" text-anchor="middle" font-weight="400">EVTX · SYSTEM · $MFT · auth.log</text>
+<rect x="342" y="310" width="532" height="86" rx="10" fill="#0f1826" stroke="#2c4164" stroke-width="1.6" stroke-dasharray="6 6"/>
+<text x="608" y="344" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#f6eedd" text-anchor="middle" font-weight="600">Shadow copies</text>
+<text x="608" y="372" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15.5" fill="#9aa8bb" text-anchor="middle" font-weight="400">the same volume, as it was days ago</text>
+<path d="M749 262 L700 308" stroke="#9aa8bb" stroke-width="2" fill="none" marker-end="url(#a)" stroke-dasharray="5 5"/>
+</svg>

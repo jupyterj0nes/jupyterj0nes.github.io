@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480" role="img" aria-label="Two levels of recovering what was deleted">
+<defs><radialGradient id="g" cx="0.5" cy="0.1" r="1"><stop offset="0" stop-color="#14213a"/><stop offset="0.7" stop-color="#0b1322"/><stop offset="1" stop-color="#070c15"/></radialGradient><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#9aa8bb"/></marker><marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#e3a44f"/></marker></defs>
+<rect width="1200" height="480" fill="url(#g)"/>
+<text x="60" y="62" font-family="Fraunces, Georgia, 'Times New Roman', serif" font-size="28" fill="#f6eedd" text-anchor="start" font-weight="600">Deleted things are recovered at two levels</text>
+<rect x="60" y="96" width="520" height="344" rx="10" fill="#0f1826" stroke="#58c98f" stroke-width="1.6"/>
+<text x="86" y="138" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="21" fill="#f6eedd" text-anchor="start" font-weight="600">Level 1 · What is still described</text>
+<text x="86" y="166" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" fill="#9aa8bb" text-anchor="start" font-weight="400">Always read. It costs nothing.</text>
+<rect x="432" y="396" width="126" height="30" rx="15" fill="#0a1120" stroke="#58c98f" stroke-width="1.2"/>
+<text x="495" y="417" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="14" fill="#58c98f" text-anchor="middle" font-weight="400">by default</text>
+<rect x="86" y="188" width="468" height="40" rx="6" fill="#0a1120" stroke="#2c4164" stroke-width="1.2"/>
+<circle cx="108" cy="208" r="5" fill="#58c98f"/>
+<text x="128" y="214" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" fill="#c3cdda" text-anchor="start" font-weight="400">Unused $MFT records</text>
+<rect x="86" y="240" width="468" height="40" rx="6" fill="#0a1120" stroke="#2c4164" stroke-width="1.2"/>
+<circle cx="108" cy="260" r="5" fill="#58c98f"/>
+<text x="128" y="266" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" fill="#c3cdda" text-anchor="start" font-weight="400">Free registry cells</text>
+<rect x="86" y="292" width="468" height="40" rx="6" fill="#0a1120" stroke="#2c4164" stroke-width="1.2"/>
+<circle cx="108" cy="312" r="5" fill="#58c98f"/>
+<text x="128" y="318" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" fill="#c3cdda" text-anchor="start" font-weight="400">Shadow copies</text>
+<rect x="86" y="344" width="468" height="40" rx="6" fill="#0a1120" stroke="#2c4164" stroke-width="1.2"/>
+<circle cx="108" cy="364" r="5" fill="#58c98f"/>
+<text x="128" y="370" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" fill="#c3cdda" text-anchor="start" font-weight="400">The ext4 journal</text>
+<rect x="620" y="96" width="520" height="344" rx="10" fill="#0f1826" stroke="#e3a44f" stroke-width="1.6"/>
+<text x="646" y="138" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="21" fill="#f6eedd" text-anchor="start" font-weight="600">Level 2 · What nothing describes any more</text>
+<text x="646" y="166" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" fill="#9aa8bb" text-anchor="start" font-weight="400">The whole disk has to be read, byte by byte.</text>
+<rect x="992" y="396" width="126" height="30" rx="15" fill="#0a1120" stroke="#e3a44f" stroke-width="1.2"/>
+<text x="1055" y="417" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="14" fill="#e3a44f" text-anchor="middle" font-weight="400">--carve</text>
+<rect x="646" y="188" width="468" height="40" rx="6" fill="#0a1120" stroke="#2c4164" stroke-width="1.2"/>
+<circle cx="668" cy="208" r="5" fill="#e3a44f"/>
+<text x="688" y="214" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" fill="#c3cdda" text-anchor="start" font-weight="400">Free space on the disk</text>
+<rect x="646" y="240" width="468" height="40" rx="6" fill="#0a1120" stroke="#2c4164" stroke-width="1.2"/>
+<circle cx="668" cy="260" r="5" fill="#e3a44f"/>
+<text x="688" y="266" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" fill="#c3cdda" text-anchor="start" font-weight="400">The pagefile</text>
+<rect x="646" y="292" width="468" height="40" rx="6" fill="#0a1120" stroke="#2c4164" stroke-width="1.2"/>
+<circle cx="668" cy="312" r="5" fill="#e3a44f"/>
+<text x="688" y="318" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" fill="#c3cdda" text-anchor="start" font-weight="400">Cleared logs</text>
+<rect x="646" y="344" width="468" height="40" rx="6" fill="#0a1120" stroke="#2c4164" stroke-width="1.2"/>
+<circle cx="668" cy="364" r="5" fill="#e3a44f"/>
+<text x="688" y="370" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" fill="#c3cdda" text-anchor="start" font-weight="400">A formatted volume</text>
+</svg>

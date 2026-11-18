@@ -99,11 +99,15 @@ layout: default
       {% endif %}
     </header>
 
+    {% include guide-top.html %}
+
     <div class="post-content">
       {{ content }}
     </div>
 
-    {% if page.category == "tools" or page.category == "artifacts" %}{% include lab-section.html %}{% endif %}
+    {% include guide-end.html %}
+
+    {% include lab-section.html %}
 
     {% include share.html %}
 

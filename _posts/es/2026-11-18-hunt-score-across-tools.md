@@ -31,6 +31,8 @@ Hay una palabra que no aparece a propósito: *sospechoso*. Eso lo decide una per
 
 ## La escala
 
+<figure class="diagram"><img src="/assets/images/diagrams/hunt-scale-es.svg" alt="La escala es logarítmica: de 20 a 30 puntos no hay un poco más de rareza, hay diez veces más." loading="lazy"><figcaption>La escala es logarítmica: de 20 a 30 puntos no hay un poco más de rareza, hay diez veces más.</figcaption></figure>
+
 `hunt_score` va de 0 a 100 y mide **lo rara que es la fila**, no lo segura que está la herramienta.
 
 La cuenta es `−10 · log10(p)`, donde `p` es la proporción de filas normales que se ven al menos así de raras. Dicho sin fórmula, cada diez puntos son un orden de magnitud:
@@ -58,7 +60,7 @@ El autor de una regla dice solo su **nivel** (alto, medio o bajo), que decide el
 - Una regla que no saltó nunca no vale «infinito». Vale lo que el tamaño de la referencia permite afirmar: una entre 2 004, que son 33 puntos.
 - Una regla que salta en más de una fila limpia de cada diez es ruido: no da estado ni puntos, solo queda anotada.
 
-Esa última línea es la que más cambia las cosas. La regla clásica del timestomping, `$SI` anterior a `$FN`, salta en un fichero de cada cuatro de un Windows moderno limpio. En [allymacb](/es/tools/allymacb-timestomping-rules/) vale cero.
+Esa última línea es la que más cambia las cosas. La regla clásica del timestomping, `$SI` anterior a `$FN`, salta en un fichero de cada cuatro de un Windows moderno limpio. En [allymacb](/es/tools/allymacb-timestomping-rules/) se queda en 6 puntos, por debajo del mínimo, así que no puntúa.
 
 Y explica una rareza de la tabla de arriba: el techo de una regla sola depende de lo grande que sea la referencia limpia. Por eso una regla que nunca falla vale 33 en faramir (2 003 filas de referencia), 39 en caarea (8 671), 40 en etcdump (10 017) y 56 en allymacb (431 153). No es que allymacb esté más seguro. Es que tiene más ficheros limpios con los que comparar que faramir entradas de persistencia.
 
@@ -75,7 +77,7 @@ Se ve en una sola pantalla de [etcdump](/es/tools/etcdump-linux-configuration/):
 [   4] ubuntu = ALL=(ALL) NOPASSWD:ALL         <<< habitual rule LNX-SUDO-NOPASSWD-ALL (medium)
 ```
 
-La misma regla, sobre dos líneas que conceden lo mismo. La segunda la trae Ubuntu de fábrica.
+La misma regla, sobre dos líneas que conceden lo mismo. La segunda la trae Ubuntu de fábrica. (Los números entre corchetes son la línea del fichero, no una puntuación.)
 
 ## La estadística
 

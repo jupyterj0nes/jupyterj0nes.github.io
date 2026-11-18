@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="460" viewBox="0 0 1200 460" role="img" aria-label="Qué es la persistencia">
+<defs><radialGradient id="g" cx="0.5" cy="0.1" r="1"><stop offset="0" stop-color="#14213a"/><stop offset="0.7" stop-color="#0b1322"/><stop offset="1" stop-color="#070c15"/></radialGradient><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#9aa8bb"/></marker><marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#e3a44f"/></marker></defs>
+<rect width="1200" height="460" fill="url(#g)"/>
+<text x="60" y="62" font-family="Fraunces, Georgia, 'Times New Roman', serif" font-size="28" fill="#f6eedd" text-anchor="start" font-weight="600">Persistencia: lo que vuelve a arrancar solo</text>
+<text x="60" y="96" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#9aa8bb" text-anchor="start" font-weight="400">Un atacante no quiere volver a entrar. Quiere que la máquina lo ejecute por él.</text>
+<rect x="60" y="150" width="300" height="66" rx="10" fill="#0f1826" stroke="#7aa6f2" stroke-width="1.6"/>
+<text x="210" y="190" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18.5" fill="#f6eedd" text-anchor="middle" font-weight="600">Se enciende la máquina</text>
+<path d="M362 183 L438 183" stroke="#9aa8bb" stroke-width="2" fill="none" marker-end="url(#a)"/>
+<rect x="440" y="150" width="280" height="66" rx="10" fill="#0f1826" stroke="#e3a44f" stroke-width="1.6"/>
+<text x="580" y="190" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18.5" fill="#e3a44f" text-anchor="middle" font-weight="600">Servicio</text>
+<path d="M722 183 L838 275" stroke="#e3a44f" stroke-width="2" fill="none" marker-end="url(#aa)"/>
+<rect x="60" y="242" width="300" height="66" rx="10" fill="#0f1826" stroke="#7aa6f2" stroke-width="1.6"/>
+<text x="210" y="282" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18.5" fill="#f6eedd" text-anchor="middle" font-weight="600">Alguien inicia sesión</text>
+<path d="M362 275 L438 275" stroke="#9aa8bb" stroke-width="2" fill="none" marker-end="url(#a)"/>
+<rect x="440" y="242" width="280" height="66" rx="10" fill="#0f1826" stroke="#e3a44f" stroke-width="1.6"/>
+<text x="580" y="282" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18.5" fill="#e3a44f" text-anchor="middle" font-weight="600">Clave Run</text>
+<path d="M722 275 L838 275" stroke="#e3a44f" stroke-width="2" fill="none" marker-end="url(#aa)"/>
+<rect x="60" y="334" width="300" height="66" rx="10" fill="#0f1826" stroke="#7aa6f2" stroke-width="1.6"/>
+<text x="210" y="374" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18.5" fill="#f6eedd" text-anchor="middle" font-weight="600">Llega una hora</text>
+<path d="M362 367 L438 367" stroke="#9aa8bb" stroke-width="2" fill="none" marker-end="url(#a)"/>
+<rect x="440" y="334" width="280" height="66" rx="10" fill="#0f1826" stroke="#e3a44f" stroke-width="1.6"/>
+<text x="580" y="374" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18.5" fill="#e3a44f" text-anchor="middle" font-weight="600">Tarea programada</text>
+<path d="M722 367 L838 275" stroke="#e3a44f" stroke-width="2" fill="none" marker-end="url(#aa)"/>
+<rect x="840" y="232" width="300" height="86" rx="10" fill="#0f1826" stroke="#ef6a7d" stroke-width="1.6"/>
+<text x="990" y="268" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="16" fill="#9aa8bb" text-anchor="middle" font-weight="400">C:\Users\Public\</text>
+<text x="990" y="296" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="22" fill="#ef6a7d" text-anchor="middle" font-weight="700">update.bat</text>
+<text x="600" y="436" font-family="Fraunces, Georgia, 'Times New Roman', serif" font-size="18" fill="#c3cdda" text-anchor="middle" font-weight="400" font-style="italic">faramir revisa todos los sitios donde se puede enganchar algo, vivos y borrados.</text>
+</svg>

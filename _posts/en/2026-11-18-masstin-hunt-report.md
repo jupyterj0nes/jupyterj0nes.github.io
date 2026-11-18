@@ -16,6 +16,13 @@ comments: true
 
 The examples come from the same generated scenario as in [the hunt from the viewer](/en/tools/masstin-hunt-viewer/): 200,165 made-up rows, ten weeks of routine and one night of intrusion.
 
+<video autoplay loop muted playsinline controls style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
+  <source src="/assets/video/masstin-hunt-cli.mp4" type="video/mp4">
+  masstin's hunt from the terminal: one command, and at the end the connections that do not look like what the network did before.
+</video>
+
+<p class="video-cap">masstin's hunt from the terminal: one command, and at the end the connections that do not look like what the network did before.</p>
+
 ## The command
 
 ```bash

@@ -24,6 +24,8 @@ faramir -d /evidence/case -o persistence.csv
 
 It is the Rust successor of [Boromir](/en/tools/persistence-boromir/), Alejandro Gamboa's Python persistence hunter.
 
+<figure class="diagram"><img src="/assets/images/diagrams/persistence-en.svg" alt="Three ways for the machine to run something by itself. It is what the lab planted, and what faramir finds." loading="lazy"><figcaption>Three ways for the machine to run something by itself. It is what the lab planted, and what faramir finds.</figcaption></figure>
+
 ## What it reads
 
 The same as the rest of the family, with nothing to mount or extract first: E01, raw, VMDK and VHD/VHDX images with NTFS, ext4 or XFS; KAPE, Velociraptor, Cortex XDR, CyLR and UAC triages; mounted volumes; or a single registry hive.

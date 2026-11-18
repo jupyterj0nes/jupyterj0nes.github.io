@@ -18,6 +18,8 @@ This article goes through the twelve rules of [allymacb](/en/tools/allymacb-file
 
 ## Why it can be detected
 
+<figure class="diagram"><img src="/assets/images/diagrams/si-fn-en.svg" alt="The two copies of the timestamps in NTFS. The timestomping tool changes the first; the second still says when the file arrived." loading="lazy"><figcaption>The two copies of the timestamps in NTFS. The timestomping tool changes the first; the second still says when the file arrived.</figcaption></figure>
+
 NTFS keeps a file's timestamps twice. Those in `$STANDARD_INFORMATION` (`$SI`) are the ones Explorer shows, and any program can change them with an ordinary system call. Those in `$FILE_NAME` (`$FN`) are written by the kernel when the file is created or renamed, and an ordinary program cannot touch them.
 
 A timestomping tool changes the first set. The second stays telling the truth.

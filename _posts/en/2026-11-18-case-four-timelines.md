@@ -9,7 +9,7 @@ order: 10
 lang: en
 ref: tool-family-case
 tags: [masstin, caarea, faramir, allymacb, timeline, dfir]
-description: "Three minutes of a lab server seen by masstin, caarea, faramir and allymacb at once: what each tool knows, what it does not, and why they all write the same kind of timeline."
+description: "One morning of a lab server seen by masstin, caarea, faramir and allymacb at once: what each tool knows, what it does not, and why they all write the same kind of timeline."
 comments: true
 ---
 Each tool on this page answers one question. That has a price: none of them tells the whole case. This article shows what happens when all four are put on the same evidence and you look at the same minute.
@@ -26,6 +26,8 @@ allymacb -f case/images/dev-srv01.vmdk -o files.csv
 ```
 
 None needs the image mounted or anything extracted first. caarea, the one that reads the most sources, takes two minutes.
+
+<figure class="diagram"><img src="/assets/images/diagrams/one-timeline-en.svg" alt="masstin gives the logins. The other three tools write the same kind of file for their own part." loading="lazy"><figcaption>masstin gives the logins. The other three tools write the same kind of file for their own part.</figcaption></figure>
 
 ## What each finds on its own
 
@@ -47,7 +49,7 @@ They all write the time in UTC and in the same format, so it is enough to filter
 |---|---|---|
 | 08:32:42.486 | masstin | `Administrator` logs on over SSH |
 | 08:32:43.677 | allymacb | `C:\Users\Public\update.bat` is born |
-| 08:32:43.677 | caarea | Run key `Updater` → `update.bat` |
+| 08:32:43.677 | caarea, faramir | Run key `Updater` → `update.bat` |
 | 08:32:43.693 | caarea | `schtasks /create /tn "RF Updater" /tr C:\Users\Public\update.bat /sc daily`, typed by `Administrator` |
 | 08:32:43.755 | allymacb | `invoice.pdf.exe` is born, with a 2018 modification time |
 | 08:32:43.824 | caarea | `invoice.pdf.exe` runs, launched by `powershell.exe` |
@@ -59,7 +61,7 @@ Read from top to bottom they are no longer three leads. Someone comes in over SS
 
 ## What each knows, and what it does not
 
-The interesting thing about the table is that each row could only come from one tool.
+The interesting thing about the table is that nearly every row could only come from one tool. Only two overlap: the Run key, which caarea and faramir both see in the registry, and the deletion, which caarea and allymacb both see in the disk's journal.
 
 - **masstin** knows who was inside and from where. It does not know what they did.
 - **caarea** knows what ran, with which command line and who the parent was. It knows the binary hung from `sshd.exe`. It does not know which machine that session was opened from.

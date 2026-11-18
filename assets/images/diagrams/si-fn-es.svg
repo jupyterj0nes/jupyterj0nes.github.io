@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="470" viewBox="0 0 1200 470" role="img" aria-label="Las dos copias de las fechas de un fichero en NTFS">
+<defs><radialGradient id="g" cx="0.5" cy="0.1" r="1"><stop offset="0" stop-color="#14213a"/><stop offset="0.7" stop-color="#0b1322"/><stop offset="1" stop-color="#070c15"/></radialGradient><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#9aa8bb"/></marker><marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#e3a44f"/></marker></defs>
+<rect width="1200" height="470" fill="url(#g)"/>
+<text x="60" y="62" font-family="Fraunces, Georgia, 'Times New Roman', serif" font-size="28" fill="#f6eedd" text-anchor="start" font-weight="600">Un fichero, dos juegos de fechas</text>
+<text x="60" y="96" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#9aa8bb" text-anchor="start" font-weight="400">NTFS guarda las fechas dos veces. Una herramienta de timestomping solo alcanza una.</text>
+<rect x="60" y="130" width="520" height="250" rx="10" fill="#0f1826" stroke="#ef6a7d" stroke-width="1.6"/>
+<text x="86" y="172" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="22" fill="#ef6a7d" text-anchor="start" font-weight="700">$STANDARD_INFORMATION</text>
+<text x="86" y="202" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15.5" fill="#9aa8bb" text-anchor="start" font-weight="400">Lo que enseña el Explorador. Cualquiera puede cambiarlo.</text>
+<text x="86" y="252" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" fill="#c3cdda" text-anchor="start" font-weight="400">Creación</text>
+<text x="260" y="252" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="20" fill="#e3a44f" text-anchor="start" font-weight="700">2018-09-15 07:12:55</text>
+<text x="86" y="302" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" fill="#c3cdda" text-anchor="start" font-weight="400">Modificación</text>
+<text x="260" y="302" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="20" fill="#e3a44f" text-anchor="start" font-weight="700">2018-09-15 07:12:55</text>
+<text x="86" y="356" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#ef6a7d" text-anchor="start" font-weight="600">Fecha falseada: dice 2018</text>
+<rect x="620" y="130" width="520" height="250" rx="10" fill="#0f1826" stroke="#58c98f" stroke-width="1.6"/>
+<text x="646" y="172" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="22" fill="#58c98f" text-anchor="start" font-weight="700">$FILE_NAME</text>
+<text x="646" y="202" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15.5" fill="#9aa8bb" text-anchor="start" font-weight="400">Lo escribe el núcleo. Un programa normal no llega.</text>
+<text x="646" y="252" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" fill="#c3cdda" text-anchor="start" font-weight="400">Creación</text>
+<text x="820" y="252" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="20" fill="#f6eedd" text-anchor="start" font-weight="700">2026-11-10 08:32:43</text>
+<text x="646" y="302" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" fill="#c3cdda" text-anchor="start" font-weight="400">Modificación</text>
+<text x="820" y="302" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="20" fill="#f6eedd" text-anchor="start" font-weight="700">2026-11-10 08:32:43</text>
+<text x="646" y="356" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#58c98f" text-anchor="start" font-weight="600">Fecha real: llegó en 2026</text>
+<text x="600" y="430" font-family="Fraunces, Georgia, 'Times New Roman', serif" font-size="20" fill="#f6eedd" text-anchor="middle" font-weight="400" font-style="italic">Si las dos no cuentan la misma historia, alguien tocó la primera.</text>
+</svg>

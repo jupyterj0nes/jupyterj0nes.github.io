@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="440" viewBox="0 0 1200 440" role="img" aria-label="The lineage of a process">
+<defs><radialGradient id="g" cx="0.5" cy="0.1" r="1"><stop offset="0" stop-color="#14213a"/><stop offset="0.7" stop-color="#0b1322"/><stop offset="1" stop-color="#070c15"/></radialGradient><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#9aa8bb"/></marker><marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#e3a44f"/></marker></defs>
+<rect width="1200" height="440" fill="url(#g)"/>
+<text x="60" y="62" font-family="Fraunces, Georgia, 'Times New Roman', serif" font-size="28" fill="#f6eedd" text-anchor="start" font-weight="600">The process tree tells how it got there</text>
+<text x="60" y="96" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#9aa8bb" text-anchor="start" font-weight="400">Every process has a parent. Climbing from parent to parent shows the way in.</text>
+<rect x="60" y="170" width="196" height="84" rx="10" fill="#0f1826" stroke="#2c4164" stroke-width="1.6"/>
+<text x="158" y="208" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="17.5" fill="#6f7e91" text-anchor="middle" font-weight="700">services.exe</text>
+<text x="158" y="234" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9aa8bb" text-anchor="middle" font-weight="400">starts the services</text>
+<path d="M258 212 L284 212" stroke="#9aa8bb" stroke-width="2" fill="none" marker-end="url(#a)"/>
+<rect x="286" y="170" width="196" height="84" rx="10" fill="#0f1826" stroke="#7aa6f2" stroke-width="1.6"/>
+<text x="384" y="208" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="17.5" fill="#7aa6f2" text-anchor="middle" font-weight="700">sshd.exe</text>
+<text x="384" y="234" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9aa8bb" text-anchor="middle" font-weight="400">an incoming SSH session</text>
+<path d="M484 212 L510 212" stroke="#e3a44f" stroke-width="2" fill="none" marker-end="url(#aa)"/>
+<rect x="512" y="170" width="196" height="84" rx="10" fill="#0f1826" stroke="#2c4164" stroke-width="1.6"/>
+<text x="610" y="208" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="17.5" fill="#f6eedd" text-anchor="middle" font-weight="700">cmd.exe</text>
+<text x="610" y="234" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9aa8bb" text-anchor="middle" font-weight="400">that session&#x27;s shell</text>
+<path d="M710 212 L736 212" stroke="#e3a44f" stroke-width="2" fill="none" marker-end="url(#aa)"/>
+<rect x="738" y="170" width="196" height="84" rx="10" fill="#0f1826" stroke="#2c4164" stroke-width="1.6"/>
+<text x="836" y="208" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="17.5" fill="#f6eedd" text-anchor="middle" font-weight="700">powershell.exe</text>
+<text x="836" y="234" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9aa8bb" text-anchor="middle" font-weight="400">what was typed</text>
+<path d="M936 212 L962 212" stroke="#e3a44f" stroke-width="2" fill="none" marker-end="url(#aa)"/>
+<rect x="964" y="170" width="196" height="84" rx="10" fill="#0f1826" stroke="#ef6a7d" stroke-width="1.6"/>
+<text x="1062" y="208" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="17.5" fill="#ef6a7d" text-anchor="middle" font-weight="700">mimikatz.exe</text>
+<text x="1062" y="234" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9aa8bb" text-anchor="middle" font-weight="400">from C:\Users\Public</text>
+<rect x="60" y="300" width="1080" height="100" rx="8" fill="#0f1826" stroke="#2c4164" stroke-width="1.2"/>
+<text x="84" y="336" font-family="'Libre Franklin', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" fill="#9aa8bb" text-anchor="start" font-weight="400">This is how caarea writes it in the hunt_why column:</text>
+<text x="84" y="372" font-family="'Space Mono', Consolas, Menlo, monospace" font-size="18.5" fill="#e3a44f" text-anchor="start" font-weight="400">lineage: sshd.exe &gt; sshd.exe &gt; sshd.exe &gt; cmd.exe &gt; powershell.exe &gt; mimikatz.exe</text>
+</svg>

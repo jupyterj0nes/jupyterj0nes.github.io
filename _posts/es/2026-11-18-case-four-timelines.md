@@ -9,7 +9,7 @@ order: 10
 lang: es
 ref: tool-family-case
 tags: [masstin, caarea, faramir, allymacb, timeline, dfir]
-description: "Tres minutos de un servidor de laboratorio vistos por masstin, caarea, faramir y allymacb a la vez: qué sabe cada herramienta, qué no, y por qué todas escriben el mismo tipo de timeline."
+description: "Una mañana de un servidor de laboratorio vista por masstin, caarea, faramir y allymacb a la vez: qué sabe cada herramienta, qué no, y por qué todas escriben el mismo tipo de timeline."
 comments: true
 ---
 Cada herramienta de esta página responde a una sola pregunta. Eso tiene un precio: ninguna cuenta el caso entero. Este artículo enseña lo que pasa cuando se ponen las cuatro sobre la misma evidencia y se mira el mismo minuto.
@@ -26,6 +26,8 @@ allymacb -f caso/images/dev-srv01.vmdk -o ficheros.csv
 ```
 
 Ninguna necesita montar la imagen ni extraer nada antes. caarea, que es la que más fuentes lee, tarda dos minutos.
+
+<figure class="diagram"><img src="/assets/images/diagrams/one-timeline-es.svg" alt="masstin pone los inicios de sesión. Las otras tres herramientas escriben el mismo tipo de fichero para lo suyo." loading="lazy"><figcaption>masstin pone los inicios de sesión. Las otras tres herramientas escriben el mismo tipo de fichero para lo suyo.</figcaption></figure>
 
 ## Lo que encuentra cada una por su cuenta
 
@@ -47,7 +49,7 @@ Todas escriben la hora en UTC y con el mismo formato, así que basta con filtrar
 |---|---|---|
 | 08:32:42.486 | masstin | `Administrator` inicia sesión por SSH |
 | 08:32:43.677 | allymacb | Nace `C:\Users\Public\update.bat` |
-| 08:32:43.677 | caarea | Clave Run `Updater` → `update.bat` |
+| 08:32:43.677 | caarea, faramir | Clave Run `Updater` → `update.bat` |
 | 08:32:43.693 | caarea | `schtasks /create /tn "RF Updater" /tr C:\Users\Public\update.bat /sc daily`, tecleado por `Administrator` |
 | 08:32:43.755 | allymacb | Nace `invoice.pdf.exe`, con fecha de modificación de 2018 |
 | 08:32:43.824 | caarea | Se ejecuta `invoice.pdf.exe`, lanzado por `powershell.exe` |
@@ -59,7 +61,7 @@ Leído de arriba abajo ya no son tres pistas. Alguien entra por SSH como adminis
 
 ## Lo que sabe cada una, y lo que no
 
-Lo interesante de la tabla es que cada fila solo podía darla una herramienta.
+Lo interesante de la tabla es que casi cada fila solo podía darla una herramienta. Solo dos coinciden: la clave Run, que ven caarea y faramir en el registro, y el borrado, que ven caarea y allymacb en el diario del disco.
 
 - **masstin** sabe quién estaba dentro y desde dónde. No sabe qué hizo.
 - **caarea** sabe qué se ejecutó, con qué línea de comandos y quién era el padre. Sabe que el binario colgaba de `sshd.exe`. No sabe desde qué máquina se abrió esa sesión.

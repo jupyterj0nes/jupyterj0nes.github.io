@@ -16,6 +16,13 @@ El [hunt de masstin](/es/tools/masstin-graph-hunt/) deja su resultado en tres si
 
 Los ejemplos salen del mismo escenario generado que en [el hunt desde el visor](/es/tools/masstin-hunt-viewer/): 200 165 filas inventadas, diez semanas de rutina y una noche de intrusión.
 
+<video autoplay loop muted playsinline controls style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
+  <source src="/assets/video/masstin-hunt-cli.mp4" type="video/mp4">
+  El hunt de masstin desde la terminal: una orden, y al final las conexiones que no se parecen a lo que la red hacía antes.
+</video>
+
+<p class="video-cap">El hunt de masstin desde la terminal: una orden, y al final las conexiones que no se parecen a lo que la red hacía antes.</p>
+
 ## La orden
 
 ```bash

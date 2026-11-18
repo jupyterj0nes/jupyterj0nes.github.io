@@ -18,6 +18,8 @@ Este artículo cuenta las doce reglas de [allymacb](/es/tools/allymacb-filesyste
 
 ## Por qué se puede detectar
 
+<figure class="diagram"><img src="/assets/images/diagrams/si-fn-es.svg" alt="Las dos copias de las fechas en NTFS. La herramienta de timestomping cambia la primera; la segunda sigue diciendo cuándo llegó el fichero." loading="lazy"><figcaption>Las dos copias de las fechas en NTFS. La herramienta de timestomping cambia la primera; la segunda sigue diciendo cuándo llegó el fichero.</figcaption></figure>
+
 NTFS guarda las fechas de un fichero dos veces. Las de `$STANDARD_INFORMATION` (`$SI`) son las que enseña el Explorador, y cualquier programa puede cambiarlas con una llamada normal del sistema. Las de `$FILE_NAME` (`$FN`) las escribe el núcleo al crear o renombrar el fichero, y desde un programa corriente no se pueden tocar.
 
 Una herramienta de timestomping cambia las primeras. Las segundas se quedan diciendo la verdad.

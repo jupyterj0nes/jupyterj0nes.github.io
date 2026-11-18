@@ -29,6 +29,8 @@ Antes, una cifra para situarse. En el caso de nuestro laboratorio (siete máquin
 
 Casi el 60 % de las entradas son servicios y sus DLL. Las claves Run, que es por donde empieza cualquiera que busque a mano, son seis entradas entre seis mil. Lo que plantó el laboratorio estaba en una de esas seis y en una de las 900 tareas.
 
+<figure class="diagram"><img src="/assets/images/diagrams/persistence-es.svg" alt="Cada grupo de esta página es una variante de la columna central: un sitio donde enganchar algo a un momento." loading="lazy"><figcaption>Cada grupo de esta página es una variante de la columna central: un sitio donde enganchar algo a un momento.</figcaption></figure>
+
 ## Arranque automático
 
 Lo que se ejecuta al encender o al iniciar sesión, sin más condiciones.
@@ -138,7 +140,7 @@ Cada técnica de arriba se busca también en lo borrado:
 - **El diario de ext4.** Ficheros borrados o reescritos en los sitios de persistencia de Linux.
 - **`--carve`.** Hives enteros recuperados de los bytes de la imagen.
 
-En el caso del laboratorio fueron 44 entradas borradas y 3 que solo estaban en la copia de sombra.
+En el caso del laboratorio fueron 44 entradas de persistencia borradas y 3 que solo estaban en la copia de sombra. Son muchas menos que las claves borradas que se recuperan de un hive, porque la mayoría de esas claves no son sitios de persistencia.
 
 ## Ejecutar solo una parte
 

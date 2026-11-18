@@ -22,6 +22,8 @@ masstin -a parse -d /evidencia/caso -o timeline.csv
 
 `-d` es una carpeta, que se recorre entera. `-f` es un fichero, y solo se lee ese. Se pueden repetir y mezclar.
 
+<figure class="diagram"><img src="/assets/images/diagrams/one-timeline-es.svg" alt="Lo que hace masstin: muchas formas de apuntar un inicio de sesión, un solo fichero al final." loading="lazy"><figcaption>Lo que hace masstin: muchas formas de apuntar un inicio de sesión, un solo fichero al final.</figcaption></figure>
+
 ## Primero mira
 
 Lo primero que hace `parse` es contar lo que le has dado. Esto es el caso de nuestro laboratorio, tal cual lo recogimos:
@@ -36,6 +38,13 @@ Disk images: --carve also carves the EVTX records of deleted or overwritten logs
 Una imagen de disco, cuatro triages de KAPE comprimidos, una carpeta con EVTX sueltos y dos triages de Linux. Cuatro formatos distintos, y la orden es la misma que si fuera una carpeta con un solo `Security.evtx`.
 
 Reconoce: ficheros EVTX y ZIP de EVTX, bases de datos UAL, triages de KAPE, Velociraptor, Cortex XDR y UAC, imágenes de disco (E01, VMDK, VHD/VHDX, dd), logs y triages de Linux, `.logarchive` de macOS, JSON de Winlogbeat y timelines de masstin ya hechas.
+
+<video autoplay loop muted playsinline controls style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
+  <source src="/assets/video/masstin-parse.mp4" type="video/mp4">
+  masstin leyendo una carpeta de logs de Windows: detecta qué hay, lo analiza y escribe la timeline.
+</video>
+
+<p class="video-cap">masstin leyendo una carpeta de logs de Windows: detecta qué hay, lo analiza y escribe la timeline.</p>
 
 ## Después lo lee todo
 

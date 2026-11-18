@@ -22,6 +22,13 @@ De ahí salen las preguntas que un caso siempre acaba haciendo. ¿Cuándo llegó
 allymacb -f disco.E01 -o timeline.csv
 ```
 
+<video autoplay loop muted playsinline controls style="display:block; margin: 1rem auto; max-width: 100%; border-radius: 6px;">
+  <source src="/assets/video/allymacb-hunt.mp4" type="video/mp4">
+  allymacb en marcha: lee el volumen, escribe la timeline y enseña primero los ficheros con las fechas manipuladas.
+</video>
+
+<p class="video-cap">allymacb en marcha: lee el volumen, escribe la timeline y enseña primero los ficheros con las fechas manipuladas.</p>
+
 ## Lo que lee
 
 - **NTFS:** el `$MFT` y el diario `$UsnJrnl:$J`.
@@ -47,6 +54,8 @@ Elapsed time             : 35.04s
 Un millón y medio de entradas en 35 segundos, y con cualquier número de hilos la salida es idéntica byte a byte.
 
 ## Qué es MACB
+
+<figure class="diagram"><img src="/assets/images/diagrams/macb-es.svg" alt="Las cuatro fechas de un fichero y cómo las escribe la timeline." loading="lazy"><figcaption>Las cuatro fechas de un fichero y cómo las escribe la timeline.</figcaption></figure>
 
 Cada fichero tiene cuatro fechas, y la timeline pone una fila por cada instante distinto, con una marca que dice cuáles coinciden en él:
 
@@ -101,6 +110,8 @@ Setenta y ocho milésimas antes nace `update.bat` en `C:\Users\Public`. Ese `.ba
 Dos herramientas, dos fuentes de evidencia que no tienen nada que ver entre sí, y el mismo fichero. El registro dice que se va a ejecutar en cada arranque; el sistema de ficheros, cuándo llegó y con qué venía.
 
 ## Cómo detecta las fechas falsas
+
+<figure class="diagram"><img src="/assets/images/diagrams/si-fn-es.svg" alt="Las dos copias de las fechas en NTFS. La herramienta de timestomping cambia la primera; la segunda sigue diciendo cuándo llegó el fichero." loading="lazy"><figcaption>Las dos copias de las fechas en NTFS. La herramienta de timestomping cambia la primera; la segunda sigue diciendo cuándo llegó el fichero.</figcaption></figure>
 
 NTFS guarda las fechas de cada fichero dos veces: en `$STANDARD_INFORMATION`, que es lo que enseña el Explorador y lo que cualquier herramienta puede cambiar, y en `$FILE_NAME`, que solo toca el sistema. Las herramientas de *timestomping* cambian la primera y dejan la segunda. Comparándolas se ve la costura.
 

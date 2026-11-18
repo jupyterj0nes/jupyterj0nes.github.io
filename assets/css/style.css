@@ -1005,6 +1005,7 @@ a:hover { color: #f2c27e; }
 @media (min-width: 1180px) {
   .post-content {
     --bleed: min(280px, calc((100vw - var(--container-narrow)) / 2 - 12px));
+    --bleed-media: min(440px, calc((100vw - var(--container-narrow)) / 2 - 12px));
   }
   .post-content > .highlighter-rouge,
   .post-content > pre,
@@ -1017,8 +1018,8 @@ a:hover { color: #f2c27e; }
   .post-content > p > a:only-child > img,
   .post-content > video,
   .post-content > p > video:only-child {
-    width: calc(100% + var(--bleed)) !important;
-    max-width: calc(100% + var(--bleed)) !important;
+    width: calc(100% + var(--bleed-media)) !important;
+    max-width: calc(100% + var(--bleed-media)) !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
@@ -1498,4 +1499,101 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--amber); outline
 @media (max-width: 760px) {
   .post-preview { padding: 1.1rem 1.1rem 1rem 3.1rem; }
   .post-preview::before { left: 1rem; top: 1.2rem; }
+}
+
+
+/* ---------- Guide cards: before you start / step by step ---------- */
+.guide {
+  position: relative;
+  margin: 0 0 2.6rem;
+  padding: 1.4rem 1.6rem 1.3rem;
+  border: 1px solid var(--glassbd);
+  border-radius: 12px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px);
+  overflow: hidden;
+}
+.guide::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(180deg, var(--red-bar), var(--green-bar) 50%, var(--blue-bar));
+}
+.guide-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.9rem; }
+.guide-kicker { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+.guide-level {
+  font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 0.18rem 0.6rem; border-radius: 999px;
+  color: var(--green); border: 1px solid rgba(88, 201, 143, 0.4); background: rgba(88, 201, 143, 0.08);
+}
+.guide-level-intermedio, .guide-level-intermediate { color: var(--amber); border-color: rgba(227, 164, 79, 0.45); background: rgba(227, 164, 79, 0.08); }
+.guide-level-avanzado, .guide-level-advanced { color: var(--red); border-color: rgba(239, 106, 125, 0.45); background: rgba(239, 106, 125, 0.08); }
+.guide-cols { display: grid; grid-template-columns: 1.35fr 1fr; gap: 1.6rem; }
+.guide h2 {
+  font-family: var(--font-display); font-weight: 600; font-size: 1.12rem; color: var(--ink);
+  margin: 0 0 0.6rem; padding: 0; border: 0;
+}
+.guide h2::after { display: none; }
+.guide ul, .guide ol { margin: 0; padding: 0; list-style: none; }
+.guide li { position: relative; padding-left: 1.6rem; margin: 0 0 0.5rem; font-size: 0.98rem; line-height: 1.55; color: var(--body); }
+.guide-learn li::before { content: "\2713"; position: absolute; left: 0; top: 0; color: var(--green); font-weight: 700; }
+.guide-need li::before { content: "\25B8"; position: absolute; left: 0.15rem; top: 0; color: var(--amber); }
+.guide code { font-family: var(--font-mono); font-size: 0.85em; color: var(--blue); background: #0b1424; border: 1px solid var(--line); border-radius: 4px; padding: 0.1rem 0.36rem; }
+.guide-terms { margin-top: 1rem; padding-top: 0.9rem; border-top: 1px solid var(--line); }
+.guide-terms summary {
+  cursor: pointer; list-style: none;
+  font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+  display: flex; align-items: center; gap: 0.6rem;
+  transition: color 0.2s ease;
+}
+.guide-terms summary::-webkit-details-marker { display: none; }
+.guide-terms summary::before { content: "+"; color: var(--amber); font-size: 1rem; width: 0.8rem; }
+.guide-terms[open] summary::before { content: "\2013"; }
+.guide-terms summary:hover { color: var(--ink); }
+.guide-terms summary span { color: var(--faint); border: 1px solid var(--line); border-radius: 999px; padding: 0 0.5rem; font-size: 0.66rem; }
+.guide-terms dl { margin: 0.9rem 0 0; display: grid; gap: 0.6rem; }
+.guide-terms dl > div { display: grid; grid-template-columns: 11rem 1fr; gap: 1rem; align-items: baseline; }
+.guide-terms dt { font-family: var(--font-mono); font-size: 0.86rem; color: var(--head2); }
+.guide-terms dd { margin: 0; font-size: 0.93rem; line-height: 1.5; color: var(--body); }
+.guide-end { margin: 3rem 0 2rem; }
+.guide-steps { counter-reset: step; }
+.guide .guide-steps li { padding-left: 2.6rem; margin-bottom: 0.75rem; min-height: 1.8rem; }
+.guide-steps li::before {
+  counter-increment: step; content: counter(step);
+  position: absolute; left: 0; top: 0.05rem;
+  width: 1.75rem; height: 1.75rem; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700;
+  color: #0b1220; background: var(--amber);
+}
+.guide-steps li:not(:last-child)::after {
+  content: ""; position: absolute; left: 0.86rem; top: 1.95rem; bottom: -0.7rem; width: 1px; background: var(--line);
+}
+
+/* Diagrams: drawn figures with a caption */
+.post-content figure.diagram { margin: 2rem 0; }
+.post-content figure.diagram img { margin: 0; width: 100%; background: #0a1120; }
+.post-content figure.diagram figcaption, .post-content .video-cap {
+  margin-top: 0.6rem; font-size: 0.86rem; line-height: 1.5; color: var(--muted); text-align: center;
+}
+.post-content video { border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.9); background: #0a0f18; }
+
+@media (max-width: 760px) {
+  .guide { padding: 1.1rem 1.1rem 1rem; }
+  .guide-cols { grid-template-columns: 1fr; gap: 1.1rem; }
+  .guide-terms dl > div { grid-template-columns: 1fr; gap: 0.15rem; }
+}
+
+@media (min-width: 1180px) {
+  .post-content > figure.diagram { width: calc(100% + var(--bleed-media)); max-width: none; }
+}
+@media (max-width: 760px) {
+  .post-content figure.diagram { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .post-content figure.diagram img { min-width: 760px; }
+}
+
+/* Narrow desktops and tablets: keep the menu on one line */
+@media (min-width: 761px) and (max-width: 1080px) {
+  .logo-name { white-space: nowrap; font-size: 0.98rem; }
+  .nav-links { gap: 0.1rem; flex-wrap: nowrap; }
+  .nav-links > li > a { font-size: 0.76rem; white-space: nowrap; padding-left: 0.45rem; padding-right: 0.45rem; }
+  .dropdown-arrow { display: none; }
 }
