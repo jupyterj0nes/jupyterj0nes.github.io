@@ -118,4 +118,6 @@ To bring the noise down on a particular network there are two options: `--known-
 
 The timeline has masstin's 19 columns, each in its place. And this is where it fits: [allymacb](/en/tools/allymacb-filesystem-timeline/), looking at the file system of that same image, sees `update.bat` being created on 10 November at 08:32:43. In that same second a file with a forged date appears beside it. faramir tells you that `.bat` will run on every boot; allymacb, when it arrived and what came with it.
 
+The whole minute, seen by the four tools at once, is in [How a case is read](/en/tools/case-four-timelines/).
+
 The code and the full documentation are on [GitHub](https://github.com/jupyterj0nes/faramir).

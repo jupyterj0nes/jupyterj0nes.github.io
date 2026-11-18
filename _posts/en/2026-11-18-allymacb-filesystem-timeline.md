@@ -162,4 +162,6 @@ Nothing but the CSV goes to standard output, so it can be piped:
 allymacb -f '$MFT' | grep ',unallocated,' > deleted.csv
 ```
 
+The whole minute, seen by the four tools at once, is in [How a case is read](/en/tools/case-four-timelines/).
+
 The code and the full documentation are on [GitHub](https://github.com/jupyterj0nes/allymacb).

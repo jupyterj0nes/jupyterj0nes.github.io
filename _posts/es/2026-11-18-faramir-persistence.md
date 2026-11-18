@@ -118,4 +118,6 @@ Para bajar el ruido en una red concreta hay dos opciones: `--known-good`, con el
 
 La timeline tiene las 19 columnas de masstin, cada una en su sitio. Y aquí es donde encaja: [allymacb](/es/tools/allymacb-filesystem-timeline/), mirando el sistema de ficheros de esa misma imagen, ve crearse `update.bat` el 10 de noviembre a las 08:32:43. En ese mismo segundo aparece al lado un fichero con la fecha falseada. faramir te dice que ese `.bat` se va a ejecutar en cada arranque; allymacb, cuándo llegó y qué vino con él.
 
+El minuto completo, visto por las cuatro herramientas a la vez, está en [Cómo se lee un caso](/es/tools/case-four-timelines/).
+
 El código y la documentación completa están en [GitHub](https://github.com/jupyterj0nes/faramir).

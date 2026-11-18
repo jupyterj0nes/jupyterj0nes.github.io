@@ -162,4 +162,6 @@ Por la salida estándar no sale nada más que el CSV, así que se puede encadena
 allymacb -f '$MFT' | grep ',unallocated,' > borrados.csv
 ```
 
+El minuto completo, visto por las cuatro herramientas a la vez, está en [Cómo se lee un caso](/es/tools/case-four-timelines/).
+
 El código y la documentación completa están en [GitHub](https://github.com/jupyterj0nes/allymacb).
