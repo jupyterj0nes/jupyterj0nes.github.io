@@ -164,7 +164,7 @@
   function reveal() {
     if (!('IntersectionObserver' in window)) return;
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var items = document.querySelectorAll('.hub-group, .tool-card, .post-content > h2, .post-related, .post-nav');
+    var items = document.querySelectorAll('.hub-group, .tool-card, .post-related, .post-nav');
     if (!items.length) return;
     var io = new IntersectionObserver(function (es) {
       es.forEach(function (e) {
