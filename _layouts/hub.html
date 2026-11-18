@@ -1,0 +1,47 @@
+---
+layout: default
+---
+{%- comment -%}
+  A section page: a few words, then groups. A group lists the posts whose
+  `section` it names (in their `order`), the links written for it, and what
+  is on its way. A group with nothing to show is left out.
+{%- endcomment -%}
+{% assign lang = page.lang | default: "es" %}
+{% assign t = site.data.translations[lang] %}
+<div class="container">
+  <header class="page-header">
+    <h1 class="page-title">{{ page.title }}</h1>
+    {% if page.description %}<p class="page-description">{{ page.description }}</p>{% endif %}
+  </header>
+  {% if content != blank %}<div class="page-content category-intro">{{ content }}</div>{% endif %}
+  <div class="page-content hub">
+  {% for g in page.groups %}
+    {% assign posts = "" | split: "" %}
+    {% if g.section %}
+      {% assign posts = site.posts | where: "lang", lang | where: "section", g.section | sort: "order" %}
+    {% endif %}
+    {% assign n = posts.size %}
+    {% if g.links %}{% assign n = n | plus: g.links.size %}{% endif %}
+    {% if g.soon %}{% assign n = n | plus: g.soon.size %}{% endif %}
+    {% if g.text %}{% assign n = n | plus: 1 %}{% endif %}
+    {% if n > 0 %}
+    <section class="hub-group{% if g.sub %} hub-sub{% endif %}"{% if g.anchor %} id="{{ g.anchor }}"{% endif %}>
+      {% if g.sub %}<h3>{{ g.title }}</h3>{% else %}<h2>{{ g.title }}</h2>{% endif %}
+      {% if g.text %}<p class="hub-text">{{ g.text | markdownify | remove: "<p>" | remove: "</p>" }}</p>{% endif %}
+      <ul class="hub-list">
+      {% for post in posts %}
+        <li><a href="{{ post.url | relative_url }}">{{ post.short | default: post.title }}</a>{% if post.description %}<span>{{ post.description | truncate: 170 }}</span>{% endif %}</li>
+      {% endfor %}
+      {% for l in g.links %}
+        <li><a href="{% if l.url contains '://' %}{{ l.url }}{% else %}{{ '/' | append: lang | append: l.url | relative_url }}{% endif %}">{{ l.title }}</a>{% if l.text %}<span>{{ l.text }}</span>{% endif %}</li>
+      {% endfor %}
+      {% for s in g.soon %}
+        <li class="hub-soon"><strong>{{ s.title }}</strong><em>{% if lang == "en" %}coming soon{% else %}próximamente{% endif %}</em>{% if s.text %}<span>{{ s.text }}</span>{% endif %}</li>
+      {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+  {% endfor %}
+  </div>
+  {% if page.ref == "tools" or page.ref == "artifacts" %}{% include lab-section.html %}{% endif %}
+</div>

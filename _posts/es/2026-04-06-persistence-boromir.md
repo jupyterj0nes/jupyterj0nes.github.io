@@ -3,6 +3,8 @@ layout: post
 title: "Persistence Boromir: Nadie persiste sin ser detectado"
 date: 2026-04-06 06:00:00 +0100
 category: tools
+section: legacy
+order: 20
 lang: es
 ref: tool-boromir
 tags: [boromir, persistencia, windows, registry, forensics, herramientas]

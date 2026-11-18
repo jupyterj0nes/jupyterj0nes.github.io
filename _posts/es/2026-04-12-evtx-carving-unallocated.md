@@ -3,6 +3,8 @@ layout: post
 title: "EVTX Carving: Recuperando logs de eventos borrados del espacio no asignado"
 date: 2026-04-12 02:00:00 +0100
 category: tools
+section: masstin-recover
+order: 10
 lang: es
 ref: tool-masstin-evtx-carving
 tags: [masstin, carving, evtx, forense, dfir, unallocated, recuperación, herramientas]
@@ -121,7 +123,7 @@ El pipeline completo es:
 6. **Agrupar por provider.** Todos los chunks con el mismo provider van al mismo bucket en memoria — p.ej. todos los chunks de Security-Auditing juntos, todos los de TerminalServices-LocalSessionManager juntos, etc.
 7. **Construir ficheros EVTX sintéticos.** Para cada bucket, masstin escribe un file header (magic `ElfFile\x00`, número de chunks, CRC32) seguido de los chunks de 64 KB concatenados. El resultado es un `.evtx` real, parseable, con nombre del provider que contiene.
 8. **Validar los ficheros sintéticos.** Cada fichero sintético se abre en un thread aislado y se recorre de principio a fin para detectar crashes/cuelgues/OOMs antes de que llegue al pipeline principal. Más sobre esto abajo — resultó ser esencial.
-9. **Parsear por el pipeline normal de masstin.** Los ficheros validados se pasan a `parse_events_ex` exactamente como si hubieran sido extraídos de un sistema de ficheros NTFS. Los mismos 32+ Event IDs, la misma clasificación, las mismas columnas CSV, la misma carga a grafo.
+9. **Parsear por el pipeline normal de masstin.** Los ficheros validados se pasan a `parse_events_ex` exactamente como si hubieran sido extraídos de un sistema de ficheros NTFS. Los mismos 37 Event IDs, la misma clasificación, las mismas columnas CSV, la misma carga a grafo.
 
 La consecuencia clave: **los eventos carved son indistinguibles de los eventos live en la salida de masstin.** Aparecen en la misma timeline, en las mismas columnas, listos para `load-memgraph` o `load-neo4j` como cualquier otra fuente.
 

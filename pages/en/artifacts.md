@@ -1,34 +1,41 @@
 ---
-layout: page
+layout: hub
 title: "Artifacts"
-description: "Forensic artifacts — detailed guides for Windows EVTX, Linux, Winlogbeat and Cortex XDR."
+description: "Forensic artifacts, ordered by the question they answer."
 lang: en
 ref: artifacts
 permalink: /en/artifacts/
+groups:
+  - title: "Logons and lateral movement"
+    anchor: lateral
+    text: "Who got into which machine, from where and with which account. This is what [masstin](/en/tools/masstin/) reads."
+  - title: "Windows"
+    section: lateral-windows
+    sub: true
+  - title: "Linux"
+    section: lateral-linux
+    sub: true
+  - title: "macOS"
+    section: lateral-macos
+    sub: true
+  - title: "EDR, SIEM and network"
+    section: lateral-feeds
+    sub: true
+  - title: "Execution"
+    section: execution
+    anchor: execution
+    text: "Which programs ran, when, and started by whom."
+  - title: "Recovering what was deleted (carving)"
+    section: recovery
+    anchor: recovery
+    text: "What is left when someone cleared the logs."
+    links:
+      - title: "Deleted EVTX: carving unallocated space"
+        url: "/tools/evtx-carving-unallocated/"
+      - title: "Volume Shadow Copies: the logs from before the wipe"
+        url: "/tools/masstin-vss-recovery/"
+      - title: "UAL: three years of access records that survive log clearing"
+        url: "/tools/masstin-ual/"
 ---
 
-## Windows Event Logs (EVTX)
-
-| Artifact | Description | Article |
-|----------|-------------|---------|
-| **Security.evtx** | 13 Event IDs: logons, Kerberos, NTLM, RDP | [Read →](/en/artifacts/security-evtx-lateral-movement/) |
-| **Terminal Services** | RDP session lifecycle (LSM, RDPClient, RCM, RdpCoreTS) | [Read →](/en/artifacts/terminal-services-evtx/) |
-| **SMB** | SMB server and client connections | [Read →](/en/artifacts/smb-evtx-events/) |
-| **Sysmon** | Event ID 3: network connections on lateral-movement service ports | [Read →](/en/tools/masstin-csv-format/) |
-| **Prefetch** | Evidence of program execution on Windows | [Read →](/en/artifacts/windows-prefetch-forensics/) |
-
-## Linux
-
-| Artifact | Description | Article |
-|----------|-------------|---------|
-| **Linux Logs** | auth.log, secure, messages, audit.log, systemd-journald, utmp, wtmp, btmp, lastlog — loose, in zip / tar.gz, or UAC triages | [Read →](/en/artifacts/linux-forensic-artifacts/) |
-
-## Other Sources
-
-| Artifact | Description | Article |
-|----------|-------------|---------|
-| **Winlogbeat** | Windows log parsing from JSON format | [Read →](/en/artifacts/winlogbeat-elastic-artifacts/) |
-| **Cortex XDR** | Network data and forensic agent collections | [Read →](/en/artifacts/cortex-xdr-artifacts/) |
-| **Custom parsers** | VPN, firewall, proxy and JSON logs via YAML rules | [Read →](/en/tools/masstin-custom-parsers/) |
-
-**Total:** 33 Windows Event IDs across 12 EVTX sources + 9 Linux artifact types + Winlogbeat JSON + Cortex XDR + YAML custom parsers.
+What each system writes down, where, and what you can state from it. They are ordered by the question they answer, which is how you look for them in the middle of a case.

@@ -922,3 +922,26 @@ a:hover { color: #f2c27e; }
   color: var(--muted);
   margin-bottom: 0;
 }
+
+/* Section pages (layout: hub) */
+.hub-group { margin: 2.2rem 0 0; }
+.hub-group h2 { margin-bottom: 0.5rem; }
+.hub-group.hub-sub { margin: 1.3rem 0 0 0.2rem; padding-left: 1rem; border-left: 2px solid var(--line); }
+.hub-group.hub-sub h3 { margin: 0 0 0.4rem; font-size: 1.05rem; color: var(--ink); }
+.hub-text { color: var(--body); margin: 0 0 0.7rem; }
+.hub-list { list-style: none; margin: 0; padding: 0; }
+.hub-list li { padding: 0.55rem 0; border-bottom: 1px solid var(--line); }
+.hub-list li:last-child { border-bottom: 0; }
+.hub-list li a, .hub-list li strong { font-weight: 600; }
+.hub-list li span { display: block; color: var(--muted); font-size: 0.92rem; margin-top: 0.15rem; }
+.hub-list li.hub-soon strong { color: var(--muted); }
+.hub-list li.hub-soon em {
+  font-style: normal; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--green); border: 1px dashed var(--green); border-radius: 999px;
+  padding: 0.05rem 0.5rem; margin-left: 0.6rem;
+}
+.soon-tag {
+  font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500;
+  color: var(--green); border: 1px dashed var(--green); border-radius: 999px;
+  padding: 0.1rem 0.6rem; margin-left: 0.5rem; vertical-align: middle;
+}

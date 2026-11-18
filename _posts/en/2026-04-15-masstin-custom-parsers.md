@@ -3,6 +3,8 @@ layout: post
 title: "Masstin custom parsers: one YAML file per vendor, one timeline for everything"
 date: 2026-04-15 07:00:00 +0100
 category: tools
+section: masstin-read
+order: 60
 lang: en
 ref: tool-masstin-custom-parsers
 tags: [masstin, custom-parsers, yaml, vpn, firewall, proxy, dfir, tools]

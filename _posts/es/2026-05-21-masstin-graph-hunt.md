@@ -3,6 +3,8 @@ layout: post
 title: "graph-hunt: el movimiento lateral como pregunta estadística"
 date: 2026-10-06 09:00:00 +0200
 category: tools
+section: masstin-hunt
+order: 10
 lang: es
 ref: tool-masstin-graph-hunt
 tags: [masstin, graph-hunt, movimiento-lateral, estadistica, hopper, neo4j, memgraph, dfir, deteccion]

@@ -3,6 +3,8 @@ layout: post
 title: "Windows Prefetch: Qué revela y cómo analizarlo"
 date: 2026-04-06 10:00:00 +0100
 category: artifacts
+section: execution
+order: 10
 lang: es
 ref: windows-prefetch
 tags: [windows, prefetch, ejecucion, artefactos]

@@ -3,6 +3,8 @@ layout: post
 title: "vshadow-rs: Parser VSS en Rust puro para imagenes forenses"
 date: 2026-04-08 10:00:00 +0100
 category: tools
+section: common
+order: 10
 lang: es
 ref: tool-vshadow
 tags: [vshadow, vss, shadow-copy, forensics, dfir, rust, herramientas]

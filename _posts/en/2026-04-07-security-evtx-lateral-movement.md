@@ -3,6 +3,8 @@ layout: post
 title: "Security.evtx: Key Events for Detecting Lateral Movement"
 date: 2026-04-07 08:00:00 +0100
 category: artifacts
+section: lateral-windows
+order: 10
 lang: en
 ref: artifact-security-evtx
 tags: [evtx, security, lateral-movement, logon, kerberos, ntlm, rdp, dfir, masstin]

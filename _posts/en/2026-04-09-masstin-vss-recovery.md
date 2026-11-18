@@ -3,6 +3,8 @@ layout: post
 title: "Forensic Image Analysis: Cross-OS Auto-Detection and VSS Recovery with Masstin"
 date: 2026-04-09 01:00:00 +0100
 category: tools
+section: masstin-read
+order: 20
 lang: en
 ref: tool-masstin-vss-recovery
 tags: [masstin, vss, shadow-copy, forensics, dfir, evtx, tools]

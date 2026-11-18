@@ -3,6 +3,8 @@ layout: post
 title: "Detección de triages en masstin: KAPE, Velociraptor, Cortex XDR — y un desglose por fuente que por fin tiene sentido"
 date: 2026-04-16 09:00:00 +0100
 category: tools
+section: masstin-read
+order: 40
 lang: es
 ref: tool-masstin-triage-detection
 tags: [masstin, triage, kape, velociraptor, cortex-xdr, dfir, herramientas]

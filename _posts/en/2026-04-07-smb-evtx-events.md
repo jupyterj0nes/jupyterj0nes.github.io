@@ -3,6 +3,8 @@ layout: post
 title: "SMB EVTX: Forensic Events for SMB Lateral Movement"
 date: 2026-04-07 10:00:00 +0100
 category: artifacts
+section: lateral-windows
+order: 30
 lang: en
 ref: artifact-smb-events
 tags: [evtx, smb, lateral-movement, dfir, masstin, shares, network]

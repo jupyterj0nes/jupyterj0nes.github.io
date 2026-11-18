@@ -3,6 +3,8 @@ layout: post
 title: "Winlogbeat: Lateral Movement Forensic Artifacts in JSON Format"
 date: 2026-04-07 12:00:00 +0100
 category: artifacts
+section: lateral-feeds
+order: 20
 lang: en
 ref: artifact-winlogbeat
 tags: [winlogbeat, lateral-movement, dfir, masstin, siem, elastic, json]

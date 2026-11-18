@@ -3,6 +3,8 @@ layout: post
 title: "Memgraph: In-Memory Lateral Movement Visualization"
 date: 2026-04-07 04:00:00 +0100
 category: tools
+section: masstin-graph
+order: 20
 lang: en
 ref: tool-masstin-memgraph
 tags: [masstin, memgraph, cypher, grafos, lateral-movement, visualization]

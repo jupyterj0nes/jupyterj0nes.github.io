@@ -3,6 +3,8 @@ layout: post
 title: "Artefactos forenses de Linux para movimiento lateral"
 date: 2026-04-07 11:00:00 +0100
 category: artifacts
+section: lateral-linux
+order: 10
 lang: es
 ref: artifact-linux-logs
 tags: [linux, ssh, lateral-movement, dfir, masstin, logs, utmp, wtmp, btmp, audit, systemd-journal, sssd, active-directory]

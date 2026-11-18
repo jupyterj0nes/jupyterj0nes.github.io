@@ -3,6 +3,8 @@ layout: post
 title: "graph-hunt: lateral movement as a statistical question"
 date: 2026-10-06 09:00:00 +0200
 category: tools
+section: masstin-hunt
+order: 10
 lang: en
 ref: tool-masstin-graph-hunt
 tags: [masstin, graph-hunt, lateral-movement, statistics, hopper, neo4j, memgraph, dfir, detection]

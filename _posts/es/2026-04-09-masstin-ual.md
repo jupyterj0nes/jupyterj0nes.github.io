@@ -3,6 +3,8 @@ layout: post
 title: "Masstin UAL: Logs de acceso a servidor que sobreviven al borrado de eventos"
 date: 2026-04-09 14:00:00 +0100
 category: tools
+section: lateral-windows
+order: 60
 lang: es
 ref: tool-masstin-ual
 tags: [masstin, ual, user-access-logging, forensics, dfir, movimiento-lateral, ese, herramientas]

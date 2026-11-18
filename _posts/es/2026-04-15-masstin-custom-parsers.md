@@ -3,6 +3,8 @@ layout: post
 title: "Parsers custom de masstin: un YAML por fabricante, una timeline para todo"
 date: 2026-04-15 07:00:00 +0100
 category: tools
+section: masstin-read
+order: 60
 lang: es
 ref: tool-masstin-custom-parsers
 tags: [masstin, custom-parsers, yaml, vpn, firewall, proxy, dfir, herramientas]

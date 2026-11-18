@@ -3,6 +3,8 @@ layout: post
 title: "Masstin: Analisis de movimiento lateral a la velocidad de Rust"
 date: 2026-04-06 07:00:00 +0100
 category: tools
+section: masstin
+order: 1
 lang: es
 ref: tool-masstin
 tags: [masstin, lateral-movement, rust, neo4j, memgraph, evtx, herramientas]
@@ -63,7 +65,7 @@ Masstin parsea **todas** estas fuentes y las fusiona en una **única timeline cr
 | **graph-hunt: detección estadística** | Cada conexión posterior al corte se mide contra la propia línea base de la red: p-valores, la tasa de falsos descubrimientos como único parámetro, clases de Hopper, reconstrucción de la cadena desde una semilla, informe para el analista. Corre directamente desde el CSV, sin base de datos ni plugins | [graph-hunt](/es/tools/masstin-graph-hunt/) |
 | Análisis multi-directorio | Analiza docenas de máquinas a la vez con múltiples flags `-d`, crítico para investigaciones de ransomware | [Parsear evidencia](#parsear-evidencia) |
 | Timeline multiplataforma | Windows EVTX + Linux SSH + datos EDR en una timeline — `parse` fusiona entre sistemas operativos | [Windows](/es/artifacts/security-evtx-lateral-movement/) / [Linux](/es/artifacts/linux-forensic-artifacts/) / [Cortex](/es/artifacts/cortex-xdr-artifacts/) |
-| 33+ Event IDs de 12 fuentes EVTX + Scheduled Tasks XML | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS, WinRM, WMI-Activity, Sysmon (Event 3, conexiones de red) + detección de tareas remotas — cubriendo RDP, SMB, Kerberos, NTLM, acceso a shares, PowerShell Remoting, WMI y Scheduled Tasks | [Security.evtx](/es/artifacts/security-evtx-lateral-movement/) / [RDP](/es/artifacts/terminal-services-evtx/) / [SMB](/es/artifacts/smb-evtx-events/) |
+| 37 Event IDs de 12 canales EVTX + Scheduled Tasks XML | Security.evtx, Terminal Services, SMBServer, SMBClient, RdpCoreTS, WinRM, WMI-Activity, Sysmon (Event 3, conexiones de red) + detección de tareas remotas — cubriendo RDP, SMB, Kerberos, NTLM, acceso a shares, PowerShell Remoting, WMI y Scheduled Tasks | [Security.evtx](/es/artifacts/security-evtx-lateral-movement/) / [RDP](/es/artifacts/terminal-services-evtx/) / [SMB](/es/artifacts/smb-evtx-events/) |
 | Clasificación de eventos | Cada evento clasificado como `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF` o `CONNECT` | [Formato CSV — event_type](/es/tools/masstin-csv-format/) |
 | Descompresión recursiva | Extrae automáticamente paquetes ZIP/triage de forma recursiva (KAPE, Velociraptor, UAC, Cortex; tar / tar.gz en streaming, anidados entre sí), gestiona logs archivados con nombres duplicados, detecta contraseñas forenses comunes | [Artefactos Linux — soporte triage](/es/artifacts/linux-forensic-artifacts/) |
 | Linux: inferencia inteligente | Auto-detecta hostname, infiere año desde `dpkg.log`, soporta Debian (`auth.log`) y RHEL (`secure`), formatos RFC3164 y RFC5424 | [Artefactos Linux — inferencia](/es/artifacts/linux-forensic-artifacts/) |

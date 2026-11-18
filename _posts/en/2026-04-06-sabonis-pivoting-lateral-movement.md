@@ -3,6 +3,8 @@ layout: post
 title: "Sabonis: The Pivot That Connects the Dots of Lateral Movement"
 date: 2026-04-06 08:00:00 +0100
 category: tools
+section: legacy
+order: 10
 lang: en
 ref: tool-sabonis
 tags: [sabonis, lateral-movement, evtx, pcap, squid, neo4j, tools]

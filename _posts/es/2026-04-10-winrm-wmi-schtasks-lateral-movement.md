@@ -3,6 +3,8 @@ layout: post
 title: "WinRM, WMI y Scheduled Tasks: artefactos ocultos de movimiento lateral"
 date: 2026-04-10 01:00:00 +0100
 category: artifacts
+section: lateral-windows
+order: 40
 lang: es
 ref: artifact-winrm-wmi-schtasks
 tags: [masstin, winrm, wmi, scheduled-tasks, lateral-movement, dfir, evtx, artefactos]

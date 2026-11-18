@@ -3,6 +3,8 @@ layout: post
 title: "Masstin UAL: Server Access Logging that Survives Event Log Clearing"
 date: 2026-04-09 14:00:00 +0100
 category: tools
+section: lateral-windows
+order: 60
 lang: en
 ref: tool-masstin-ual
 tags: [masstin, ual, user-access-logging, forensics, dfir, lateral-movement, ese, tools]

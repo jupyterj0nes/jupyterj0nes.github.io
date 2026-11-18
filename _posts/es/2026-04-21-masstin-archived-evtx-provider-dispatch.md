@@ -3,6 +3,8 @@ layout: post
 title: "EVTX archivados: por qué tu timeline de masstin estaba vacía y cómo el dispatch por Provider.Name lo arregla"
 date: 2026-04-21 07:00:00 +0100
 category: tools
+section: masstin-read
+order: 50
 lang: es
 ref: tool-masstin-archived-evtx
 tags: [masstin, evtx, provider, archivados, dfir, parse, tools]

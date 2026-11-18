@@ -3,6 +3,8 @@ layout: post
 title: "Cortex XDR: Lateral Movement Forensic Artifacts"
 date: 2026-04-07 13:00:00 +0100
 category: artifacts
+section: lateral-feeds
+order: 10
 lang: en
 ref: artifact-cortex-xdr
 tags: [cortex-xdr, lateral-movement, dfir, masstin, edr, palo-alto]

@@ -3,6 +3,8 @@ layout: post
 title: "Masstin triage detection: KAPE, Velociraptor, Cortex XDR — and a per-source breakdown that finally makes sense"
 date: 2026-04-16 09:00:00 +0100
 category: tools
+section: masstin-read
+order: 40
 lang: en
 ref: tool-masstin-triage-detection
 tags: [masstin, triage, kape, velociraptor, cortex-xdr, dfir, tools]

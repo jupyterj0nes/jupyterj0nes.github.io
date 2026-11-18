@@ -3,6 +3,8 @@ layout: post
 title: "Terminal Services EVTX: Rastreo forense de sesiones RDP"
 date: 2026-04-07 09:00:00 +0100
 category: artifacts
+section: lateral-windows
+order: 20
 lang: es
 ref: artifact-terminal-services
 tags: [evtx, rdp, terminal-services, lateral-movement, dfir, masstin, remote-desktop]

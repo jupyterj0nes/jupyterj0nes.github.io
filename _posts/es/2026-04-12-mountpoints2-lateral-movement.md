@@ -3,6 +3,8 @@ layout: post
 title: "MountPoints2: Evidencia de movimiento lateral oculta en el registro de Windows"
 date: 2026-04-12 01:00:00 +0100
 category: artifacts
+section: lateral-windows
+order: 50
 lang: es
 ref: artifact-mountpoints2
 tags: [masstin, registro, ntuser, mountpoints2, movimiento-lateral, dfir, forense]

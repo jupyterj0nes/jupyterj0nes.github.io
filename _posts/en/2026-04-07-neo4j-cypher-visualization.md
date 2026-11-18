@@ -3,6 +3,8 @@ layout: post
 title: "Neo4j and Cypher: Lateral Movement Visualization with masstin"
 date: 2026-04-07 05:00:00 +0100
 category: tools
+section: masstin-graph
+order: 10
 lang: en
 ref: tool-masstin-neo4j
 tags: [masstin, neo4j, cypher, graphs, lateral-movement, visualization, tools]

@@ -3,6 +3,8 @@ layout: post
 title: "Masstin CSV Format and Event Classification"
 date: 2026-04-08 01:00:00 +0100
 category: tools
+section: masstin-ref
+order: 10
 lang: en
 ref: tool-masstin-csv-format
 tags: [masstin, csv, event-type, lateral-movement, dfir, tools]

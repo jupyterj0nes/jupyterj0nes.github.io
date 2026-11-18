@@ -3,6 +3,8 @@ layout: post
 title: "masstin en macOS: binarios nativos arm64 e Intel, sin dependencias runtime"
 date: 2026-04-21 08:00:00 +0100
 category: tools
+section: masstin-read
+order: 110
 lang: es
 ref: tool-masstin-macos
 tags: [masstin, macos, arm64, apple-silicon, release, dfir, tools]

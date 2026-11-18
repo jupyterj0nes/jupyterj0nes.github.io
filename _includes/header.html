@@ -62,40 +62,37 @@
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links">
-        <li><a href="{{ '/' | append: lang | append: '/cases/' | relative_url }}">{{ t.nav.cases }}</a></li>
         <li class="nav-dropdown">
-          <a href="{{ '/' | append: lang | append: '/laboratorio/' | relative_url }}" class="dropdown-trigger">{{ t.nav.laboratorio }} <span class="dropdown-arrow">&#9662;</span></a>
+          <a href="{{ '/' | append: lang | append: '/artifacts/' | relative_url }}" class="dropdown-trigger">{{ t.nav.artifacts }} <span class="dropdown-arrow">&#9662;</span></a>
           <ul class="dropdown-menu">
-            <li class="dropdown-viewall"><a href="{{ '/' | append: lang | append: '/laboratorio/' | relative_url }}">{{ t.nav.view_all }}</a></li>
-            <li><a href="{{ '/' | append: lang | append: '/laboratorio/ad-dfir-lab-intro/' | relative_url }}">AD DFIR Lab · {% if lang == "en" %}Intro{% else %}Introducción{% endif %}</a></li>
-            <li><a href="{{ '/' | append: lang | append: '/laboratorio/ad-dfir-lab-part1-proxmox/' | relative_url }}">Proxmox</a></li>
-            <li><a href="{{ '/' | append: lang | append: '/laboratorio/ad-dfir-lab-part4-goad/' | relative_url }}">GOAD</a></li>
-            <li><a href="{{ '/' | append: lang | append: '/laboratorio/ad-dfir-lab-part9-forensic-imaging/' | relative_url }}">{% if lang == "en" %}Forensic imaging{% else %}Imagen forense{% endif %}</a></li>
+            <li class="dropdown-viewall"><a href="{{ '/' | append: lang | append: '/artifacts/' | relative_url }}">{{ t.nav.view_all }}</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/artifacts/#lateral' | relative_url }}">{% if lang == "en" %}Lateral movement{% else %}Movimiento lateral{% endif %}</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/artifacts/#execution' | relative_url }}">{% if lang == "en" %}Execution{% else %}Ejecución{% endif %}</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/artifacts/#recovery' | relative_url }}">{% if lang == "en" %}Recovering what was deleted{% else %}Recuperar lo borrado{% endif %}</a></li>
           </ul>
         </li>
         <li class="nav-dropdown">
           <a href="{{ '/' | append: lang | append: '/tools/' | relative_url }}" class="dropdown-trigger">{{ t.nav.tools }} <span class="dropdown-arrow">&#9662;</span></a>
           <ul class="dropdown-menu">
             <li class="dropdown-viewall"><a href="{{ '/' | append: lang | append: '/tools/' | relative_url }}">{{ t.nav.view_all }}</a></li>
-            <li><a href="{{ '/' | append: lang | append: '/tools/masstin-lateral-movement-rust/' | relative_url }}">Masstin</a></li>
-            <li><a href="{{ '/' | append: lang | append: '/tools/vshadow-rs/' | relative_url }}">vshadow-rs</a></li>
-            <li><a href="{{ '/' | append: lang | append: '/tools/sabonis-pivoting-lateral-movement/' | relative_url }}">Sabonis</a></li>
-            <li><a href="{{ '/' | append: lang | append: '/tools/persistence-boromir/' | relative_url }}">Persistence Boromir</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/tools/masstin/' | relative_url }}">masstin</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/tools/masstin/#viewer' | relative_url }}">{% if lang == "en" %}masstin's viewer{% else %}El visor de masstin{% endif %}</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/tools/#caarea' | relative_url }}">caarea</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/tools/#faramir' | relative_url }}">faramir</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/tools/#allymacb' | relative_url }}">allymacb</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/tools/#etcdump' | relative_url }}">etcdump</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/tools/#soon' | relative_url }}">{% if lang == "en" %}In the works{% else %}En preparación{% endif %}</a></li>
           </ul>
         </li>
         <li class="nav-dropdown">
-          <a href="{{ '/' | append: lang | append: '/artifacts/' | relative_url }}" class="dropdown-trigger">{{ t.nav.artifacts }} <span class="dropdown-arrow">&#9662;</span></a>
+          <a href="{{ '/' | append: lang | append: '/laboratorio/' | relative_url }}" class="dropdown-trigger">{{ t.nav.laboratorio }} <span class="dropdown-arrow">&#9662;</span></a>
           <ul class="dropdown-menu">
-            <li class="dropdown-viewall"><a href="{{ '/' | append: lang | append: '/artifacts/' | relative_url }}">{{ t.nav.view_all }}</a></li>
-            <li><a href="{{ '/' | append: lang | append: '/artifacts/security-evtx-lateral-movement/' | relative_url }}">Security.evtx</a></li>
-            <li><a href="{{ '/' | append: lang | append: '/artifacts/terminal-services-evtx/' | relative_url }}">Terminal Services</a></li>
-            <li><a href="{{ '/' | append: lang | append: '/artifacts/smb-evtx-events/' | relative_url }}">SMB</a></li>
-            <li><a href="{{ '/' | append: lang | append: '/artifacts/linux-forensic-artifacts/' | relative_url }}">Linux</a></li>
-            <li><a href="{{ '/' | append: lang | append: '/artifacts/winlogbeat-elastic-artifacts/' | relative_url }}">Winlogbeat</a></li>
-            <li><a href="{{ '/' | append: lang | append: '/artifacts/cortex-xdr-artifacts/' | relative_url }}">Cortex XDR</a></li>
-            <li><a href="{{ '/' | append: lang | append: '/artifacts/windows-prefetch-forensics/' | relative_url }}">Prefetch</a></li>
+            <li class="dropdown-viewall"><a href="{{ '/' | append: lang | append: '/laboratorio/' | relative_url }}">{{ t.nav.view_all }}</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/laboratorio/' | relative_url }}">{% if lang == "en" %}Start here{% else %}Empieza aquí{% endif %}</a></li>
+            <li><a href="{{ '/' | append: lang | append: '/laboratorio/manual/' | relative_url }}">{% if lang == "en" %}Manual build (bare metal){% else %}Montaje manual (bare metal){% endif %}</a></li>
           </ul>
         </li>
+        <li><a href="{{ '/' | append: lang | append: '/cases/' | relative_url }}">{{ t.nav.cases }}</a></li>
         <li class="nav-dropdown">
           <a href="{{ '/' | append: lang | append: '/leon/' | relative_url }}" class="dropdown-trigger">{{ t.nav.leon }} <span class="dropdown-arrow">&#9662;</span></a>
           <ul class="dropdown-menu">
