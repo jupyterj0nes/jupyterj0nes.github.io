@@ -65,10 +65,6 @@ Remote WMI execution (`wmic /node:host process call create`) generates Event ID 
 
 ## Scheduled Tasks — Remote Registration
 
-[![The two tasks masstin flags on the lab's server, with their command. Note that source and destination are the same machine under two different names: the renamed-machine case the text warns about.](/assets/images/artifacts/tl-task.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-task.webp)
-
-<p class="video-cap">The two tasks masstin flags on the lab's server, with their command. Note that source and destination are the same machine under two different names: the renamed-machine case the text warns about.</p>
-
 When an attacker schedules a task remotely (via `schtasks /CREATE /S target` or similar tools), the task XML file in `Windows\System32\Tasks\` records the **source machine** in the `<Author>` field:
 
 ```xml
@@ -96,7 +92,7 @@ The Author field keeps who registered the task, usually as `MACHINE\user` or `DO
 | `detail` | `Task: <name> -> <command>` |
 | `log_filename` | `image.e01:tasks:<TaskName>` |
 
-**Filtering, and its limits:** masstin takes the machine's name from its own EVTX and compares it with the Author's. It only flags tasks where they differ. It is a **lead, not proof**: a task created locally with a domain account (the prefix is the domain, not the machine) and a machine renamed after the task was created both match too. Before stating that a task came from outside, check that the Author's name really is another machine on the network.
+**Filtering, and its limits:** masstin takes the machine's name from its own EVTX and compares it with the Author's. It only flags tasks where they differ. It is a **lead, not proof**: a task created locally with a domain account (the prefix is the domain, not the machine) matches too. A renamed machine no longer misleads: since version 1.5.0, masstin compares the Author with every name the machine goes by in its own logs. Before stating that a task came from outside, check that the Author's name really is another machine on the network.
 
 **Why this matters:** Scheduled Tasks are a common persistence and lateral movement mechanism. Even when attackers delete the task after execution (cleaning up Event IDs 4698/4699, the Security.evtx events that record a task being created and deleted), the task XML file may still exist on disk — or be recoverable from VSS snapshots, the copies of an earlier moment of the disk that Windows keeps.
 

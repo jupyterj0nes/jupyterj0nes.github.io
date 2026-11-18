@@ -6628,12 +6628,12 @@
     "Neo4j, if you want to see the graph"
    ],
    "steps": [
-    "First convert the EVTX with `./pivotfoot.sh /evidence/evtx/`.",
-    "Parse the EVTX with `python sabonis.py parse evtx --directory /evidence/evtx/ -o lateral_movement.csv`.",
-    "If you have a network capture, use `python sabonis.py parse pcap -f capture.pcap -o network_lateral.csv`.",
-    "If you have proxy logs, use `python sabonis.py parse squid -f access.log -o proxy_lateral.csv`.",
+    "First convert the EVTX with `./pivotfoot.sh /evidence/evtx/ /evidence/xml/`.",
+    "Parse the EVTX with `python sabonis.py parse evtx --directory --source_artifact /evidence/xml/ --csv_output lateral_movement.csv`.",
+    "If you have a network capture, use `python sabonis.py parse pcap --source_artifact capture.pcap --csv_output network_lateral.csv`.",
+    "If you have proxy logs, use `python sabonis.py parse proxy --source_artifact access.log --csv_output proxy_lateral.csv`.",
     "Add `--ignore_local`, `--exclusionlist` or `--timezone` to cut noise and unify times.",
-    "Load the result with `python sabonis.py load2neo -f lateral_movement.csv --database localhost:7687 --user neo4j`.",
+    "Load the result with `python sabonis.py load2neo evtx --csv_input lateral_movement.csv --ne04j_url bolt://localhost:7687 --ne04j_user neo4j`.",
     "Query the graph with the Cypher Playbook in the repository."
    ],
    "terms": [
@@ -6677,12 +6677,12 @@
     "Neo4j, si quieres ver el grafo"
    ],
    "steps": [
-    "Convierte primero los EVTX con `./pivotfoot.sh /evidence/evtx/`.",
-    "Parsea los EVTX con `python sabonis.py parse evtx --directory /evidence/evtx/ -o lateral_movement.csv`.",
-    "Si tienes una captura de red, usa `python sabonis.py parse pcap -f capture.pcap -o network_lateral.csv`.",
-    "Si tienes logs de proxy, usa `python sabonis.py parse squid -f access.log -o proxy_lateral.csv`.",
+    "Convierte primero los EVTX con `./pivotfoot.sh /evidence/evtx/ /evidence/xml/`.",
+    "Parsea los EVTX con `python sabonis.py parse evtx --directory --source_artifact /evidence/xml/ --csv_output lateral_movement.csv`.",
+    "Si tienes una captura de red, usa `python sabonis.py parse pcap --source_artifact capture.pcap --csv_output network_lateral.csv`.",
+    "Si tienes logs de proxy, usa `python sabonis.py parse proxy --source_artifact access.log --csv_output proxy_lateral.csv`.",
     "Añade `--ignore_local`, `--exclusionlist` o `--timezone` para reducir ruido y unificar horas.",
-    "Carga el resultado con `python sabonis.py load2neo -f lateral_movement.csv --database localhost:7687 --user neo4j`.",
+    "Carga el resultado con `python sabonis.py load2neo evtx --csv_input lateral_movement.csv --ne04j_url bolt://localhost:7687 --ne04j_user neo4j`.",
     "Consulta el grafo con el Cypher Playbook del repositorio."
    ],
    "terms": [

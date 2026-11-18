@@ -12,6 +12,10 @@ description: "Referencia completa del formato CSV de masstin: 14 columnas, clasi
 comments: true
 ---
 
+[![Las columnas del CSV tal como las enseña el visor de masstin: las catorce del evento y, a la derecha, las del análisis (hunt, hunt_score, hunt_why). Los datos de esta captura son de un escenario inventado.](/assets/images/artifacts/tl-csv.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-csv.webp)
+
+<p class="video-cap">Las columnas del CSV tal como las enseña el visor de masstin: las catorce del evento y, a la derecha, las del análisis (hunt, hunt_score, hunt_why). Los datos de esta captura son de un escenario inventado.</p>
+
 ## Estructura del CSV
 
 Todas las acciones de masstin que parsean evidencia (y `merge`) producen un CSV unificado con 19 columnas, independientemente del origen (Windows EVTX, logs Linux, Winlogbeat JSON o Cortex XDR). Las acciones que cargan en una base de datos de grafos y la ventana (`view`) no escriben otro formato: leen este mismo CSV.

@@ -65,10 +65,6 @@ La ejecución remota de WMI (`wmic /node:host process call create`) genera el Ev
 
 ## Scheduled Tasks — Registro remoto
 
-[![Las dos tareas que masstin señala en el servidor del laboratorio, con su comando. Fíjate en que el origen y el destino son la misma máquina con dos nombres distintos: es el caso de una máquina renombrada del que avisa el texto.](/assets/images/artifacts/tl-task.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-task.webp)
-
-<p class="video-cap">Las dos tareas que masstin señala en el servidor del laboratorio, con su comando. Fíjate en que el origen y el destino son la misma máquina con dos nombres distintos: es el caso de una máquina renombrada del que avisa el texto.</p>
-
 Cuando un atacante programa una tarea remotamente (vía `schtasks /CREATE /S target` o herramientas similares), el fichero XML de la tarea en `Windows\System32\Tasks\` registra la **máquina origen** en el campo `<Author>`:
 
 ```xml
@@ -96,7 +92,7 @@ El campo Author guarda quién registró la tarea, normalmente como `MÁQUINA\usu
 | `detail` | `Task: <nombre> -> <comando>` |
 | `log_filename` | `image.e01:tasks:<NombreTarea>` |
 
-**Filtrado, y sus límites:** masstin saca el nombre de la máquina de sus propios EVTX y lo compara con el del Author. Solo señala las tareas en las que no coinciden. Es una **pista, no una prueba**: también lo cumplen una tarea creada localmente con una cuenta de dominio (el prefijo es el dominio, no la máquina) y una máquina a la que se le cambió el nombre después de crear la tarea. Antes de afirmar que una tarea vino de fuera, comprueba que el nombre del Author es de verdad otra máquina de la red.
+**Filtrado, y sus límites:** masstin saca el nombre de la máquina de sus propios EVTX y lo compara con el del Author. Solo señala las tareas en las que no coinciden. Es una **pista, no una prueba**: también lo cumple una tarea creada localmente con una cuenta de dominio (el prefijo es el dominio, no la máquina). Una máquina a la que se le cambió el nombre ya no confunde: desde la versión 1.5.0, masstin compara el Author con todos los nombres que la máquina tiene en sus propios logs. Antes de afirmar que una tarea vino de fuera, comprueba que el nombre del Author es de verdad otra máquina de la red.
 
 **Por qué importa:** Las Scheduled Tasks son un mecanismo común de persistencia y movimiento lateral. Incluso cuando los atacantes eliminan la tarea después de la ejecución (limpiando Event IDs 4698/4699, los eventos de Security.evtx que apuntan la creación y el borrado de una tarea), el fichero XML puede seguir existiendo en disco — o ser recuperable desde snapshots VSS, las copias de un momento anterior del disco que guarda Windows.
 

@@ -58,7 +58,7 @@ Sabonis no tiene instalador: se clona el repositorio y se ejecuta con Python. Ne
 Sabonis no lee los EVTX directamente. Primero hay que convertirlos a XML con `pivotfoot.sh`. Es un script de bash, así que en Windows necesitas WSL o Git Bash. Usa `evtx_dump`, que viene en la carpeta `bin/` del repositorio.
 
 ```bash
-./pivotfoot.sh /evidence/evtx/
+./pivotfoot.sh /evidence/evtx/ /evidence/xml/
 ```
 
 La ayuda del propio script pide dos carpetas: la de los EVTX y la de destino, donde deja un fichero `.xml` por cada log que reconoce.
@@ -66,17 +66,17 @@ La ayuda del propio script pide dos carpetas: la de los EVTX y la de destino, do
 ### 2. Parseo y generación de CSV
 
 ```bash
-# Parsear EVTX
-python sabonis.py parse evtx --directory /evidence/evtx/ -o lateral_movement.csv
+# Parsear una carpeta entera de EVTX ya convertidos (la salida de pivotfoot.sh)
+python sabonis.py parse evtx --directory --source_artifact /evidence/xml/ --csv_output lateral_movement.csv
 
-# Parsear PCAP
-python sabonis.py parse pcap -f capture.pcap -o network_lateral.csv
+# Parsear un PCAP
+python sabonis.py parse pcap --source_artifact capture.pcap --csv_output network_lateral.csv
 
-# Parsear Squid
-python sabonis.py parse squid -f access.log -o proxy_lateral.csv
+# Parsear un log de proxy
+python sabonis.py parse proxy --source_artifact access.log --csv_output proxy_lateral.csv
 
 # Opciones útiles
-python sabonis.py parse evtx --directory /evidence/ -o output.csv \
+python sabonis.py parse evtx --directory --source_artifact /evidence/xml/ --csv_output output.csv \
   --ignore_local \
   --exclusionlist exclusions.txt \
   --timezone "Europe/Madrid"
@@ -85,7 +85,7 @@ python sabonis.py parse evtx --directory /evidence/ -o output.csv \
 ### 3. Carga en Neo4j
 
 ```bash
-python sabonis.py load2neo -f lateral_movement.csv --database localhost:7687 --user neo4j
+python sabonis.py load2neo evtx --csv_input lateral_movement.csv --ne04j_url bolt://localhost:7687 --ne04j_user neo4j
 ```
 
 Antes necesitas un Neo4j arrancado y accesible en esa dirección. La contraseña del usuario no va en el comando: sabonis la pide por consola.

@@ -12,6 +12,10 @@ description: "Complete reference for masstin's CSV output format: 14 columns, ev
 comments: true
 ---
 
+[![The CSV's columns as masstin's viewer shows them: the fourteen of the event and, on the right, those of the analysis (hunt, hunt_score, hunt_why). The data in this capture comes from a made-up scenario.](/assets/images/artifacts/tl-csv.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-csv.webp)
+
+<p class="video-cap">The CSV's columns as masstin's viewer shows them: the fourteen of the event and, on the right, those of the analysis (hunt, hunt_score, hunt_why). The data in this capture comes from a made-up scenario.</p>
+
 ## CSV Structure
 
 Every masstin action that parses evidence (and `merge`) produces a unified CSV with 19 columns, regardless of the source (Windows EVTX, Linux logs, Winlogbeat JSON, or Cortex XDR). The actions that load into a graph database and the window (`view`) do not write another format: they read this same CSV.

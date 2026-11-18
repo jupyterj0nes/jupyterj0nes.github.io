@@ -58,7 +58,7 @@ Sabonis has no installer: you clone the repository and run it with Python. It ne
 Sabonis does not read EVTX files directly. They must first be converted to XML with `pivotfoot.sh`. It is a bash script, so on Windows you need WSL or Git Bash. It uses `evtx_dump`, which ships in the repository's `bin/` folder.
 
 ```bash
-./pivotfoot.sh /evidence/evtx/
+./pivotfoot.sh /evidence/evtx/ /evidence/xml/
 ```
 
 The script's own help asks for two folders: the one with the EVTX files and the destination one, where it leaves one `.xml` file per log it recognises.
@@ -66,17 +66,17 @@ The script's own help asks for two folders: the one with the EVTX files and the 
 ### 2. Parsing and CSV generation
 
 ```bash
-# Parse EVTX
-python sabonis.py parse evtx --directory /evidence/evtx/ -o lateral_movement.csv
+# Parse a whole folder of converted EVTX (the output of pivotfoot.sh)
+python sabonis.py parse evtx --directory --source_artifact /evidence/xml/ --csv_output lateral_movement.csv
 
-# Parse PCAP
-python sabonis.py parse pcap -f capture.pcap -o network_lateral.csv
+# Parse a PCAP
+python sabonis.py parse pcap --source_artifact capture.pcap --csv_output network_lateral.csv
 
-# Parse Squid
-python sabonis.py parse squid -f access.log -o proxy_lateral.csv
+# Parse a proxy log
+python sabonis.py parse proxy --source_artifact access.log --csv_output proxy_lateral.csv
 
 # Useful options
-python sabonis.py parse evtx --directory /evidence/ -o output.csv \
+python sabonis.py parse evtx --directory --source_artifact /evidence/xml/ --csv_output output.csv \
   --ignore_local \
   --exclusionlist exclusions.txt \
   --timezone "Europe/Madrid"
@@ -85,7 +85,7 @@ python sabonis.py parse evtx --directory /evidence/ -o output.csv \
 ### 3. Loading into Neo4j
 
 ```bash
-python sabonis.py load2neo -f lateral_movement.csv --database localhost:7687 --user neo4j
+python sabonis.py load2neo evtx --csv_input lateral_movement.csv --ne04j_url bolt://localhost:7687 --ne04j_user neo4j
 ```
 
 You need a Neo4j instance running and reachable at that address first. The user's password does not go in the command: sabonis asks for it on the console.
