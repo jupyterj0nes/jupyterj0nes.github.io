@@ -84,7 +84,7 @@ A row recovered by carving is not the same kind of evidence as one read from the
 ```
 evtx:4688:carved [@0x1c3f80000]
 prefetch:carved [pagefile @0x4f000]
-C:\[ORPHAN]\update.bat (carved @0x3a2c1000)
+C:\Users\Public\Documents\invoice.pdf.exe ($I30) (carved @0x2D20990A8)
 ```
 
 With that position, another analyst can go to that byte of the image and check it. And a filter on `carved` leaves the timeline with or without them.
@@ -93,7 +93,37 @@ With that position, another analyst can go to that byte of the image and check i
 
 ## What it costs, and what it gives
 
-LABRUN
+A real measurement. allymacb with `--carve` on our lab's 50 GB image:
+
+```
+Carving: 534092 FILE record(s) seen, 30 not in the live $MFT;
+         58485 INDX block(s), 838063 entries, 8727 not in the live $MFT;
+         free space: 23510 MiB searched, 0 log line(s), 50 utmp record(s)
+
+Timeline entries written : 1490519
+Carved entries           : 18730
+Elapsed time             : 500.46s
+```
+
+Eight minutes and twenty seconds, against the 35 seconds of the normal run. That is the price of reading every sector.
+
+What it gave:
+
+- **Of 534,092 `$MFT` records found, 30 were not in the live table.** The rest were copies of what was already there, and were dropped. That is normal for a young disk that has never been formatted: hardly anything has been reused yet.
+- **Of 838,063 index entries, 8,727 were not in the live `$MFT`.** This is the bulk: folder indexes keep names of files the live table no longer has.
+- **18,730 new rows** on top of a million and a half.
+
+Among them, `invoice.pdf.exe` again, now in its folder's index:
+
+```
+2018-09-15T07:12:55  m...  carved  C:\Users\Public\Documents\invoice.pdf.exe ($I30) (carved @0x2D20990A8)
+```
+
+In this case it adds nothing, because the file was already visible without carving. Had something reused its `$MFT` record, that index entry would be all that was left of it.
+
+And one thing that went wrong: the **50 `utmp` records** are false. This is a Windows volume, where there is no `utmp`, and the rows carry 1995 dates. They are random data that passed the checks. They carry their `carved` mark and their position, so they are dismissed at a glance, but this is exactly the kind of rubbish carving produces when a structure has little shape to check.
+
+As a reference for a disk with more history: caarea's documentation records a 50 GB workstation where one pass took about fifteen minutes, and 37,223 of the 69,795 rows existed only through carving. A security log had been cleared there.
 
 ## When to use it
 

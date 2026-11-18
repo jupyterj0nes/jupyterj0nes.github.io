@@ -84,7 +84,7 @@ Una fila recuperada por carving no es la misma clase de evidencia que una leída
 ```
 evtx:4688:carved [@0x1c3f80000]
 prefetch:carved [pagefile @0x4f000]
-C:\[ORPHAN]\update.bat (carved @0x3a2c1000)
+C:\Users\Public\Documents\invoice.pdf.exe ($I30) (carved @0x2D20990A8)
 ```
 
 Con esa posición, otro analista puede ir a ese byte de la imagen y comprobarlo. Y un filtro sobre `carved` deja la timeline con o sin ellas.
@@ -93,7 +93,37 @@ Con esa posición, otro analista puede ir a ese byte de la imagen y comprobarlo.
 
 ## Lo que cuesta, y lo que da
 
-LABRUN
+Una medida real. allymacb con `--carve` sobre la imagen de 50 GB de nuestro laboratorio:
+
+```
+Carving: 534092 FILE record(s) seen, 30 not in the live $MFT;
+         58485 INDX block(s), 838063 entries, 8727 not in the live $MFT;
+         free space: 23510 MiB searched, 0 log line(s), 50 utmp record(s)
+
+Timeline entries written : 1490519
+Carved entries           : 18730
+Elapsed time             : 500.46s
+```
+
+Ocho minutos y veinte segundos, frente a los 35 segundos de la ejecución normal. Es el precio de leer cada sector.
+
+Lo que dio:
+
+- **De 534 092 registros del `$MFT` encontrados, 30 no estaban en la tabla viva.** Los demás eran copias de lo que ya se tenía, y se descartaron. Es lo normal en un disco joven que nunca se ha formateado: casi nada se ha reutilizado todavía.
+- **De 838 063 entradas de índice, 8 727 no estaban en el `$MFT` vivo.** Aquí está el grueso: los índices de las carpetas conservan nombres de ficheros que la tabla viva ya no tiene.
+- **18 730 filas nuevas** sobre un millón y medio.
+
+Entre ellas, `invoice.pdf.exe` otra vez, ahora en el índice de su carpeta:
+
+```
+2018-09-15T07:12:55  m...  carved  C:\Users\Public\Documents\invoice.pdf.exe ($I30) (carved @0x2D20990A8)
+```
+
+En este caso no añade nada, porque el fichero ya se veía sin carving. Si algo hubiera reutilizado su registro del `$MFT`, esa entrada de índice sería lo único que quedaría de él.
+
+Y una cosa que salió mal: los **50 registros `utmp`** son falsos. Es un volumen de Windows, donde no hay `utmp`, y las filas llevan fechas de 1995. Son datos al azar que pasaron las comprobaciones. Llevan su marca `carved` y su posición, así que se descartan de un vistazo, pero es justo el tipo de basura que el carving produce cuando una estructura tiene poca forma que comprobar.
+
+Como referencia de un disco con más historia: la documentación de caarea recoge una estación de trabajo de 50 GB en la que una pasada tardó unos quince minutos, y 37 223 de las 69 795 filas existían solo por carving. Allí había un log de seguridad vaciado.
 
 ## Cuándo usarlo
 
