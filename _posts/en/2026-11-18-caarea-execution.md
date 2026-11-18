@@ -37,9 +37,20 @@ More than sixty sources:
 - **NTFS:** from the `$MFT` and the USN journal, the executables and scripts written outside the system folders.
 - **Linux:** `pacct`, `auditd`, the systemd journal, `auth.log`, shell histories, package managers, cron, containers.
 
+If any of those names is new to you, in one line each:
+
+- **4688:** the event the security log records every time a process is created, if auditing is on.
+- **Sysmon:** a free Microsoft tool that records process creations and other activity in its own log.
+- **Prefetch:** files Windows writes to start programs faster. They keep the program's name, how many times it ran and the latest times.
+- **ShimCache:** a registry list, meant for application compatibility, of executables the system has seen.
+- **Amcache:** a hive (`Amcache.hve`) with the programs and executable files that have passed through the machine, with their path and hash.
+- **SRUM:** a database of what each application uses (network, CPU), hour by hour.
+- **UserAssist:** a registry key in each user's hive with the programs that user opened from the desktop.
+- **BAM:** a registry key with the last time each user ran each program.
+
 And the containers of all that: E01, raw, VMDK and VHD/VHDX images, with their shadow copies; KAPE, Velociraptor, UAC, Cortex XDR and CyLR triages; plain folders.
 
-I gave it our lab's whole case: a 50 GB image, four Windows triages, a folder of logs and two Linux triages.
+I gave it our lab's whole case: a 50 GB image, four Windows triages, a folder of logs and two Linux triages. That run is not the command above, which reads a single image: it is done with `-d` and the case folder, instead of `-f` and one file. This is how it ends:
 
 ```
 Extracted a total of 49587 execution events.
@@ -48,9 +59,11 @@ Hunt: 1742 findings saved to: caso.hunt.csv (1722 timeline rows judged: 85 signi
 
 49,587 rows in two minutes. The heaviest: 9,049 from the scheduled-task log, 6,317 from the USN journal, 3,412 process creations, 2,545 from Amcache.
 
+On the hunt line, `significant` and `candidate` do not add up to all the judged rows. The missing ones are the `habitual` rows: what a clean reference machine also runs. What each state means is in [the hunt scale](/en/tools/hunt-score-across-tools/).
+
 ## One execution told by six sources
 
-What makes putting it all together useful shows in an example. On the lab's server, on 10 November at 08:32:43, this happens. Each line comes from a different source:
+What makes putting it all together useful shows in an example. On the lab's server, on 10 November at 08:32:43, this happens. Each line comes from a different source (there are five here; the sixth comes in the next block):
 
 ```
 08:32:43.677  ntfs:mft:created   C:\Users\Public\update.bat   File created: size 76; content: @echo off ...
@@ -83,7 +96,7 @@ With `--hunt`, caarea first rebuilds each machine's process tree, from the creat
 lineage: sshd.exe > sshd.exe > sshd.exe > cmd.exe > powershell.exe > mimikatz.exe
 ```
 
-At a glance: nobody sitting at the machine launched that binary, it came through an SSH session. (In the lab that `mimikatz.exe` is a renamed copy of `whoami.exe`. caarea does not know that, and it is right not to trust the name either way: it flags the row for the folder it runs from, not for what it is called.)
+At a glance: nobody sitting at the machine launched that binary, it came through an SSH session. (This example is about another binary of the lab, not the `invoice.pdf.exe` that comes further down. In the lab that `mimikatz.exe` is a renamed copy of `whoami.exe`. caarea does not know that, and it is right not to trust the name either way: it flags the row for the folder it runs from, not for what it is called.)
 
 One detail: a parent is the latest start of that PID before the child. If the creating process had already exited, caarea says so instead of guessing. A reboot closes every PID, so a service does not inherit as its parent whatever held that number before the restart.
 
@@ -141,7 +154,7 @@ For a large image with a known suspicious hour:
 caarea -d triage -o out.csv --toi 2026-11-10T08:30:00Z --toi-window 6
 ```
 
-Six hours before and six after. Rows outside it still feed the process tree; they just are not written.
+`--toi` stands for *time of interest*: the moment you care about, which is the centre of the window. `--toi-window` is the hours on each side: here, six hours before and six after. Rows outside it still feed the process tree; they just are not written.
 
 On Linux, logs that only carry local time are corrected to UTC with the machine's own time zone, which caarea looks for in the evidence.
 

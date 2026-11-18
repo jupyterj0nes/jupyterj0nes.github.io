@@ -22,6 +22,8 @@ When Windows deletes a file, the data doesn't disappear from disk — the space 
 
 This article is a deep dive into how that works: how EVTX files are laid out, the three theoretical tiers of EVTX carving, what masstin implements today, what we're leaving as future work, and the surprisingly painful real-world hurdles we hit along the way — including three new bugs we found and reported upstream in the `evtx` crate.
 
+If you only want to use it, you do not need to read it all: go straight to [Usage](#usage). And the last table of the article, "When to carve", tells you whether you need it or a plain `parse` is enough.
+
 ---
 
 ## How EVTX files are structured on disk
@@ -39,6 +41,8 @@ Each 64 KB chunk is self-contained and starts with the magic signature `ElfChnk\
 - Its own string table
 - Its own template table (BinXML templates referenced by the records inside)
 - One or more event records
+
+Two words that come up all through the article. **BinXML** is the binary format EVTX stores each event's XML in. A **template** is the mould of one kind of event: the fixed text, with gaps. Each record stores only the values that go in those gaps, so without its template those values cannot be read as an event.
 
 This self-containment is what makes EVTX carving feasible. **A single chunk recovered from unallocated space can be parsed on its own**, even without the original file header, even without the other chunks, even if the sectors around it have been reused.
 
@@ -159,9 +163,11 @@ This is design work, not pure coding — the main questions are how aggressively
 
 ## Surviving a hostile ecosystem: hardening against upstream bugs
 
+This section is for developers. It tells of the faults we found in the library masstin uses to read EVTX (the `evtx` crate; "upstream" is that library's original project) and how masstin protects itself from them. To use carving you can skip to [Usage](#usage).
+
 Here is the part that surprised us. The `evtx` crate (omerbenamram/evtx, the de-facto Rust EVTX parser) is excellent for parsing well-formed logs from a live Windows system. It was never designed to deal with **arbitrary corrupted 64 KB buffers that claim to be chunks**, which is exactly what carving produces.
 
-During development, we hit three distinct classes of bugs in the upstream parser:
+During development, we hit three distinct classes of bugs in the upstream parser, and later a fourth (Bug 4, further down):
 
 ### Bug 1 — Infinite loop on malformed BinXML
 
@@ -233,7 +239,7 @@ masstin -a parse -f broken.e01 --carve --skip-offsets 0x6478b6000 -o timeline.cs
 masstin -a parse -f image.e01 --carve --debug -o timeline.csv
 ```
 
-The output is the same 14-column CSV as `parse`, with `log_filename` showing the carved origin:
+The output is the same CSV `parse` writes, with `log_filename` showing the carved origin:
 
 ```
 HRServer_Disk0.e01:carved:Security.evtx

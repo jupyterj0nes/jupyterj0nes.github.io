@@ -24,6 +24,8 @@ Every time a Windows user connects to a remote share (`\\SERVER\SHARE`), Windows
 HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2
 ```
 
+`HKCU` is the part of the registry that belongs to each user. On disk it is kept in a file, `Users\<user>\NTUSER.DAT`; each registry file is called a *hive*. On a live system you can see the key with `regedit`. In an image or a triage you have to open that `NTUSER.DAT` with a hive viewer, such as Eric Zimmerman's Registry Explorer.
+
 Each subkey represents a mounted volume or network share. Network shares use `#` instead of `\` in the key name:
 
 | Subkey | Means |
@@ -53,8 +55,8 @@ When `parse` reads a disk image, masstin automatically:
 
 1. **Finds all user profiles** in `Users\*\` on each NTFS partition
 2. **Extracts NTUSER.DAT** from each profile (skips Default, Public, system profiles)
-3. **Parses the registry hive** using the `notatin` crate with:
-   - Transaction log support (`.LOG1`, `.LOG2`) for dirty/unclean hives
+3. **Parses the registry hive** using the `notatin` crate (a Rust library for reading hives) with:
+   - Transaction log support (`.LOG1`, `.LOG2`) for dirty/unclean hives. What they are and why they matter is explained further down, in "Dirty hives and transaction logs"
    - Deleted key recovery for hives where the attacker tried to clean up
 4. **Navigates to MountPoints2** and extracts all `##*` subkeys (network shares)
 5. **Generates CONNECT events** with source machine, destination server, username, and timestamp
@@ -99,7 +101,7 @@ User `mpowers` connected to `\\74.118.139.11\M4Projects` from two different mach
 
 ## Dirty hives and transaction logs
 
-Forensic images often contain dirty registry hives — the system was not shut down cleanly (common in incident response: pulled the plug, forensic acquisition while running, etc.). Dirty hives have uncommitted changes in transaction logs (`.LOG1`, `.LOG2`).
+Forensic images often contain dirty registry hives — the system was not shut down cleanly (common in incident response: pulled the plug, forensic acquisition while running, etc.). Windows does not write every registry change straight into the hive: it first notes it in auxiliary files that sit next to it, the transaction logs (`.LOG1`, `.LOG2`), and moves it into the hive later. A dirty hive is one that was left with pending changes in those files. Read without them, the most recent changes are missing.
 
 Masstin uses the `notatin` library (by Stroz Friedberg) which:
 

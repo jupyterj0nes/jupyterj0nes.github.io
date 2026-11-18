@@ -18,7 +18,7 @@ Por eso el [visor](/es/tools/masstin-viewer/) tiene dos modos en un interruptor 
 
 ## Lo que hay
 
-Todas las filas del CSV, también las que no tienen origen y por tanto no salen en el grafo. Las 19 columnas tal como están escritas, de `time_created` a `notes`, en el orden del fichero. El visor no añade ni cambia nada.
+Todas las filas del CSV, también las que no tienen origen y por tanto no salen en el grafo. Las 19 columnas tal como están escritas, de `time_created` a `notes`, en el orden del fichero. Qué guarda cada columna está en [el formato del CSV](/es/tools/masstin-csv-format/). El visor no añade ni cambia nada.
 
 El número de la izquierda es la línea del fichero. La 1 es la cabecera, así que coincide con lo que te enseña cualquier editor. Cuando en el informe pones «línea 10937 de la timeline», quien lo lea la encuentra.
 
@@ -30,7 +30,14 @@ Los filtros se suman. Cada uno es «esta columna contiene esto» o «no lo conti
 
 [![El modo Timeline con dos filtros: target_user_name contiene ryan.devlead y event_id no contiene 4624; quedan 6 482 filas de 28 672](/assets/images/viewer/tl-filters.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/tl-filters.webp)
 
-Aquí hay dos: la cuenta contiene `ryan.devlead` y el evento **no** es 4624. Quedan 6 482 filas de 28 672. Se ve la rutina de una cuenta de dominio: el 4768 pidiendo el TGT, los 4769 de cada servicio, el 4648 y los 4634 cerrando sesiones. Y en medio una fila distinta, `SMB` con «UAL: File Server (44x)», que no viene de ningún EVTX sino de la base de datos [UAL](/es/tools/masstin-ual/) del servidor.
+Aquí hay dos: la cuenta contiene `ryan.devlead` y el evento **no** es 4624. Quedan 6 482 filas de 28 672. Se ve la rutina de una cuenta de dominio, evento a evento de Windows:
+
+- el **4768**, cuando la cuenta pide al controlador de dominio su TGT, el ticket Kerberos inicial con el que luego pide los demás;
+- los **4769**, uno por cada ticket de servicio: el permiso para entrar en un servicio concreto de otra máquina;
+- el **4648**, un uso de credenciales explícitas;
+- los **4634**, que cierran sesiones.
+
+Están explicados con más calma en [el log Security](/es/artifacts/security-evtx-lateral-movement/). Y en medio una fila distinta, `SMB` con «UAL: File Server (44x)», que no viene de ningún EVTX sino de la base de datos [UAL](/es/tools/masstin-ual/) del servidor.
 
 Un filtro se puede escribir en tres sitios:
 
@@ -58,7 +65,7 @@ Los dos modos se llevan el uno al otro, y esta es la parte que más se usa.
 
 **Solo estas filas.** Con Ctrl + clic o Mayús + clic eliges varias. *Show exactly these rows in the graph* dibuja un grafo solo con ellas: una línea por fila, sin agrupar, digan lo que digan los filtros. Para reconstruir una secuencia concreta que has encontrado leyendo.
 
-Lo mismo se puede pedir desde fuera:
+Lo mismo se puede pedir desde fuera. Los números son líneas del fichero, los mismos que ves a la izquierda de cada fila:
 
 ```bash
 masstin -a view -f timeline.csv --rows 12,57,301

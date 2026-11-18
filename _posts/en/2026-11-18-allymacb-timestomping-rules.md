@@ -38,7 +38,7 @@ Linux has something similar with another pair: `mtime` is changed with a `touch`
 | `usn_basic_info` | A USN journal record whose only reason is "basic info change": timestamps or attributes were touched without touching the data | `attrib`, backup agents |
 | `backdated` | `--carve` found an earlier state of that record with a **later** time than the current one: the times were moved back | Nothing legitimate |
 
-**On timestamps of any file system:**
+**On timestamps of any file system (the last two, Unix only):**
 
 | Rule | What it sees | What else produces it |
 |---|---|---|
@@ -74,7 +74,9 @@ The measurement is simple: the rule is run over a clean system and the hits are 
 | `m_before_b` on Unix | 71,982 of 77,881 | 0. Noise |
 | `future`, `pre_1980`, `m_after_c` on Unix | Never | 49 |
 
-A rule that fires on more than one clean record in ten is noise: it is noted in the row's explanation, but gives no state and no points.
+The points come from that share, with the sum explained in [the hunt scale](/en/tools/hunt-score-across-tools/): every ten points, ten times rarer. An example: `b_after_c` fired on 16,964 records of 431,153, roughly one in twenty-five, and that is 14 points.
+
+A rule that fires on more than one clean record in ten is noise: it is noted in the row's explanation, but gives no state and no points. That is what happens to `si_before_fn`: the 6 in the table is what it would measure, but being noise, in practice it does not score.
 
 The first two lines of that table are the most surprising:
 
@@ -93,14 +95,21 @@ What removes them is not another rule, but two things the volume knows about its
 
 **The installation window.** A volume is born at a particular moment and fills up in one burst. On the reference, 98 % of the records changed in the four hours after the birth. allymacb works that window out from the volume itself, and what changed inside it is `baseline`: installed with the system. Its timestamp rules keep their explanation and add nothing.
 
-On our lab's image it looks like this:
+On our lab's image, which is another machine with its own figures, it looks like this:
 
 ```
 p1 $MFT: installed from 2026-10-26T03:37:07Z to 2026-10-26T05:59:59Z, 493053 of 519302 records
 87332 file(s) installed with their volume: the rules that fired on them add nothing
 ```
 
-**The hour, compared with clean hours.** Outside the installation, each record is judged together with the others of its hour. If in that hour 1,139 files of 3,319 carry the same pattern, those are not 1,139 anomalies: it is one operation, and the question is whether a clean machine has hours like that. The first boot of a virtual machine does, and it comes out as `habitual` with the numbers beside it:
+**The hour, compared with clean hours.** Outside the installation, each record is judged together with the others of its hour. The idea, step by step:
+
+1. The records that changed in the same hour and carry the same pattern of rules are grouped.
+2. If in that hour 1,139 files of 3,319 carry the same pattern, those are not 1,139 anomalies: it is one single operation.
+3. The question becomes whether a clean machine has hours like that. To answer it, allymacb carries the measured hours of clean machines.
+4. If it does, the whole group is "folded": all its records are `habitual`, with no points.
+
+The first boot of a virtual machine is one of those hours, and it comes out as `habitual` with the numbers beside it:
 
 ```
 1139 of the 3319 records changed in 2026-11-03T10 carry si_before_fn+si_subsec_zero
@@ -125,7 +134,7 @@ From two hundred thousand to two. And `invoice.pdf.exe` is exactly what had to b
 ## What it cannot say
 
 - **No rule is proof.** They say where to look first.
-- **The clean reference has fourteen measured hours.** With fourteen, no pattern can be rarer than one in fifteen. On NTFS that means that, today, only the patterns a clean machine never produces reach a state through the rules. A single copy with preserved times, in a quiet hour, does not stand out.
+- **The clean reference is small: fourteen measured hours.** With so few hours to compare with, the rarest thing that can be claimed about a pattern is "one in fifteen", and that is not enough to give it a state. The consequence on NTFS: today only the patterns a clean machine never produces get a state through the rules. A single copy with preserved times, in a quiet hour, does not stand out.
 - **`backdated` needs `--carve`,** and is not measured yet: it warns, but adds no points.
 - **An attacker who also changes `$FILE_NAME`** (the file has to be moved or renamed after the date is forged) escapes `si_before_fn`. The USN journal is left, which notes the timestamp change as `usn_basic_info`, and that is why allymacb should be given the `$MFT` and the journal of the same volume in one run. On an image it does that by itself.
 

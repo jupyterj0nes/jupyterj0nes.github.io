@@ -19,7 +19,9 @@ comments: true
 
 Eso es el caso completo de [DFIR Madness "Szechuan sauce"](https://dfirmadness.com/the-stolen-szechuan-sauce/) en un comando: el timeline que masstin sacó de las dos imágenes de disco, una IP conocida como mala de semilla, y 0,2 segundos después la cadena. El atacante entra en el controlador de dominio como `ADMINISTRATOR` por RDP, el DC llega a la estación de trabajo con el SID del administrador integrado y luego con la cuenta por nombre, y la estación vuelve al DC. Cada salto lleva una certeza: 1 para el login de la propia semilla, 1/55 y 1/63 donde el DC tenía decenas de sesiones abiertas y cualquiera de ellas podía ser la mano en el teclado, 1/9 para la vuelta.
 
-Este artículo va del motor que hay detrás de esa salida. Sustituye al que conté en mayo.
+Tres palabras de ese párrafo, por si acabas de llegar. Una **semilla** es algo que ya sabes que es malo (una dirección, una máquina o una cuenta) y desde lo que se sigue el rastro. Una **sesión** es lo que va desde un login hasta su cierre. Y la **certeza** de un salto es 1 dividido entre las sesiones que había abiertas en la máquina de la que sale. Está contado despacio en [el artículo de las semillas](/es/tools/masstin-hunt-seeds/).
+
+Este artículo va del motor que hay detrás de esa salida. Sustituye al que conté en mayo. Es el más técnico de la serie: si es tu primer contacto con el hunt, empieza por [el hunt desde el visor](/es/tools/masstin-hunt-viewer/), que lo enseña paso a paso, y vuelve luego.
 
 ## La pregunta después de `load-*`
 
@@ -58,7 +60,17 @@ El terminal te cuenta qué está midiendo antes de contarte qué ha encontrado:
 
 Cada línea es una decisión del motor con la que puedes no estar de acuerdo. Dos IPs se han plegado en nombres de host porque los mismos logins aparecen bajo ambos muchas más veces de lo que permite el azar. Siete destinos tienen cobertura de log continua, así que los conteos sólo se comparan sobre ellos. Un solo día de línea base forma el nulo, y por eso aquí nada es significativo: Szechuan trae dos días de logs, y con un día de referencia el motor no puede distinguir "nuevo" de "no visto". Lo dice en lugar de inventarse un umbral. La reconstrucción desde semilla no necesita nulo, así que la cadena sale igual.
 
+Como primer ejemplo de una herramienta de detección despista, porque no detecta nada. Está aquí por la cadena. Una ejecución con semanas de referencia y hallazgos de verdad, leída línea a línea, está en [leer el resultado](/es/tools/masstin-hunt-report/).
+
 ## Cómo decide
+
+Este apartado es el más denso. Cinco términos que salen aquí y en la consola de arriba, dichos en llano:
+
+- **Línea base y ventana.** Lo anterior a `--investigation-from` es la línea base: la referencia de lo normal. Lo posterior es la ventana: lo que se examina.
+- **Nulo.** En estadística, la hipótesis nula es «aquí no pasa nada raro». Aquí el nulo son los días de línea base, que hacen de vara de medir.
+- **p-valor.** La probabilidad de ver algo al menos así de raro cuando no pasa nada. Cuanto más pequeño, más raro.
+- **Benjamini-Hochberg y FDR.** Cuando haces muchas pruebas a la vez, algunas salen «raras» por puro azar. Benjamini-Hochberg es el procedimiento estándar para decidir cuáles dar por significativas de forma que la proporción de falsos hallazgos (la FDR, tasa de falsos descubrimientos) no pase de la que pediste.
+- **Comunidad y centralidad.** Son medidas de grafos. Una comunidad es un grupo de máquinas que hablan sobre todo entre sí. La centralidad mide lo importante que es una máquina en la red por sus conexiones.
 
 **La unidad es la conexión.** Un origen, un destino, una cuenta, un resultado (login, fallo, o un toque sin autenticar), en un día UTC. Una conexión que ya ocurrió otro día anterior es habitual: p = 1, nunca se reporta. La caza va siempre y sólo de las nuevas.
 
@@ -81,6 +93,15 @@ account, result, events, logs, signature, why_unusual, evidence, chain, campaign
 
 `why_unusual` es el motivo en frases cortas: *origin never seen before; that day the origin reached 29 destination(s) for the first time; the account belongs elsewhere: 100% of its earlier login-days came from C8198*. `evidence` repite cada motivo con el conteo de línea base que hay detrás, de modo que toda afirmación se puede comprobar. `signature` es la clase de Hopper, un único valor para filtrar. `chain` es el lugar de la conexión en la reconstrucción desde semilla cuando diste una.
 
+Otras cuatro que no se explican solas:
+
+- **`q_value`**: el p-valor ya ajustado por Benjamini-Hochberg. Es el que se compara con la tasa que pediste.
+- **`logs`**: las familias de log que registraron la conexión (secure, wtmp, audit, evtx...).
+- **`campaign`**: otros orígenes sin historia que comparten una cuenta nueva y coinciden en destinos con este. Se anotan unos con otros.
+- **`cypher_snippet`**: una consulta en Cypher, el lenguaje de las bases de datos de grafos, para ver esa conexión en Neo4j o Memgraph.
+
+Además de este CSV, `graph-hunt-csv` escribe su veredicto en la propia timeline, en tres columnas: `hunt`, `hunt_score` (de 0 a 100, cuánto de rara es la conexión) y `hunt_why`. Están explicadas en [leer el resultado](/es/tools/masstin-hunt-report/).
+
 Con `--report hunt.md` tienes además una historia por cada origen con alguna conexión significativa: si existía en la línea base y qué solía hacer, qué hizo en la ventana por fases cronológicas, por qué cada fase es inusual con el conteo detrás de cada afirmación, de quién son las cuentas que usó por primera vez, sus caminos causales, los orígenes con los que se mueve, y tres párrafos que me descubrí escribiendo a mano en cada caso antes de que se generasen: *podría ser benigno si*, *para descartarlo*, y *eventos que pedir* (los eventos crudos de Windows o Linux que lo zanjan, elegidos según las familias de log que registraron al origen). En Neo4j cada origen termina con una consulta para el Browser que dibuja exactamente ese subgrafo.
 
 Una entrada más, opcional. `--seed` es lo que enseña el vídeo: hosts, IPs o cuentas que ya sabes que son malas, seguidas por las sesiones que abrieron hasta el final del día, con una certeza en cada salto y una consulta Cypher que dibuja la cadena. masstin ve logins, no lo que se hizo dentro de la máquina: PsExec, WMI o la instalación de un servicio los encuentran otras herramientas.
@@ -95,9 +116,9 @@ Una medición, con una verdad de referencia que no fabriqué yo.
 |---|---:|
 | conexiones en la ventana | 465.074 |
 | conexiones del equipo rojo entre ellas | 444 |
-| significativas a FDR 5 % | 204: 185 del equipo rojo, 19 de una máquina sin etiquetar que falló en 47 hosts y luego entró con 7 cuentas nuevas para ella |
-| precisión de las 100 primeras filas | 99 % |
-| conexiones del equipo rojo en las 500 primeras filas | 286 de 444 |
+| significativas a FDR 5 % | 256: 230 del equipo rojo, 25 de una máquina sin etiquetar que falló en 47 hosts y luego entró con 7 cuentas nuevas para ella, y 1 de otra |
+| precisión de las 100 primeras filas | 100 % |
+| conexiones del equipo rojo en las 500 primeras filas | 288 de 444 (65 %) |
 | periodo sin incidente (días 40 a 43, 241.423 conexiones) | 0 significativas |
 
 Lo que no caza también está en la tabla: la segunda máquina del equipo rojo hizo un login discreto por host con un usuario distinto cada vez, y la línea base de esta red contiene ese patrón miles de veces al día (gente usando su propia cuenta desde una máquina nunca vista). Ningún método sobre el grafo de logins detecta eso sin un inventario de quién es dueño de qué máquina; los propios fallos de Hopper son de ese tipo. Para situarlo, Hopper reporta un 94,5 % de detección a unas nueve alertas al día con inventario y dos meses de entrenamiento; el mejor resultado con redes neuronales de grafos sobre LANL reporta una precisión media de 0,32 que cae a 0,09 con etiquetado justo (Larroche, 2026).

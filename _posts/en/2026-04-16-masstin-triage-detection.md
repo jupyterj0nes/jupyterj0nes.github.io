@@ -32,6 +32,8 @@ The same was true for the discovery phase: masstin would say `100 compressed pac
 
 This post documents the v0.12 fix: triage detection during the directory walk, and per-source grouping in the final breakdown.
 
+You do not have to switch anything on to use it: detection runs by itself every time you run `parse` on a folder. The command is at the end, in the "Try it" section. What comes in between explains how masstin recognises each kind of package and how to read the summary it prints. A *triage* is the package, usually a ZIP, in which a collection tool stores the forensic artifacts of one machine.
+
 ## Three triage tools, three signatures
 
 Most DFIR teams converge on a small set of triage collectors. From talking to analysts and looking at real case data, the three that come up over and over are:
@@ -45,6 +47,8 @@ Each one produces ZIP archives with a recognisable internal layout. Detection is
 ### Cortex XDR — the easy one
 
 Cortex XDR's offline collector writes a file called `cortex-xdr-payload.log` to its output. This filename is **unique to the XDR collector** — no other DFIR tool uses it, no normal triage process produces it. A single match is conclusive.
+
+In plain words: masstin checks whether the ZIP holds a file with that name. The pseudocode below says the same thing, and you do not need to know Rust to go on:
 
 ```rust
 // pseudocode of the actual detector
@@ -98,6 +102,8 @@ Since v1.1.0 [UAC (Unix-like Artifacts Collector)](https://github.com/tclahr/uac
 
 ## Per-source grouping in the breakdown
 
+What matters to you as an analyst: in the final summary, each group of events starts with a label that says where it came from. `[IMAGE]` is a disk image, `[TRIAGE: ...]` a recognised triage package, `[ARCHIVE]` any other ZIP and `[FOLDER]` a folder of loose files. The names shaped like `EvtxLocation::...` further down are parts of masstin's code; you can read past them.
+
 The detection runs once per ZIP at discovery time and the result is stored in a `HashMap<zip_path, TriageInfo>`. Then, when each individual EVTX gets parsed and counted, masstin computes a **source label** for it:
 
 ```
@@ -145,6 +151,8 @@ The phase-2 breakdown then groups by source label and renders each group with it
 Every event is accounted for. The analyst can read this breakdown and immediately answer questions like *"how many WinRM events came from the live DC partition vs from a shadow copy vs from the Cortex XDR triage?"* without having to grep the CSV.
 
 ## Why ASCII tags instead of emoji
+
+This section and the next one are change notes: they tell of decisions and fixes in the console output. If you only want to use the detection, skip to "What this means for `parse`".
 
 I considered using emoji for the source markers (💿 image, 🎯 triage, 📦 archive, 📁 folder) — they look great in modern terminals. But the realistic deployment scenarios for masstin include:
 

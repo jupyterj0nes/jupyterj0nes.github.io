@@ -14,6 +14,20 @@ comments: true
 
 *This is Part 8 of the [AD DFIR Lab]({% post_url en/2026-04-12-ad-dfir-lab-intro %}) series. We turn a sterile `clean-ad` snapshot into `noisy-ad-2years` — a dataset that looks like a real company has been using the domain for two years.*
 
+**How to read this part.** It is a build diary, not a step-by-step procedure: it tells what was designed, what failed and how it was fixed, in the order it happened. The scripts live in `/root/lab/phase10` on the server, the directory the run is launched from further down. What gets built here is the scaffolding and a first version with 11 human personas and minimal activity; what is missing is under "What's next".
+
+Vocabulary that keeps coming up:
+
+- **Persona**: a simulated user, with a schedule, vacations, and hire and leave dates.
+- **Round**: a batch of activity inside one simulated day. Each day has 1 to 4.
+- **Participant**: a (VM, persona) pair inside a round.
+- **Stub**: filler activity. Instead of real user work, each participant only writes a marker file and a line in `heartbeat.log`.
+- **Marker** (or sentinel marker): the small file each participant leaves behind. It proves that round ran on that VM with that date.
+- **Checkpoint**: the JSON file where progress is saved so the run can resume.
+- **Hook**: the place in the code where real activity will be plugged in later.
+- **Drift**: how far a VM's clock strays from real time.
+- **Ephemeral**: the mode in which phase10 keeps its state in a temporary directory instead of the main checkpoint.
+
 ## Why this is the hard part
 
 A DFIR lab with only attacks and no baseline noise is a teaching toy, not a training environment. Real investigations are 95% normal user activity and 5% attack signal hidden inside it. The hunting skill is *seeing the signal through the noise*. If the only events on a DC are from the four domain admins that the lab author seeded and the one Kerberoast test they ran, everything stands out. Everything looks suspicious because nothing else is happening.
@@ -51,7 +65,7 @@ Sysmon events by day:
 
 The moment anyone does `Group-Object { $_.TimeCreated.Date }`, the periodic pattern screams "synthetic". Real companies don't burst work in 30-second chunks every four days.
 
-So I threw that out and rebuilt the model around **one iteration per calendar day**. 729 days from 2024-04-13 to 2026-04-12, every single one executed, each with a *profile* derived from the calendar:
+So I threw that out and rebuilt the model around **one iteration per calendar day**. 730 days from 2024-04-13 to 2026-04-12, every single one executed, each with a *profile* derived from the calendar:
 
 ```yaml
 workday_high:     4 rounds, 100% intensity    # quarter-end, deadlines
@@ -142,7 +156,7 @@ This is the *narrative layer*. Every one of these patterns produces a detectable
 
 - **New hires**: samwell's first 4624 on DC01 is at 2024-09-02 10:14, and nothing of him exists before that. Run a "first seen" query and he shows up in the right month.
 - **Departures**: stannis's last Security event is on 2025-09-15 around 17:00. After that date, his user account is still in AD but never authenticates. `(Get-ADUser stannis -Properties LastLogonDate).LastLogonDate` gives you the exact leaving date.
-- **Maternity leave**: catelyn generates events from 2024-04-13 to 2025-04-20, then nothing, then events again from 2025-10-15 onwards. Six-month silence.
+- **Maternity leave**: catelyn generates events from 2024-04-13 until the leave starts (2025-04-20), then nothing, then events again from 2025-10-16 onwards, the day after the leave ends. Six-month silence.
 - **Promotion**: arya generates 22:00-02:00 events on LNX01 from 2024-04 to 2025-10-16, then 10:00-19:00 events after. A single day where her schedule shifts permanently.
 
 ## The orchestrator
@@ -153,7 +167,7 @@ The state model is three levels deep:
 
 ```
 run
-└── days[]                 # 729 entries, one per calendar day
+└── days[]                 # 730 entries, one per calendar day
     └── rounds[]           # 1-4 per day, depending on profile
         └── participants[] # (vm, persona) work units
 ```
@@ -164,7 +178,7 @@ The main loop wraps every `qm guest exec` in a retry with exponential backoff. S
 
 ## Parallelism where it matters
 
-First version of the loop iterated VMs sequentially inside each round. For a workday_normal with 3 rounds × 5 participants each, 15 sequential `qm guest exec` calls = ~60 seconds per day. Extrapolated: 729 days × 60s = **12+ hours for the full run**.
+First version of the loop iterated VMs sequentially inside each round. For a workday_normal with 3 rounds × 5 participants each, 15 sequential `qm guest exec` calls = ~60 seconds per day. Extrapolated: 730 days × 60s = **12+ hours for the full run**.
 
 The fix: within a round, participants on different VMs are independent (different clocks, different activity payloads, no shared state). Participants on the SAME VM must still run sequentially (shared clock). So the refactor groups pending participants by VM and fans out one worker thread per VM:
 
@@ -269,6 +283,8 @@ tmux new-session -d -s phase10 -c /root/lab/phase10 \
 Monitoring happens via the Telegram bot and an occasional `phase10.py --status`. The run is independent of my SSH session or Claude or anything else — tmux owns it, systemd will keep it running through logouts, and the checkpoint + signal handler means the worst any interruption can do is leave the state exactly recoverable.
 
 ## What I actually verified on the first 5 days of the stub run
+
+A step back in the chronology: this section is from the 5-day validation, before the full run and all the wlms material you just read.
 
 Before even the wlms crash, I had pulled exhaustive artifact proof that the backward-clock mechanism was correctly writing to Windows logs. On just 5 days of stub activity (no real persona actions yet, just heartbeat files):
 
@@ -520,7 +536,7 @@ The catchup script itself is a ~100-line bash wrapper that:
 4. Replaces the `noisy-ad-current` snapshot with the new state
 5. Logs everything to `/var/log/lab-catchup.log`
 
-Scheduling is **once a day at 02:00 UTC** (04:00 CEST) via `/etc/cron.d/lab-catchup`. Off-hours for the operator, and past UTC midnight so "yesterday" is a complete day. Runs most days generate exactly 1 day of noise in about 90 seconds. If the cron has been down for a week, the next run generates 7 days in a single invocation — idempotent and resumable, same machinery as the original full run.
+Scheduling is **once a day at 02:00 UTC** (04:00 CEST) via `/etc/cron.d/lab-catchup`. cron uses the server's local time, so in the file the line is `0 4`. Off-hours for the operator, and past UTC midnight so "yesterday" is a complete day. Runs most days generate exactly 1 day of noise in about 90 seconds. If the cron has been down for a week, the next run generates 7 days in a single invocation — idempotent and resumable, same machinery as the original full run.
 
 **Telegram behaviour**: silent on success. Pings only when something fails. That keeps the notification inbox clean and guarantees that any message means "something needs attention now". To verify the cron is alive day-to-day:
 
@@ -542,13 +558,15 @@ Wait for it to finish (silent success, or Telegram error if it failed), then rol
 
 The scaffolding is complete, the dataset is validated, and the `noisy-ad-2years` + `noisy-ad-current` snapshot pair is ready for use.
 
-**Important caveat**: this is still stub activity. Each (persona, round) tuple writes a single marker file and a heartbeat log line. That's enough to prove the scaffolding works end-to-end AND to generate the background Sysmon/Security noise that Windows itself produces when a process runs under a persona's name. But it's not yet realistic *application-level* activity — jon.snow doesn't actually open Word documents, samwell.tarly doesn't actually push git commits, and there's no Chrome history being populated. Those hooks are what Part 9 will cover. The architecture is what Part 8 is about.
+**Important caveat**: this is still stub activity. Each (persona, round) tuple writes a single marker file and a heartbeat log line. That's enough to prove the scaffolding works end-to-end AND to generate the background Sysmon/Security noise that Windows itself produces when a process runs under a persona's name. But it's not yet realistic *application-level* activity — jon.snow doesn't actually open Word documents, samwell.tarly doesn't actually push git commits, and there's no Chrome history being populated. Those hooks are left for later in the series. The architecture is what Part 8 is about.
 
 The good news: the infrastructure we just built means adding real persona activity is *only* an `lib/activities.py` rewrite. The day loop, parallelism, checkpoint, clock travel, Spanish calendar, three-domain persona model, wlms workaround, hwclock restore, night-shift support, Telegram alerts, and per-VM forensic verification are all done and reusable.
 
 ## Postscript — 36 days in production cron
 
 The text above describes the lab as it was the day the snapshot chain was first complete. Six weeks later, the catchup cron had failed silently every single night since installation. The findings from that incident are worth flagging here so anyone copying the design can avoid the same traps.
+
+Note: this postscript names pieces that were added to the lab after the text above was written and that this article does not explain. They are `phase10-lateral.py`, the "Step 4b lateral movement" of `lab-catchup.sh`, and `gen-linux-authlog.py`, which generates the synthetic SSH `auth.log` of the Linux host.
 
 ### 1. cron PATH does NOT include /usr/sbin
 
@@ -591,7 +609,7 @@ Set-Date -Date ([datetime]::SpecifyKind(
     'Utc').ToLocalTime())
 ```
 
-This now runs on all six Windows VMs as a post-catchup step. Important because the snapshot freezes whatever drift exists at the moment of `qm snapshot` — every future rollback from `noisy-ad-current` starts the VMs at that drift, and if it's 4 minutes you get Kerberos failures inside the 5-minute tolerance window almost immediately.
+This now runs on all six Windows VMs as a post-catchup step. Important because the snapshot freezes whatever drift exists at the moment of `qm snapshot` — every future rollback from `noisy-ad-current` starts the VMs at that drift, and if it's 4 minutes you are at the edge of Kerberos's 5-minute tolerance: as soon as the clock drifts a little more, the failures arrive.
 
 ### 4. `gen-linux-authlog.py` needed an incremental mode
 

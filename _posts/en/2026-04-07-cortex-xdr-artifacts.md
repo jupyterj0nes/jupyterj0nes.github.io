@@ -22,13 +22,15 @@ Palo Alto Cortex XDR is an EDR/XDR platform that provides visibility into endpoi
 
 One action, `parse-cortex`, reads all three into a single timeline. If the tenant does not have one of them, it says so and carries on with the rest. `--cortex-sources network,eventlog,forensics` picks which.
 
+Every command in this article needs three values from the tenant: its API URL, an API key and that key's ID. Before running any query, check that they work: it is a single command and it is in the section "Before reading anything: check the connection", further down.
+
 ---
 
 ## Source 1: Network Connections
 
 ### What It Captures
 
-Cortex XDR agents record network connections established by processes on each endpoint. For lateral movement, the default admin port set masstin queries is:
+Cortex XDR agents record network connections established by processes on each endpoint. For lateral movement, the ports masstin queries by default are:
 
 | Port | Protocol | Relevance |
 |:----:|----------|-----------|
@@ -38,7 +40,11 @@ Cortex XDR agents record network connections established by processes on each en
 | 5985 | WinRM (HTTP)  | PowerShell Remoting |
 | 5986 | WinRM (HTTPS) | PowerShell Remoting |
 
-`--admin-ports` widens the set further to include 135 (RPC), 139 (NetBIOS), 1433 (MSSQL), 3306 (MySQL) and 5900 (VNC) for broader pivot visibility. `--ignore-local` pushes loopback/link-local/self-connection filtering server-side so less data has to traverse the stream, and `--start-time`/`--end-time` over wide windows auto-paginate via time bisection when an individual window hits the 1M API cap.
+Three options change what is asked for:
+
+- `--admin-ports` adds ports 135 (RPC), 139 (NetBIOS), 1433 (MSSQL), 3306 (MySQL) and 5900 (VNC) to that list, to see more pivoting routes (hops from one machine to another).
+- `--ignore-local` drops the connections that say nothing about lateral movement: loopback ones (the machine talking to itself, `127.0.0.1`), link-local ones and those from a host to itself. The filter is applied inside Cortex, so that data is never downloaded.
+- `--start-time` and `--end-time` bound the period. The API returns at most one million results per query. If the period holds more, masstin splits it into smaller pieces and asks for them one by one, with nothing for you to do.
 
 ### What Information You Get
 
@@ -111,7 +117,7 @@ Masstin's query covers the full lateral-movement event set masstin reads from EV
 - **WinRM/Operational** -- PowerShell Remoting session init (6)
 - **WMI-Activity/Operational** -- remote WMI (5858)
 
-The regex extraction against the localized `message` field ships with English, Spanish, German, French and Italian keyword variants and auto-paginates via time window bisection if a single query saturates the 1M API cap.
+The regex extraction against the localized `message` field ships with English, Spanish, German, French and Italian keyword variants. As with the network source, if a period holds more than one million results masstin splits it into pieces and asks for them one by one.
 
 ### How Masstin Retrieves This Data
 
@@ -122,7 +128,7 @@ masstin -a parse-cortex --cortex-url https://api-xxxx.xdr.xx.paloaltonetworks.co
   -o cortex-evtx.csv
 ```
 
-Masstin queries the logs collected by the forensic agents and extracts lateral movement events, generating them in the same normalized CSV format.
+Masstin queries the logs collected by the forensic agents and extracts lateral movement events, generating them in the same normalized CSV format. This source alone also exists as a separate advanced action, `parse-cortex-evtx-forensics`, which is why you will see that name in other articles.
 
 > **Practical advantage:** Instead of having to physically access each machine or deploy triage tools like KAPE, you can leverage the existing Cortex XDR infrastructure to collect EVTX files remotely and centrally, then analyze them with masstin.
 
@@ -142,6 +148,8 @@ Masstin queries the logs collected by the forensic agents and extracts lateral m
 
 ## Before reading anything: check the connection
 
+Masstin reads the tenant with XQL, the Cortex XDR query language. Every XQL query spends "compute units" from a quota the tenant has, so it is worth not wasting them.
+
 The first thing that fails with an API is the key. So that you do not find out halfway through a query that spends compute units, masstin can ask first:
 
 ```bash
@@ -150,7 +158,7 @@ masstin -a parse-cortex --cortex-url https://api-xxxx.xdr.xx.paloaltonetworks.co
 
 It makes a single request, the XQL quota one, which costs nothing. If the tenant accepts, it tells you what kind of key it is (Standard or Advanced) and how much quota you have used today. If not, it shows you what the tenant answered and what that usually means: a URL that does not exist, an ID that does not belong to that key, a role that may not run XQL. Nothing is read or written, and the exit code is 0 when the tenant accepts, in case you want it in a script.
 
-The key and its ID are asked on the console, or read from `CORTEX_API_KEY` and `CORTEX_API_KEY_ID`. They never go on the command line.
+The key and its ID are asked on the console, or read from `CORTEX_API_KEY` and `CORTEX_API_KEY_ID`. They never go on the command line. The three values (the URL, the key and its ID) come from the Cortex XDR console, where API keys are created; the first step of the window's wizard, described next, tells you where each one is.
 
 ---
 
@@ -168,13 +176,6 @@ The key travels to the process in its environment. It does not show up on the co
 
 The wizard, `--cortex-check` and the progress bar come with masstin 1.5.0.
 
---------|-------------------|----------------|
-| **Data source** | Network events captured by Cortex agents | EVTX logs collected by the forensic agent or uploaded by the offline collector |
-| **What it provides** | Connections by process to admin ports | Full Windows Event Log events |
-| **Ports/Event IDs** | 22, 445, 3389, 5985, 5986 by default; `--admin-ports` adds 135, 139, 1433, 3306, 5900 | 32 event IDs across 10 providers (Security, TS-LSM/RCM/RDPClient/RdpCoreTS, SMB Server/Client/Connectivity, WinRM, WMI-Activity) |
-| **Masstin action** | `parse-cortex` | `parse-cortex-evtx-forensics` |
-| **When to use** | Complement EVTX with endpoint network data | When you lack direct access to EVTX files |
-
 ---
 
 ## Integrated Workflow
@@ -183,7 +184,7 @@ The recommended workflow when Cortex XDR is available:
 
 | Step | Action | Source |
 |:----:|--------|--------|
-| 1 | Deploy forensic collection agents on key endpoints | Cortex XDR |
+| 1 | Only if you want source 3 (the RDP, SMB and WinRM channels): deploy forensic collection agents on key endpoints. The other two sources need nothing deployed | Cortex XDR |
 | 2 | Check that the key works | `parse-cortex --cortex-check` |
 | 3 | Read the tenant's three sources into one timeline | `parse-cortex` |
 | 4 | Supplement with native EVTX if available | `parse` |

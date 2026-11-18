@@ -30,6 +30,13 @@ En cuanto le das algo, masstin lo mira y te dice qué ha encontrado. Aquí le he
 
 La mirada está acotada (doce niveles de carpetas, sesenta mil entradas, ocho segundos) para que soltarle un disco entero no cuelgue la ventana. Lo que reconoce sale como fichas: EVTX, bases de datos UAL, paquetes de triage por tipo (KAPE, Velociraptor, Cortex XDR, UAC), imágenes de disco, logs de Linux por familia, logs de macOS, JSON de Winlogbeat, timelines ya hechas.
 
+Por si alguno de esos nombres no te suena:
+
+- **EVTX** son los ficheros donde Windows guarda sus registros de eventos.
+- **UAL** (User Access Logging) es una base de datos de los servidores Windows que apunta quién ha accedido a sus servicios ([su artículo](/es/tools/masstin-ual/)).
+- Un **paquete de triage** es una recogida rápida de lo más útil de una máquina (logs, registro y poco más) sin copiar el disco entero. KAPE, Velociraptor y UAC son herramientas que hacen esa recogida, UAC en Linux y otros Unix; Cortex XDR también puede hacerla. Cómo los reconoce masstin está en [la detección de triages](/es/tools/masstin-triage-detection/).
+- **Winlogbeat** es un agente que envía los eventos de Windows a Elastic, de donde salen exportados en JSON ([su artículo](/es/artifacts/winlogbeat-elastic-artifacts/)).
+
 Y cuando no lo tiene claro, lo dice. Si hay evidencia Windows y Linux mezclada, o archivos con una estructura que no conoce, el paso siguiente pregunta en vez de suponer.
 
 Abajo, en gris, va la línea de comandos equivalente. Está en todos los pasos.
@@ -39,6 +46,8 @@ Abajo, en gris, va la línea de comandos equivalente. Está en todos los pasos.
 [![Segundo paso: los seis analizadores como tarjetas, con Windows marcado como recomendado, y debajo la caja para añadir reglas YAML](/assets/images/viewer/i-step2.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/i-step2.webp)
 
 Los seis analizadores, con el recomendado marcado: Windows, Linux, macOS, imagen de disco, «todo» (una carpeta de evidencia mezclada) y eventos de Windows en JSON. Puedes elegir otro si sabes algo que masstin no.
+
+Esto se nota en el comando de abajo. Si te quedas con el recomendado, el comando es `masstin -a parse`, la orden que mira la evidencia y decide sola. Si eliges otro a mano, el comando lo nombra (`-a parse-windows`, `-a parse-linux`…).
 
 Debajo hay una caja que mucha gente no ve: **Logs masstin does not know**. Si tienes logs de una VPN, un cortafuegos o un proxy, aquí le das un fichero de [reglas YAML](/es/tools/masstin-custom-parsers/) y sus filas entran en la misma timeline.
 
@@ -56,7 +65,7 @@ Lo normal en un caso es que la evidencia llegue por entregas: hoy dos servidores
 
 Las filas nuevas se suman a las que había, todo se ordena y lo que ya estaba no se escribe dos veces. Lo que importa es lo que **no** cambia: las filas que ya tenías conservan tus veredictos, tus notas y su hunt. En la prueba de la captura, una timeline de 28 672 filas con 23 marcadas pasó a 32 464, con las 23 marcas en su sitio.
 
-A las filas nuevas el hunt no las ha visto. Si la timeline lo llevaba, hay que volver a pasarlo.
+A las filas nuevas el hunt no las ha visto. Si la timeline lo llevaba, hay que volver a pasarlo: botón **Hunt** de la barra, o el menú **Hunt**. Qué es el hunt está en [su artículo](/es/tools/masstin-graph-hunt/).
 
 Si prefieres dos ficheros separados, **Write a timeline of its own instead** vuelve al comportamiento de antes.
 
@@ -64,7 +73,7 @@ Si prefieres dos ficheros separados, **Write a timeline of its own instead** vue
 
 [![Último paso, terminado: las tres fases con su marca, el desglose por carpeta con los eventos de cada máquina y el resumen final con 3 792 eventos](/assets/images/viewer/i-step4.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/i-step4.webp)
 
-masstin se lanza como un proceso aparte, y lo que diría en la consola se dibuja aquí: las tres fases con una marca según acaban, la barra de progreso con el fichero que está leyendo, el desglose por carpeta y el resumen. En este caso, cuatro artefactos, 3 792 eventos, medio segundo.
+masstin se lanza como un proceso aparte, y lo que diría en la consola se dibuja aquí: las tres fases (buscar la evidencia, procesarla y escribir la timeline) con una marca según acaban, la barra de progreso con el fichero que está leyendo, el desglose por carpeta y el resumen. En este caso, cuatro artefactos, 3 792 eventos, medio segundo.
 
 **Stop** mata el proceso. Cuando termina, eliges: abrirla aquí, verla como tabla, abrirla con otro programa, enseñarla en la carpeta o analizar más.
 
@@ -77,6 +86,13 @@ Todos los pasos enseñan abajo el comando exacto que se va a ejecutar:
 ```bash
 masstin -a parse -d D:\demo\lab-session\evtx -o D:\demo\blog\v2\ingest-out.csv --overwrite
 ```
+
+Las rutas son las de mi prueba; las tuyas serán otras. Se lee así:
+
+- `-a parse` es la acción: leer evidencia y escribir una timeline.
+- `-d` es la carpeta de evidencia. Para un fichero suelto se usa `-f`.
+- `-o` es el CSV que se va a escribir.
+- `--overwrite` permite sobrescribir ese CSV si ya existe. Sin él, masstin se para antes de leer nada.
 
 El asistente no hace nada que no puedas hacer tú desde una terminal. Es la misma orden. Sirve para aprender los parámetros sin leer la ayuda, y para copiar el comando a un script cuando la próxima vez sean cuarenta carpetas en vez de una.
 

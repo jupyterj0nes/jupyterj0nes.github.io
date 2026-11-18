@@ -16,7 +16,7 @@ comments: true
 
 ## La pregunta que no tenía respuesta obvia
 
-Planificando la Fase 10 (generar dos años de actividad histórica sintética) surgió una duda práctica: *¿qué pasa dentro de 6 meses cuando expire la evaluación de Windows?* Todo el bosque está construido sobre ISOs eval. Server 2019 dura 180 días. Win10 Enterprise, 90. Y la intención es mantener este laboratorio vivo durante años.
+Planificando la Fase 10 (generar dos años de actividad histórica sintética; es lo que cubre la Parte 8) surgió una duda práctica: *¿qué pasa dentro de 6 meses cuando expire la evaluación de Windows?* Todo el bosque está construido sobre ISOs eval. Server 2019 dura 180 días. Win10 Enterprise, 90. Y la intención es mantener este laboratorio vivo durante años.
 
 La sabiduría popular dice: "apaga las VMs cuando no las uses, el tiempo de evaluación solo se consume mientras están encendidas". No encontré una respuesta definitiva en ningún sitio, así que lo medí.
 
@@ -50,6 +50,8 @@ El protocolo:
 Este descubrimiento cambió por completo mi visión sobre la vida útil esperada del laboratorio.
 
 ## Límites de rearm y vida útil real
+
+El rearm es el comando `slmgr /rearm`: se ejecuta dentro de Windows como administrador y reinicia el contador de evaluación. Cada edición admite un número limitado de rearms. No hace falta que lo teclees en cada VM; lo lanza por ti el script de la sección siguiente.
 
 ```
 Server 2019/2016   →  180 d inicial + 6 × 180 d  ≈  3.4 años
@@ -106,7 +108,7 @@ Dos detalles de diseño merecen mención:
 
 2. **Alerta de rearms agotados**. Independiente del umbral de días, la primera vez que una VM llega a `RemainingAppReArmCount == 0`, dispara un mensaje aparte. Esa es la señal para programar el reemplazo o aceptar el modo eval degradado.
 
-Entrada en cron:
+Entrada en cron. La línea lleva campo de usuario (`root`), así que va en `/etc/crontab` o en un fichero dentro de `/etc/cron.d/`, no en `crontab -e`:
 
 ```cron
 0 9 * * * root /root/lab/scripts/lab-license-alert.sh >> /var/log/lab-license.log 2>&1
@@ -119,7 +121,7 @@ TELEGRAM_BOT_TOKEN="123456789:ABCdefGhIjKlMnOpQrStUvWxYz"
 TELEGRAM_CHAT_ID="123456789"
 ```
 
-Y un bot creado vía `@BotFather` en Telegram. La llamada curl es JSON plano:
+Y un bot creado vía `@BotFather` en Telegram. La llamada curl es un POST sencillo con campos de formulario:
 
 ```bash
 curl -sS -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
@@ -147,7 +149,16 @@ Lo que **no** vas a poder hacer es suscribirte al bot de *mi* laboratorio para r
 
 ## Reemplazo de WS01, preparado por adelantado
 
-Cuando Win10 agote los rearms, no queremos reconstruirlo a mano. `scripts/replace-ws01.sh` es un one-shot: le pasas el nombre de una ISO Win10 fresca, destruye la VM 106, la recrea con el mismo VMID/RAM/disco/VLAN, arranca instalación desatendida con el autounattend ISO preconstruido, espera al escritorio, pide una vez la instalación manual de `virtio-win-guest-tools.exe` por VNC (que aún no se puede automatizar — ver Parte 2), y luego configura hostname + IP estática + DNS. Los dos últimos pasos (`ansible-playbook 07.5-join-extras.yml --limit ws01` y la reaplicación del audit) son manuales porque usan los mismos playbooks documentados en partes anteriores — no duplicamos.
+Cuando Win10 agote los rearms, no queremos reconstruirlo a mano. `scripts/replace-ws01.sh` es un one-shot: le pasas el nombre de una ISO Win10 fresca y hace esto, en orden:
+
+1. Destruye la VM 106.
+2. La recrea con el mismo VMID/RAM/disco/VLAN.
+3. Arranca la instalación desatendida con el autounattend ISO preconstruido.
+4. Espera al escritorio.
+5. Pide una vez la instalación manual de `virtio-win-guest-tools.exe` por VNC (que aún no se puede automatizar — ver Parte 2).
+6. Configura hostname + IP estática + DNS.
+
+Los dos últimos pasos (`ansible-playbook 07.5-join-extras.yml --limit ws01` y la reaplicación del audit) son manuales porque usan los mismos playbooks documentados en partes anteriores — no duplicamos.
 
 El resultado es una operación de "reconstruir WS01" de ~25 minutos en lugar de una tarde haciendo click en el instalador de Windows.
 

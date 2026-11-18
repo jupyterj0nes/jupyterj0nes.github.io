@@ -14,15 +14,17 @@ comments: true
 
 ## Estructura del CSV
 
-Todas las acciones de masstin producen un CSV unificado con 14 columnas, independientemente del origen (Windows EVTX, logs Linux, Winlogbeat JSON o Cortex XDR):
+Todas las acciones de masstin que parsean evidencia (y `merge`) producen un CSV unificado con 19 columnas, independientemente del origen (Windows EVTX, logs Linux, Winlogbeat JSON o Cortex XDR). Las acciones que cargan en una base de datos de grafos y la ventana (`view`) no escriben otro formato: leen este mismo CSV.
+
+Las 14 primeras columnas describen el evento y las escriben los parsers:
 
 | # | Columna | Descripción |
 |---|---------|-------------|
 | 1 | `time_created` | Marca temporal del evento |
 | 2 | `dst_computer` | Máquina destino (la que recibe la conexión) |
 | 3 | `event_type` | Clasificación del evento (ver abajo) |
-| 4 | `event_id` | ID original del evento (ej: `4624`, `SSH_SUCCESS`) |
-| 5 | `logon_type` | Tipo de logon de Windows tal como lo reporta el evento (ej: `2`, `3`, `7`, `10`, `11`) |
+| 4 | `event_id` | ID original del evento (ej: `4624`, `SSH_SUCCESS`, `SMB`, `RDP`) |
+| 5 | `logon_type` | Tipo de logon de Windows tal como lo reporta el evento (ej: `2`, `3`, `7`, `10`, `11`). En las filas de Linux vale `SSH` |
 | 6 | `target_user_name` | Cuenta de usuario objetivo de la acción |
 | 7 | `target_domain_name` | Dominio del usuario objetivo |
 | 8 | `src_computer` | Máquina origen (la que inició la conexión) |
@@ -32,6 +34,20 @@ Todas las acciones de masstin producen un CSV unificado con 14 columnas, indepen
 | 12 | `logon_id` | ID de sesión para correlación (ej: `0x1A2B3C`) |
 | 13 | `detail` | Contexto adicional según el tipo de evento |
 | 14 | `log_filename` | Fichero de artefacto de origen |
+
+Las 5 últimas son la cola de análisis. Salen vacías del parser y se rellenan después:
+
+| # | Columna | Quién la escribe | Contenido |
+|---|---------|------------------|-----------|
+| 15 | `hunt` | `graph-hunt-csv` | Qué concluyó la caza sobre la conexión de la fila: `significant`, `candidate`, `habitual`, `not_evaluated`, `baseline` o vacío |
+| 16 | `hunt_score` | `graph-hunt-csv` | Cómo de rara es la conexión, un entero de 0 a 100. `0` para una conexión habitual |
+| 17 | `hunt_why` | `graph-hunt-csv` | Por qué la conexión es inusual, en palabras |
+| 18 | `verdict` | El analista (en la ventana, en una herramienta de casos o a mano) | `suspicious`, `confirmed`, `benign` o vacío |
+| 19 | `notes` | El analista | Texto libre |
+
+Las timelines escritas antes de la v1.4.0 solo tienen las 14 columnas del evento. masstin las sigue leyendo.
+
+**`target_user_name` y `subject_user_name` no son lo mismo.** La cuenta *target* es la que inicia sesión: la que entra en la máquina destino. La cuenta *subject* es la que pidió ese logon, y en muchos eventos viene vacía. El caso más claro es el 4648 (`runas`): *subject* es la cuenta que ya tenía la sesión abierta y *target* es la cuenta cuyas credenciales se usaron para conectar.
 
 ---
 
@@ -49,6 +65,17 @@ Masstin clasifica cada evento en una de cuatro categorías:
 ---
 
 ## Mapeo de Event ID a event_type
+
+Cada tabla resume un artefacto. Si un log no te suena, su artículo explica qué es, en qué fichero está y cómo leer cada evento:
+
+- Security.evtx: [Security.evtx y movimiento lateral](/es/artifacts/security-evtx-lateral-movement/)
+- Terminal Services (RDP): [Terminal Services EVTX](/es/artifacts/terminal-services-evtx/)
+- SMB: [Eventos SMB en EVTX](/es/artifacts/smb-evtx-events/)
+- WinRM, WMI y Scheduled Tasks: [WinRM, WMI y Tasks](/es/artifacts/winrm-wmi-schtasks-lateral-movement/)
+- Linux: [Artefactos forenses de Linux](/es/artifacts/linux-forensic-artifacts/)
+- Cortex XDR: [Cortex XDR: artefactos forenses](/es/artifacts/cortex-xdr-artifacts/)
+- UAL: [User Access Logging](/es/tools/masstin-ual/)
+- MountPoints2: [MountPoints2](/es/artifacts/mountpoints2-lateral-movement/)
 
 ### Security.evtx
 
@@ -131,7 +158,17 @@ Masstin clasifica cada evento en una de cuatro categorías:
 | Origen | event_type | Descripción |
 |---|---|---|
 | Network (puertos 22/445/3389/5985/5986 por defecto) | `CONNECT` | Datos de conexión a nivel de red |
+| Event logs de los agentes (`eventlog`) | Según Event ID | Mismo mapeo que un EVTX |
 | EVTX Forensics | Según Event ID | Mismo mapeo que Security.evtx |
+
+### UAL y MountPoints2
+
+Estas dos fuentes no son logs de eventos, así que su `event_id` no es un número:
+
+| event_id | Origen | Descripción | Columna detail |
+|---|---|---|---|
+| `SMB`, `RDP`, `HTTP`, `LDAP`, `CERT`, `DHCP`, `DNS`, `PRINT`, `UAL` | Bases de datos UAL (`.mdb`) | Acceso de un cliente a un rol del servidor. El `event_id` es el protocolo del rol | Rol y número de accesos |
+| `MountPoints2` | NTUSER.DAT | `CONNECT`: el usuario conectó con un recurso compartido remoto | Ruta UNC del recurso |
 
 ---
 
@@ -140,6 +177,8 @@ Masstin clasifica cada evento en una de cuatro categorías:
 El campo `logon_id` identifica una sesión. En las filas escritas desde el destino (4624, 4634, 4647, y 4778/4779 con su `LogonID`) es la sesión que el evento abrió o cerró en esa máquina, y sirve para emparejar un logon con su logoff y saber cuánto duró.
 
 En las filas escritas desde el **origen** de una conexión es otra cosa: la sesión, en el origen, que la hizo. Es el `SubjectLogonId` de un 4648 y el login de la sesión de auditd en un `AUDIT_CONNECT`. Con eso se puede decir qué sesión dio el siguiente salto (desde masstin 1.5.0).
+
+Un ejemplo. Una cuenta entra en el servidor A: A escribe un 4624 y su `logon_id` es la sesión recién abierta. Desde esa sesión, la cuenta conecta con el servidor B usando otras credenciales: A escribe un 4648, y el `logon_id` de esa fila es el mismo. Las dos filas comparten `logon_id` en la misma máquina, así que sabes que el salto a B lo dio la sesión que había entrado en A.
 
 Para eventos de Terminal Services se usa el `SessionId` cuando está disponible. En las filas de Linux lleva el pid del proceso sshd (`sshd[pid]`, `_PID` de journald, `pid=` de auditd, `ut_pid` de wtmp), el mismo en el login y en su `LOGOFF`. Para Cortex y SMB este campo está vacío.
 
@@ -152,12 +191,14 @@ La columna `detail` proporciona contexto adicional que varía según el tipo de 
 | Evento | Contenido en detail |
 |---|---|
 | 4624, 4648 | Nombre del proceso que inició el logon |
-| 4625 | Código hex SubStatus indicando el motivo del fallo |
+| 4625 | Motivo del fallo en texto, con el código hex SubStatus entre paréntesis (ej: `Wrong password (0xc000006a)`) |
 | 5140 | ShareName (ej: `\\*\IPC$`, `\\*\C$`, `\\*\SYSVOL`) |
 | SMB 31001 | ShareName |
 | Sysmon 3 | Protocolo, proceso que inicia la conexión y puerto de servicio |
 | Eventos SSH | Método de autenticación (`password`, `publickey`) |
 | Cortex Network | Línea de comandos del proceso que generó la conexión |
+| UAL | Rol del servidor y número de accesos |
+| MountPoints2 | Ruta UNC del recurso compartido |
 | Otros eventos | Vacío |
 
 ### Códigos SubStatus comunes del 4625

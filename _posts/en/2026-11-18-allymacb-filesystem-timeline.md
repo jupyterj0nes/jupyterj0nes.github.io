@@ -86,6 +86,8 @@ A file called `invoice.pdf.exe`. The double extension is already enough to look 
 
 By its modification time, the file is from **2018**. By its creation time, it reached this disk on **10 November 2026**. The two cannot be telling the same story. Someone gave it an old date so that, with the folder sorted by date, it would not stand out.
 
+One nuance: the rule that fired, `b_after_c`, looks at another pair of timestamps. It compares the creation (B) with the record change (C), which is not in these two rows: the creation is later than that change, and that does not happen by itself.
+
 And `unallocated`: the file is deleted. Its record is still in the `$MFT` because nothing has reused it yet.
 
 So: an executable dressed up as a PDF, with a forged date, deleted afterwards. allymacb puts it at the top with a score of 70 and the explanation beside it:
@@ -122,6 +124,8 @@ allymacb has twelve rules of that kind:
 - Changes the USN journal saw and the timestamps deny.
 - Name tricks: double extensions, right-to-left override characters.
 
+All twelve, one by one, including the `b_after_c` that fired above, are in [the timestomping rules](/en/tools/allymacb-timestomping-rules/).
+
 What makes them useful is that **each rule's weight is measured**, on clean Windows and Linux machines. Because `$SI` earlier than `$FILE_NAME` also happens to thousands of legitimate files: any installer that keeps the vendor's original date produces it.
 
 ## The hunt, and why it needs a past
@@ -132,13 +136,15 @@ Besides the rules there is a statistical hunt, with the same method as [masstin'
 allymacb -f disk.E01 --investigation-from 2026-11-03 --hunt-out hunt.csv -o timeline.csv
 ```
 
+`--investigation-from` is that start date. `--hunt-out` writes the findings table separately, to `hunt.csv`: one row per odd record of that period, significant ones first.
+
 Here the result calls for honesty:
 
 ```
 records: 3606 significant, 13474 candidate, 7962 habitual, 494260 baseline
 ```
 
-3,606 significant records are too many to read. And sorted by folder, nearly all of them are the same thing: 1,268 are in `WinSxS`, 346 in `servicing` and 1,157 in `Program Files`. They are Windows updates and software installed that week, with each file's factory dates.
+3,606 significant records are too many to read. And sorted by folder, three in four are the same thing: 1,268 are in `WinSxS`, 346 in `servicing` and 1,157 in `Program Files`. They are Windows updates and software installed that week, with each file's factory dates.
 
 The reason is written in the explanation itself: *"on 0 of 1 days"*. The lab has only **one day** of normal activity before the date I gave it. With one reference day, any software install is something that "had never happened".
 
@@ -152,6 +158,8 @@ p1 $MFT: installed from 2026-10-26T03:37:07Z to 2026-10-26T05:59:59Z, 493053 of 
 ```
 
 Of 519,302 records, 493,053 belong to the two and a half hours in which Windows was installed. allymacb works that out from the volume itself and marks them as reference. Otherwise every file of the operating system would be an alert.
+
+The two lines count different things. The first, the records that changed during the installation. The second, the files of that installation on which some rule fired: those warnings are the ones that do not count.
 
 ## Recovering what was deleted
 
@@ -167,7 +175,7 @@ It is slow, because it reads the whole disk, and it is for when you suspect some
 
 masstin's 19 columns, each in the position of the one closest in meaning, and the same five at the end: `hunt`, `hunt_score`, `hunt_why`, `verdict` and `notes`. Lateral movement, persistence and file system of one case read side by side.
 
-Nothing but the CSV goes to standard output, so it can be piped:
+Nothing but the CSV goes to standard output, so it can be piped. This example is for a Unix-style shell (Linux, macOS, or Git Bash and WSL on Windows): `grep` filters lines, and the single quotes stop the shell from interpreting the `$`.
 
 ```bash
 allymacb -f '$MFT' | grep ',unallocated,' > deleted.csv

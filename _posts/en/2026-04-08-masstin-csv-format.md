@@ -14,15 +14,17 @@ comments: true
 
 ## CSV Structure
 
-All masstin actions produce a unified CSV with 14 columns, regardless of the source (Windows EVTX, Linux logs, Winlogbeat JSON, or Cortex XDR):
+Every masstin action that parses evidence (and `merge`) produces a unified CSV with 19 columns, regardless of the source (Windows EVTX, Linux logs, Winlogbeat JSON, or Cortex XDR). The actions that load into a graph database and the window (`view`) do not write another format: they read this same CSV.
+
+The first 14 columns describe the event and are written by the parsers:
 
 | # | Column | Description |
 |---|--------|-------------|
 | 1 | `time_created` | Event timestamp |
 | 2 | `dst_computer` | Destination hostname (machine that received the connection) |
 | 3 | `event_type` | Event classification (see below) |
-| 4 | `event_id` | Original Event ID from the source (e.g., `4624`, `SSH_SUCCESS`) |
-| 5 | `logon_type` | Windows logon type as reported by the event (e.g., `2`, `3`, `7`, `10`, `11`) |
+| 4 | `event_id` | Original Event ID from the source (e.g., `4624`, `SSH_SUCCESS`, `SMB`, `RDP`) |
+| 5 | `logon_type` | Windows logon type as reported by the event (e.g., `2`, `3`, `7`, `10`, `11`). On Linux rows it is `SSH` |
 | 6 | `target_user_name` | User account targeted by the action |
 | 7 | `target_domain_name` | Domain of the target user |
 | 8 | `src_computer` | Source hostname (machine that initiated the connection) |
@@ -32,6 +34,20 @@ All masstin actions produce a unified CSV with 14 columns, regardless of the sou
 | 12 | `logon_id` | Logon session ID for correlation (e.g., `0x1A2B3C`) |
 | 13 | `detail` | Additional context depending on event type |
 | 14 | `log_filename` | Source artifact file |
+
+The last 5 are the analysis tail. They leave the parser empty and are filled later:
+
+| # | Column | Written by | Content |
+|---|--------|------------|---------|
+| 15 | `hunt` | `graph-hunt-csv` | What the hunt made of the row's connection: `significant`, `candidate`, `habitual`, `not_evaluated`, `baseline` or empty |
+| 16 | `hunt_score` | `graph-hunt-csv` | How rare the connection is, an integer from 0 to 100. `0` for a habitual connection |
+| 17 | `hunt_why` | `graph-hunt-csv` | Why the connection is unusual, in words |
+| 18 | `verdict` | The analyst (in the window, in a case tool or by hand) | `suspicious`, `confirmed`, `benign` or empty |
+| 19 | `notes` | The analyst | Free text |
+
+Timelines written before v1.4.0 have the 14 event columns only. masstin still reads them.
+
+**`target_user_name` and `subject_user_name` are not the same thing.** The *target* account is the one that logs on: the one that gets into the destination machine. The *subject* account is the one that requested that logon, and in many events it is empty. The clearest case is 4648 (`runas`): *subject* is the account that already had the session open and *target* is the account whose credentials were used to connect.
 
 ---
 
@@ -49,6 +65,17 @@ Masstin classifies every event into one of four categories:
 ---
 
 ## Event ID Mapping
+
+Each table summarises one artifact. If a log is new to you, its article explains what it is, which file holds it and how to read each event:
+
+- Security.evtx: [Security.evtx and lateral movement](/en/artifacts/security-evtx-lateral-movement/)
+- Terminal Services (RDP): [Terminal Services EVTX](/en/artifacts/terminal-services-evtx/)
+- SMB: [SMB EVTX events](/en/artifacts/smb-evtx-events/)
+- WinRM, WMI and Scheduled Tasks: [WinRM, WMI & Tasks](/en/artifacts/winrm-wmi-schtasks-lateral-movement/)
+- Linux: [Linux forensic artifacts](/en/artifacts/linux-forensic-artifacts/)
+- Cortex XDR: [Cortex XDR artifacts](/en/artifacts/cortex-xdr-artifacts/)
+- UAL: [User Access Logging](/en/tools/masstin-ual/)
+- MountPoints2: [MountPoints2](/en/artifacts/mountpoints2-lateral-movement/)
 
 ### Security.evtx
 
@@ -131,7 +158,17 @@ Masstin classifies every event into one of four categories:
 | Source | event_type | Description |
 |---|---|---|
 | Network (ports 22/445/3389/5985/5986 by default) | `CONNECT` | Network-level connection data |
-| EVTX Forensics | Same as Security.evtx | Classified by Event ID |
+| Agents' event logs (`eventlog`) | By Event ID | Same mapping as an EVTX |
+| EVTX Forensics | By Event ID | Same mapping as Security.evtx |
+
+### UAL and MountPoints2
+
+These two sources are not event logs, so their `event_id` is not a number:
+
+| event_id | Source | Description | detail column |
+|---|---|---|---|
+| `SMB`, `RDP`, `HTTP`, `LDAP`, `CERT`, `DHCP`, `DNS`, `PRINT`, `UAL` | UAL databases (`.mdb`) | A client's access to a server role. The `event_id` is the role's protocol | Role and number of accesses |
+| `MountPoints2` | NTUSER.DAT | `CONNECT`: the user connected to a remote share | UNC path of the share |
 
 ---
 
@@ -140,6 +177,8 @@ Masstin classifies every event into one of four categories:
 The `logon_id` field identifies a session. On rows written from the destination (4624, 4634, 4647, and 4778/4779 with their `LogonID`) it is the session the event opened or closed on that machine, and it lets you pair a logon with its logoff and see how long it lasted.
 
 On rows written from the **origin** of a connection it is something else: the session, on the origin, that made it. That is the `SubjectLogonId` of a 4648 and the login of the auditd session on an `AUDIT_CONNECT`. With it you can say which session made the next hop (since masstin 1.5.0).
+
+An example. An account logs on to server A: A writes a 4624 and its `logon_id` is the session just opened. From that session, the account connects to server B with other credentials: A writes a 4648, and the `logon_id` of that row is the same one. The two rows share a `logon_id` on the same machine, so you know the hop to B was made by the session that had come into A.
 
 For Terminal Services events, the `SessionId` is used when available. On Linux rows it carries the sshd process id (`sshd[pid]`, journald `_PID`, auditd `pid=`, wtmp `ut_pid`), the same on a login and on its `LOGOFF`. For Cortex and SMB events, this field is empty.
 
@@ -152,12 +191,14 @@ The `detail` column provides additional context that varies by event type:
 | Event | Content in detail |
 |---|---|
 | 4624, 4648 | Process name that initiated the logon |
-| 4625 | SubStatus hex code indicating failure reason |
+| 4625 | Failure reason in words, with the SubStatus hex code in brackets (e.g., `Wrong password (0xc000006a)`) |
 | 5140 | ShareName (e.g., `\\*\IPC$`, `\\*\C$`, `\\*\SYSVOL`) |
 | SMB 31001 | ShareName |
 | Sysmon 3 | Protocol, initiating process and service port |
 | SSH events | Authentication method (`password`, `publickey`) |
 | Cortex Network | Command line of the process that generated the connection |
+| UAL | Server role and number of accesses |
+| MountPoints2 | UNC path of the share |
 | Other events | Empty |
 
 ### Common 4625 SubStatus Codes

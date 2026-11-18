@@ -14,6 +14,8 @@ comments: true
 ---
 There is a part of masstin you do not see and that has more work behind it than it seems: going fast without leaving the machine unusable, and not falling over when the evidence comes broken. Neither has an option to switch on. This article says what happens underneath, in case the behaviour surprises you one day.
 
+There is no command of its own to try. Everything below happens on any parse, such as the `masstin -a parse` of [the parse article](/en/tools/masstin-parse/).
+
 ## It uses what is idle, not what there is
 
 On start, masstin says what it is going to work with:
@@ -23,7 +25,16 @@ Threads: up to 11, what is idle at each moment (12 cores, 11.4 idle now, 6.1 GB 
          --threads fixes it, 1 runs serial); priority below normal
 ```
 
-Twelve cores, up to eleven threads. It always leaves one for the system. But the phrase that matters is *what is idle at each moment*: it does not reserve eleven threads, **it uses the ones that are free at each moment**, and measures again at most once a second.
+A thread is each of the tasks a program runs at the same time, spread over the processor's cores. The line says several things in a row:
+
+- **`up to 11`**: it will use eleven threads at most.
+- **`12 cores`**: the machine has twelve cores. It always leaves one for the system.
+- **`11.4 idle now`**: how many cores are free right now.
+- **`6.1 GB free`**: the free memory. It counts in the next section.
+- **`--threads fixes it, 1 runs serial`**: how to fix the number yourself.
+- **`priority below normal`**: it runs below normal priority.
+
+The phrase that matters is *what is idle at each moment*: it does not reserve eleven threads, **it uses the ones that are free at each moment**, and measures again at most once a second.
 
 On an analysis server with nothing else to do, it uses all of it. On a laptop with another tool working alongside, it steps aside. And since it runs below normal priority, your desktop and whatever you have open come first.
 
@@ -55,7 +66,7 @@ A file is skipped only when **its name and its content agree** on it: the name i
 
 If anything does not fit, it is read whole. That includes:
 
-- A **renamed or archived** log (`Security-2024-01-02.evtx`).
+- A **renamed or archived** log (`Security-YYYY-MM-DD-HH-MM-SS.evtx`, the name Windows gives them when it archives them).
 - A log of **forwarded events** (`ForwardedEvents.evtx`), where each record keeps its original channel and those of many machines may be mixed.
 - A file with **a damaged chunk**.
 - A record that does not say which channel it belongs to.
@@ -73,11 +84,11 @@ original:  Security.evtx (1247)
 damaged:   Security.evtx (1158)
 ```
 
-1,158 events out of 1,247. Those of the two damaged chunks are lost and the rest is read normally. One broken file among two thousand does not bring the run down.
+1,158 events out of 1,247: 89 fewer. Those of the two damaged chunks are lost and the rest is read normally. One broken file among two thousand does not bring the run down.
 
 Now the part you need to know: **it does not warn you**. There is no line saying "this file had a corrupt chunk". All you see is a lower number in the breakdown by source. So that breakdown has to be read: if a domain controller gives forty events from `Security.evtx`, there is something to look at.
 
-For E01 images with corrupt areas where carving gets stuck there is a specific option, `--skip-offsets`, which skips the areas you name.
+For E01 images with corrupt areas where carving gets stuck there is a specific option, `--skip-offsets`, which skips the areas you name. It belongs to another action, `carve-image`, the one that recovers events from deleted logs ([the carving article](/en/tools/evtx-carving-unallocated/)). It takes a comma-separated list of positions in hexadecimal (`--skip-offsets 0x6478b6000,0x7a0000000`), and for each one it skips 32 MB from there.
 
 ## Identical with one thread or thirty-two
 
@@ -87,4 +98,4 @@ Every parallel stage collects its results **in the order of its inputs**, and th
 
 It is not a promise: it is checked. On every change, continuous integration parses the public sample sets with one thread and with all the machine's, on three operating systems, and compares the files.
 
-In forensics that is not a technical detail. If tomorrow someone repeats your analysis on another machine and gets a different timeline, you have a problem that has nothing to do with the case. And you can check it yourself on your own evidence: parse it once normally and once with `--threads 1`, and compare the two files.
+In forensics that is not a technical detail. If tomorrow someone repeats your analysis on another machine and gets a different timeline, you have a problem that has nothing to do with the case. And you can check it yourself on your own evidence: parse it once normally and once with `--threads 1`, each with its own output file (`-o`), and compare the two files. The simplest way is to compute the hash of each (SHA-256, for instance) with the tool you use for evidence: if the two hashes match, the files are identical byte for byte.

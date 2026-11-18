@@ -18,7 +18,7 @@ That is why the [viewer](/en/tools/masstin-viewer/) has two modes on a switch at
 
 ## What is there
 
-Every row of the CSV, including the ones with no origin, which therefore never show in the graph. The 19 columns as they are written, from `time_created` to `notes`, in the file's order. The viewer adds nothing and changes nothing.
+Every row of the CSV, including the ones with no origin, which therefore never show in the graph. The 19 columns as they are written, from `time_created` to `notes`, in the file's order. What each column holds is in [the CSV format](/en/tools/masstin-csv-format/). The viewer adds nothing and changes nothing.
 
 The number on the left is the line in the file. Line 1 is the header, so it matches what any editor shows you. When the report says "line 10937 of the timeline", whoever reads it will find it.
 
@@ -30,7 +30,14 @@ Filters add up. Each one is "this column contains this" or "does not contain it"
 
 [![Timeline mode with two filters: target_user_name contains ryan.devlead and event_id does not contain 4624; 6,482 rows of 28,672 are left](/assets/images/viewer/tl-filters.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/tl-filters.webp)
 
-There are two here: the account contains `ryan.devlead` and the event is **not** 4624. That leaves 6,482 rows of 28,672. You can see the routine of a domain account: the 4768 asking for the TGT, the 4769s for each service, the 4648 and the 4634s closing sessions. And in the middle a different kind of row, `SMB` with "UAL: File Server (44x)", which comes from no EVTX at all but from the server's [UAL](/en/tools/masstin-ual/) database.
+There are two here: the account contains `ryan.devlead` and the event is **not** 4624. That leaves 6,482 rows of 28,672. You can see the routine of a domain account, one Windows event at a time:
+
+- the **4768**, when the account asks the domain controller for its TGT, the initial Kerberos ticket it then uses to ask for the others;
+- the **4769s**, one per service ticket: the permission to get into one particular service on another machine;
+- the **4648**, a use of explicit credentials;
+- the **4634s**, which close sessions.
+
+They are explained at more length in [the Security log](/en/artifacts/security-evtx-lateral-movement/). And in the middle a different kind of row, `SMB` with "UAL: File Server (44x)", which comes from no EVTX at all but from the server's [UAL](/en/tools/masstin-ual/) database.
 
 A filter can be typed in three places:
 
@@ -58,7 +65,7 @@ The two modes lead into each other, and this is the part you use most.
 
 **Only these rows.** Ctrl + click or Shift + click picks several. *Show exactly these rows in the graph* draws a graph of those alone: one line per row, ungrouped, whatever the filters say. For rebuilding one particular sequence you found by reading.
 
-The same can be asked from outside:
+The same can be asked from outside. The numbers are lines of the file, the same ones you see at the left of each row:
 
 ```bash
 masstin -a view -f timeline.csv --rows 12,57,301

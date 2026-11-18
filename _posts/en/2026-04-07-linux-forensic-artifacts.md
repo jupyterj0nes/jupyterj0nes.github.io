@@ -24,6 +24,8 @@ The primary lateral movement vector in Linux is **SSH**. Unlike Windows, where m
 
 [Masstin](/en/tools/masstin-lateral-movement-rust/) supports parsing Linux logs, integrating SSH activity into the same lateral movement timeline as Windows artifacts.
 
+Throughout the article you will see upper-case names such as `SSH_FAILED` or `AUDIT_CONNECT` and columns such as `event_id` or `logon_id`. They are the values and columns of the CSV masstin writes, one row per event. They are explained in [masstin's CSV format](/en/tools/masstin-csv-format/).
+
 ---
 
 ## /var/log/secure and /var/log/auth.log
@@ -138,6 +140,8 @@ Masstin keeps `USER_LOGIN` only (one record per SSH connection; `USER_AUTH` is u
 
 Windows has the logon ID to know which session did what. Linux has something similar that gets little attention: every login leaves a session identifier in auditd, `ses=`, and the kernel stamps it on every record of every process that hangs from that session.
 
+An audit rule is an instruction that tells auditd which system operations to write down. `connect` is the system call a program makes to open a network connection.
+
 If the machine has an audit rule on `connect` (common in hardening guides), each outgoing connection is left like this:
 
 ```
@@ -145,13 +149,15 @@ type=SYSCALL msg=audit(1712502493.390:10045): arch=c000003e syscall=42 success=n
 type=SOCKADDR msg=audit(1712502493.390:10045): saddr=020001BD0A00013C0000000000000000 SADDR={ saddr_fam=inet laddr=10.0.1.60 lport=445 }
 ```
 
+You do not need to understand every field. From the first line (`SYSCALL`), what matters is the program that connected (`comm`, `exe`) and the session it belongs to (`ses=7`). From the second (`SOCKADDR`), the destination: the part in braces already has the address and the port (`laddr=10.0.1.60 lport=445`), and the hexadecimal `saddr=` is that same data untranslated.
+
 That is the origin machine saying "session 7 connected to 10.0.1.60 on 445". Masstin turns it into an `AUDIT_CONNECT` row, written from the origin, and gives it the `logon_id` of the SSH login of that same session. So when you search for paths by session in the window, that hop is proven: not "it left while the session was open" but "that session did it".
 
 A few details:
 
 - Only connections from login sessions count (daemons have no `ses`), and only to remote-access ports: 22, 23, 135, 139, 445, 3389, 5900, 5985 and 5986.
 - `exit=-115` is not a failure. It is a connection in progress on a non-blocking socket, and it counts.
-- Without the rule there is nothing to read. This is it: `-a always,exit -F arch=b64 -S connect -F a2=16 -k netconn`.
+- Without the rule there is nothing to read. This is it, and it goes in the machine's auditd configuration: `-a always,exit -F arch=b64 -S connect -F a2=16 -k netconn`.
 
 This comes with masstin 1.5.0.
 
@@ -259,7 +265,7 @@ On Ubuntu 18+, Debian 11+, RHEL 8+ and any distribution where **SSSD is enrolled
 /var/log/journal/<machine-id>/system@<sequence>.journal~   # archived (rotated)
 ```
 
-Every `.journal` file is a binary database:
+Every `.journal` file is a binary database. You do not need to know its insides to follow the article; in case you are curious, these are its parts:
 - **Header + arena** of `OBJECT_DATA` (fields like `MESSAGE=`, `_COMM=sshd`, `_HOSTNAME=`, `_UID=0`) and `OBJECT_ENTRY` (a log entry pointing to a set of data objects).
 - **Compact mode** (newer `journalctl`) uses 4-byte offsets instead of 8-byte + hash for a smaller footprint.
 - **zstd-compressed payloads** for large `MESSAGE` fields (default in Ubuntu 22+).
@@ -300,7 +306,7 @@ Apr 12 18:20:53 LNX01-oldtown sshd[2141]: Accepted publickey for ubuntu from 192
 
 If you carve `/var/log/auth.log` from an ext4 forensic image and parse it with a classic tool, you'll conclude "nothing happened" — and miss 100% of the lateral-movement evidence. Any DFIR pipeline that ignores the binary journal on modern Linux has a blind spot the size of the entire SSH footprint.
 
-Masstin handles this natively: it reads `.journal` and `.journal~` files directly, decodes compact mode and zstd-compressed data objects, filters on `_COMM=sshd` (and `sshd-session`, the per-connection process of OpenSSH 9.8+) and applies the same `Accepted (password|publickey)` / `Failed password` regexes used on text logs. The implementation is **pure Rust** — no `libsystemd` binding — so it also works when you're analysing Linux evidence from a **Windows DFIR workstation**.
+Masstin handles this natively: it reads `.journal` and `.journal~` files directly, decodes compact mode and zstd-compressed data objects, filters on `_COMM=sshd` (and `sshd-session`, the per-connection process of OpenSSH 9.8+) and applies the same regexes used on text logs: `Accepted <method>` with any method (`password`, `publickey`, `keyboard-interactive`, `gssapi-with-mic`…) and `Failed <method>`. The implementation is **pure Rust** — no `libsystemd` binding — so it also works when you're analysing Linux evidence from a **Windows DFIR workstation**.
 
 ---
 
@@ -310,7 +316,7 @@ Masstin handles this natively: it reads `.journal` and `.journal~` files directl
 |----------|----------|--------|----------------|-------------|
 | auth.log / secure | `/var/log/auth.log` (Debian/Ubuntu) or `/var/log/secure` (RHEL) | Text | SSH authentication (successes, failures, connections) — **often empty on SSSD + AD hosts** | `cat`, `grep` |
 | messages | `/var/log/messages` | Text | System events, PAM, systemd | `cat`, `grep` |
-| audit.log | `/var/log/audit/audit.log` | Structured text | `USER_LOGIN` / `USER_AUTH` / `USER_START` — detailed authentication auditing, primary SSH signal on Ubuntu + SSSD | `ausearch`, `aureport` |
+| audit.log | `/var/log/audit/audit.log` | Structured text | `USER_LOGIN` / `USER_AUTH` / `USER_END` — detailed authentication auditing, primary SSH signal on Ubuntu + SSSD | `ausearch`, `aureport` |
 | **systemd-journald** | `/var/log/journal/<machine-id>/*.journal[~]` | **Binary (zstd-compressed)** | All sshd events on modern distros (Ubuntu 18+, RHEL 8+, Debian 11+) — the real SSH record when `auth.log` is empty | `journalctl --file`, masstin |
 | utmp | `/var/run/utmp` | Binary | Active sessions | `who`, `w` |
 | wtmp | `/var/log/wtmp` | Binary | Logon/logout history | `last` |
@@ -332,6 +338,8 @@ masstin -a parse -d /evidence/triage_package/ -o timeline.csv
 ```
 
 ![masstin CLI output on Linux logs](/assets/images/masstin_cli_linux.png){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}
+
+The second command points at the folder that holds the compressed package, not at the package: masstin walks the folder and opens the ZIP and `tar.gz` files it finds inside.
 
 Masstin transparently reports all inferences: hostname identification (from `/etc/hostname`, `dmesg`, or the syslog header), year inference (from the logrotate suffix of rotated files, `dpkg.log`, `wtmp`, or file modification date), the time zone used to convert RFC3164 timestamps to UTC, and password-protected ZIP extraction.
 
@@ -362,7 +370,13 @@ Linux logs differ by distribution, but masstin handles both transparently:
 Mar 16 08:25:22 app-1 sshd[4894]: Accepted password for user3 from 192.168.126.1 port 61474 ssh2
 ```
 
-Since RFC3164 has no year, masstin infers it automatically from sibling files in the same directory. The priority order is: `dpkg.log` (contains full `YYYY-MM-DD` dates), `wtmp` (epoch timestamps with year), file modification date, and current year as last resort. Masstin reports what it inferred and from which source, so the analyst always knows the basis for the timestamps. Rotated files (`secure-20260301`, `auth.log.1.gz`) take the year from their logrotate suffix, and a December line in the current, unrotated file is dated the previous year when the inferred year would place it after the file's last write. RFC3164 stamps are also the host's local wall-clock time: masstin resolves the zone from `/etc/timezone`, `/etc/sysconfig/clock` or `/etc/localtime` and converts them to UTC so they line up with wtmp, audit and journald.
+These timestamps lack the year and the time zone. Masstin works out both:
+
+- **The year.** Masstin infers it from sibling files in the same directory, in this order: `dpkg.log` (contains full `YYYY-MM-DD` dates), `wtmp` (epoch timestamps with year), file modification date, and current year as last resort.
+- **The year in rotated files.** Rotated files (`secure-20260301`, `auth.log.1.gz`) take the year from their logrotate suffix. A December line in the current, unrotated file is dated the previous year when the inferred year would place it after the file's last write.
+- **The time zone.** RFC3164 stamps are the host's local wall-clock time. Masstin resolves the zone from `/etc/timezone`, `/etc/sysconfig/clock` or `/etc/localtime` and converts them to UTC so they line up with wtmp, audit and journald.
+
+Masstin reports what it inferred and from which source, so the analyst always knows the basis for the timestamps.
 
 The same applies to hostname identification: masstin checks `/etc/hostname`, `dmesg`, `/etc/hosts`, and falls back to extracting the hostname from the syslog header itself. All inferences are reported transparently in the output.
 
@@ -382,6 +396,6 @@ masstin can process compressed Linux triage packages directly. It recursively de
 
 ## Conclusion
 
-In hybrid environments, ignoring Linux artifacts leaves critical blind spots in your investigation. SSH authentication logs, binary utmp/wtmp/btmp records, and audit.log provide the same forensic richness as Windows EVTX files — you just need to know where to look.
+In hybrid environments, ignoring Linux artifacts leaves critical blind spots in your investigation. SSH authentication logs, the systemd binary journal, binary utmp/wtmp/btmp records, and audit.log provide the same forensic richness as Windows EVTX files — you just need to know where to look.
 
 [Masstin](/en/tools/masstin-lateral-movement-rust/) unifies these artifacts with Windows ones to give you a complete view of lateral movement across your entire infrastructure.

@@ -22,8 +22,8 @@ The map in [masstin's viewer](/en/tools/masstin-viewer/) packs a lot of informat
 
 - The **width** grows with the number of events.
 - The **colour** is the result: grey when the logon went through, red when it failed, dotted purple for a connection without a logon, dotted grey for a logoff.
-- If you have run the hunt, the hunt wins: thick red for `significant`, orange for `candidate`.
-- A pink or green **halo** is a mark of yours (suspicious, confirmed or benign).
+- If you have run the hunt, the hunt wins: thick red for `significant`, orange for `candidate`. The [hunt](/en/tools/masstin-graph-hunt/) is masstin's analysis that points at the odd connections; `significant` is what clears its bar and `candidate` what falls short but deserves a look ([the states and the score](/en/tools/hunt-score-across-tools/)).
+- A **halo** is a mark of yours: pink if you marked it suspicious or confirmed, green if benign.
 
 The line starts dim at the origin and arrives bright at the destination. That way you read the direction before you look for the arrowhead.
 
@@ -69,7 +69,7 @@ For what a drop-down does not cover there are rules (**Rules** on the toolbar).
 
 [![The Style rules window with the buttons that add the usual rules: hide machine accounts, fade benign, domain controllers as hexagons](/assets/images/viewer/g-rules.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/g-rules.webp)
 
-A rule is a field (host, account, logon type, event ID, result, hunt, verdict), a pattern, and the look it gives: colour, width, size, shape, dashed, glow or hide. The first one that matches wins. The everyday ones are already there as buttons: one account in colour, hide machine accounts, fade what you marked benign.
+A rule is a field (host, account, logon type, event ID, result, hunt, verdict), a pattern, and the look it gives: colour, width, size, shape, dashed, glow or hide. The pattern is the text the field is compared with, written the same way as in the filters (`adm*`, `*$`, `=DC01`): the table is in [Filters, views and search](/en/tools/masstin-viewer-filters/). Left empty, it matches everything. The first one that matches wins. The everyday ones are already there as buttons: one account in colour, hide machine accounts, fade what you marked benign.
 
 To start with, the one that hides machine accounts. Accounts ending in `$` fill the graph with lines and are hardly ever what you are after.
 

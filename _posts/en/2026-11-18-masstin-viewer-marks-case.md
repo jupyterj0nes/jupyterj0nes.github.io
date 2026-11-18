@@ -12,9 +12,11 @@ tags: [masstin, viewer, notes, case, dfir]
 description: "How to keep a record in masstin's viewer: verdicts written into the CSV, notes on machines and connections, and the .masstin file that holds the whole case."
 comments: true
 ---
-Looking at a graph leaves no trace. Three hours later you know "there was something odd about a service account" and cannot remember which or where. The [viewer](/en/tools/masstin-viewer/) has three ways of writing things down, and each is kept in a different place for a reason.
+Looking at a graph leaves no trace. Three hours later you know "there was something odd about a service account" and cannot remember which or where. The [viewer](/en/tools/masstin-viewer/) has two ways of writing things down, verdicts and notes, and a case file that holds everything else. Each thing is kept in a different place for a reason.
 
 ## Verdicts: they go into the CSV
+
+**Mind shared evidence.** Marking changes the CSV. If the timeline sits on a share that must not be touched, work on a copy.
 
 Select a connection and the inspector gives you four buttons: **suspicious**, **confirmed**, **benign** and **clear**. Below them, a box to write why.
 
@@ -33,8 +35,6 @@ Two details:
 
 On the map, a marked connection carries a halo: pink for suspicious and confirmed, green for benign. And there is a ready-made style rule to fade what is benign, which cleans up the picture as the case moves on.
 
-**Mind shared evidence.** Marking changes the CSV. If the timeline sits on a share that must not be touched, work on a copy.
-
 ## Notes: what has no row
 
 A note on a machine ("this is the backup server, confirmed by the client") or on the case as a whole has no row to live in. Those are kept apart, with their time. You write them with a right click or in the inspector's **Notes** tab.
@@ -45,7 +45,13 @@ That tab ends up being the case notebook: your notes at the top and, below, ever
 
 Besides marks and notes, you pile up other things as you work: saved filters, the arrangement of the machines, the names joined to their IPs, the subnets, the presentation. All of it fits in one file: `<name>.masstin`.
 
-**Evidence › Save as a case…** writes it wherever you say. Later you open it with **Open case…**, by dropping it on the window, or from the command line:
+Where it ends up depends on which of these three situations is yours. Each has its own section further down:
+
+- **You saved a case** with *Save as a case…*, wherever you like: everything goes into that file and nothing is written next to the timelines.
+- **The timeline already has a `<name>.masstin` next to it**, because masstin wrote it when making the timeline or running the [hunt](/en/tools/masstin-graph-hunt/), its analysis of odd connections: that file is the case, and it is the only one beside the timeline.
+- **Neither**: the viewer leaves three small files next to the timeline.
+
+**Evidence › Save as a case…** writes it wherever you say. Later you open it with **Open case…**, by dropping it on the window, or from the command line (the path is an example, written the Windows way; in bash, put it in single quotes so the backslashes are not eaten):
 
 ```bash
 masstin -a view --case D:\cases\acme.masstin
@@ -61,7 +67,7 @@ There is one exception, the one above: verdicts always go into the CSV, case or 
 
 `<name>.masstin` is not only the viewer's. It is the file where masstin writes down what it knows about a timeline: the parsers write what evidence it came from and whose each address is, and the hunt, what parameters it ran with. When you save the case, those keys are kept.
 
-That is why a timeline with its `.masstin` next to it **opens straight away as that case**. What you save goes into the same file and no other file appears.
+That is why a timeline with its `.masstin` next to it **opens straight away as that case**. Here the case file does sit next to the timeline, but it is not a new one: it was already there. What you save goes into the same file and no other file appears.
 
 ### And with no case
 

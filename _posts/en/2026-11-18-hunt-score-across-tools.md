@@ -35,7 +35,7 @@ One word is missing on purpose: *suspicious*. A person decides that, and it goes
 
 `hunt_score` runs from 0 to 100 and measures **how rare the row is**, not how sure the tool is.
 
-The sum is `−10 · log10(p)`, where `p` is the share of normal rows that look at least this rare. Without the formula, every ten points are one order of magnitude:
+The idea is simple: every ten points, the row is ten times rarer. For those who want the sum, it is `−10 · log10(p)`, where `p` is the share of normal rows that look at least this rare. If the formula means nothing to you, keep the table:
 
 | Points | Read as |
 |---|---|
@@ -85,9 +85,9 @@ masstin has no rules: it only compares. faramir and allymacb have both, rules an
 
 1. What is being investigated is separated from what serves as reference. In masstin, the days before the start date. In faramir, the other machines or what predates `--baseline`. In allymacb, what the volume did before.
 2. For each investigated row, the reference rows that are at least as rare are counted. That gives `p`.
-3. Since thousands of rows are looked at together, some will come out rare by chance. That is corrected (Benjamini-Hochberg), and `--alpha` is the share of false findings you accept among the significant ones. 0.05 by default.
+3. Since thousands of rows are looked at together, some will come out rare by chance. That is corrected with Benjamini-Hochberg, a standard statistical method for that problem: the more rows are looked at together, the rarer one has to be to count. `--alpha` is the share of false findings you accept among the significant ones. 0.05 by default: at most one in twenty.
 
-The most important limit comes out of that design, and it is the same in all three: **without a reference there are no statistics**. With `N` reference rows or days, nothing can be rarer than one in `N + 1`. The lab has a single day of activity before the incident, which is why its statistical hunt gives little, and noisily, while the rules, which need no past, are right.
+The most important limit comes out of that design, and it is the same in the three that have a statistical test (masstin, faramir and allymacb): **without a reference there are no statistics**. With `N` reference rows or days, nothing can be rarer than one in `N + 1`. The lab has a single day of activity before the incident, which is why its statistical hunt gives little, and noisily, while the rules, which need no past, are right.
 
 How masstin does it in detail is in [graph-hunt](/en/tools/masstin-graph-hunt/).
 

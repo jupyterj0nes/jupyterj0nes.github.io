@@ -12,7 +12,7 @@ description: "Preparing Kali to attack the domain: what kali-linux-default ships
 comments: true
 ---
 
-*This is Part 7 of the [AD DFIR Lab]({% post_url en/2026-04-12-ad-dfir-lab-intro %}) series. We get Kali ready for the attacks in Phase 9.*
+*This is Part 7 of the [AD DFIR Lab]({% post_url en/2026-04-12-ad-dfir-lab-intro %}) series. We get Kali ready for the attacks in Part 10.*
 
 ## kali-linux-default ships most things, but not everything
 
@@ -117,7 +117,7 @@ sudo chmod +x /usr/local/bin/kerbrute
 
 ## NOPASSWD sudo for automation (lab only)
 
-When we want to run commands on Kali from the Proxmox host via SSH, each `sudo` asks for the password interactively and breaks automation:
+When we want to run commands on Kali from the Proxmox host via SSH (this assumes you can already log in from the host as user `kali`, with a password or a key), each `sudo` asks for the password interactively and breaks automation:
 
 ```
 sudo: a terminal is required to read the password
@@ -136,7 +136,7 @@ Now attack scripts can be launched from the hypervisor without interaction.
 
 Instead of just verifying that the tools got installed, we launch a **real attack** that touches every layer of the lab: pfSense NAT, domain DNS, DC Kerberos, Impacket on Kali. If this works, the tools work AND the lab networking is correct.
 
-**brandon.stark** is vulnerable to AS-REP Roasting (`DoesNotRequirePreAuth=True` attribute set by GOAD). We can request an AS-REP ticket **without credentials** containing material encrypted with his NTLM hash:
+**brandon.stark** is vulnerable to AS-REP Roasting (`DoesNotRequirePreAuth=True` attribute set by GOAD). We can request an AS-REP ticket **without credentials** containing material encrypted with the account's NTLM hash:
 
 ```bash
 # From Kali (192.168.20.100 on VLAN 20)
@@ -176,7 +176,9 @@ A single command validates six layers of the stack. This is **the definitive pro
 
 ## Snapshot `clean-ad`
 
-Before generating historical noise or running attacks, we take a **`clean-ad`** snapshot:
+Before generating historical noise or running attacks, we take a **`clean-ad`** snapshot.
+
+Mind the order: the test in the previous section has already left traces in the domain logs. If you ran it, revert the Windows VMs to `audit-configured` (the snapshot from the end of Part 6) before taking this one. The reason is in the Gotcha further down.
 
 ```bash
 for VMID in 100 101 102 103 104 105 106 107 108; do
@@ -208,7 +210,7 @@ Get-WinEvent -FilterHashtable @{LogName="Security"; Id=4768} |
 # 4/13/2026 8:39:44 AM  4768   ← the test!
 ```
 
-Fix: revert the Windows VMs to the previous snapshot (`audit-configured`), leave Kali untouched (its state with tools installed is correct), and re-take `clean-ad` with clean Windows + armed Kali. ZFS snapshots per VM are independent, so we can revert some VMs and snapshot different states at the same "logical point".
+Fix: revert the Windows VMs to the previous snapshot (`audit-configured`) with `qm rollback <VMID> audit-configured` on each one (101 to 106), leave Kali untouched (its state with tools installed is correct), and re-take `clean-ad` with clean Windows + armed Kali. ZFS snapshots per VM are independent, so we can revert some VMs and snapshot different states at the same "logical point".
 
 **Rule**: any action that touches the domain leaves traces in EVTX. Take the target snapshot **before** running any test, not after.
 

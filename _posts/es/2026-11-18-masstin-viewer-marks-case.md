@@ -12,9 +12,11 @@ tags: [masstin, visor, notas, caso, dfir]
 description: "Cómo dejar constancia en el visor de masstin: veredictos que se escriben en el CSV, notas sobre máquinas y conexiones, y el fichero .masstin que guarda el caso entero."
 comments: true
 ---
-Mirar un grafo no deja rastro. Tres horas después sabes que «había algo raro con una cuenta de servicio» y no recuerdas cuál ni dónde. El [visor](/es/tools/masstin-viewer/) tiene tres formas de apuntar las cosas, y cada una se guarda en un sitio distinto por un motivo.
+Mirar un grafo no deja rastro. Tres horas después sabes que «había algo raro con una cuenta de servicio» y no recuerdas cuál ni dónde. El [visor](/es/tools/masstin-viewer/) tiene dos formas de apuntar las cosas, los veredictos y las notas, y un fichero de caso que recoge todo lo demás. Cada cosa se guarda en un sitio distinto por un motivo.
 
 ## Veredictos: van al CSV
+
+**Ojo con la evidencia compartida.** Marcar modifica el CSV. Si la timeline está en un recurso que no debe tocarse, trabaja sobre una copia.
 
 Seleccionas una conexión y en el inspector tienes cuatro botones: **suspicious**, **confirmed**, **benign** y **clear**. Debajo, una caja para escribir por qué.
 
@@ -33,8 +35,6 @@ Dos detalles:
 
 En el mapa, una conexión marcada lleva un halo: rosa para sospechoso y confirmado, verde para benigno. Y hay una regla de estilo ya hecha para atenuar lo benigno, que según avanza el caso va limpiando el dibujo.
 
-**Ojo con la evidencia compartida.** Marcar modifica el CSV. Si la timeline está en un recurso que no debe tocarse, trabaja sobre una copia.
-
 ## Notas: lo que no tiene fila
 
 Una nota sobre una máquina («este es el servidor de backup, lo confirma el cliente») o sobre el caso entero no tiene ninguna fila donde vivir. Esas van aparte, con su hora. Se ponen con clic derecho o en la pestaña **Notes** del inspector.
@@ -45,7 +45,13 @@ Esa pestaña acaba siendo el cuaderno del caso: tus notas arriba y, debajo, toda
 
 Además de marcas y notas, mientras trabajas vas acumulando otras cosas: filtros guardados, la colocación de las máquinas, los nombres unidos con su IP, las subredes, la presentación. Todo eso cabe en un solo fichero: `<nombre>.masstin`.
 
-**Evidence › Save as a case…** lo escribe donde le digas. Después se abre con **Open case…**, soltándolo en la ventana o desde la línea de comandos:
+Dónde acaba guardado depende de cuál de estas tres situaciones es la tuya. Cada una tiene su apartado más abajo:
+
+- **Has guardado un caso** con *Save as a case…*, donde tú quieras: todo va a ese fichero y al lado de las timelines no se escribe nada.
+- **La timeline ya tiene un `<nombre>.masstin` al lado**, porque masstin lo escribió al crearla o al pasar el [hunt](/es/tools/masstin-graph-hunt/), su análisis de conexiones raras: ese fichero es el caso, y es el único que hay junto a la timeline.
+- **Ninguna de las dos**: el visor deja tres ficheros pequeños al lado de la timeline.
+
+**Evidence › Save as a case…** lo escribe donde le digas. Después se abre con **Open case…**, soltándolo en la ventana o desde la línea de comandos (la ruta es de ejemplo y está escrita como en Windows; en bash, ponla entre comillas simples para que no se coma las barras invertidas):
 
 ```bash
 masstin -a view --case D:\casos\acme.masstin
@@ -61,7 +67,7 @@ Hay una excepción, la de antes: los veredictos siempre van al CSV, con caso o s
 
 `<nombre>.masstin` no es solo cosa del visor. Es el fichero donde masstin apunta lo que sabe de una timeline: los analizadores escriben de qué evidencia salió y de quién es cada dirección, y el hunt, con qué parámetros se pasó. Cuando guardas el caso, esas claves se conservan.
 
-Por eso una timeline que tiene su `.masstin` al lado **se abre directamente como ese caso**. Lo que guardes va al mismo fichero y no aparece ninguno más.
+Por eso una timeline que tiene su `.masstin` al lado **se abre directamente como ese caso**. Aquí el fichero de caso sí está al lado de la timeline, pero no es uno nuevo: ya estaba. Lo que guardes va al mismo fichero y no aparece ninguno más.
 
 ### Y sin caso
 

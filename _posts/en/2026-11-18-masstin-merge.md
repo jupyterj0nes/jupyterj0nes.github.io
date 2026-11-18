@@ -24,6 +24,8 @@ The result is sorted by instant and has no duplicates. If the same event is in t
 
 masstin has added columns over the years: it started with 12, went to 14 and today writes 19. `merge` reads all three layouts and always writes the 19. A two-year-old timeline mixes with today's without converting anything.
 
+Of the 19, the first 14 describe the event (when, from where, to where, with which account) and the last five are for the analysis. All of them are listed, one by one, in [the CSV format](/en/tools/masstin-csv-format/).
+
 The columns at the end (`hunt`, `hunt_score`, `hunt_why`, `verdict`, `notes`) travel with their row. And if the same event comes once with them and once without, they are kept.
 
 ## The problem --carry-marks solves
@@ -38,13 +40,13 @@ Then more evidence arrives, or a masstin version comes out that reads a new even
 masstin -a merge -f new1.csv -f new2.csv -o case-v2.csv --carry-marks case-v1.csv
 ```
 
-`--carry-marks` copies the verdicts and notes from the earlier timeline onto the matching rows of the new one. The console says how many:
+`--carry-marks` copies the verdicts and notes from the earlier timeline onto the matching rows of the new one. A row matches when its 14 event columns are equal, that is, when it is the same event. The console says how many:
 
 ```
 Merge: 23 row(s) took their verdict / notes from the earlier timeline (23 marked rows there)
 ```
 
-Twenty-three marked rows in the old one and twenty-three recovered in the new one. That "23 of 23" is what to look at. If it said "19 of 23", four marks did not find their row, nearly always because that evidence is not in the new parse.
+There are two numbers to compare in that line. The first (`23 row(s) took...`) is the rows of the new timeline that received their mark. The one in brackets (`23 marked rows there`) is the marked rows the old one had. Here they are equal: twenty-three marked and twenty-three recovered. If the first were 19 and the second 23, four marks did not find their row, nearly always because that evidence is not in the new parse.
 
 In the example, the earlier timeline is the lab's with one connection marked suspicious from the [viewer](/en/tools/masstin-viewer-marks-case/). The new one is the same evidence plus the rows of another evening. The marks carry over, and the new rows arrive unmarked, as they should.
 
@@ -77,6 +79,12 @@ Every row that does not reach the result has a reason and a counter. *Malformed*
 
 `merge` takes `--start-time` and `--end-time`. It is for pulling just the two weeks of the incident out of a six-month timeline, to share it or to work with something lighter.
 
+Both are written as `"YYYY-MM-DD HH:MM:SS"`, in quotes and in UTC. A date alone works too: in `--start-time` it counts from its first second and in `--end-time` up to its last, so the whole day is inside.
+
 ## The file that goes with it
 
-When it writes the timeline, masstin leaves a `<name>.masstin` beside it with what it knows about it: what evidence it came from and whose each address is. On a merge, that information is kept. It is the same file the viewer uses [as the case file](/en/tools/masstin-viewer-marks-case/).
+When it writes the timeline, masstin leaves a `<name>.masstin` beside it with what it knows about it: what evidence it came from and whose each address is. On a merge, that information is kept.
+
+You do not pass it to any command: masstin looks for it beside the timeline, under the same name. All you have to do is keep them together. If you copy or move the CSV, take its `.masstin` along.
+
+It is the same file the viewer uses [as the case file](/en/tools/masstin-viewer-marks-case/).

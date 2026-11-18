@@ -22,13 +22,15 @@ Palo Alto Cortex XDR es una plataforma EDR/XDR que proporciona visibilidad sobre
 
 Una sola acción, `parse-cortex`, lee las tres y las deja en una única timeline. Si el tenant no tiene alguna, lo dice y sigue con las demás. Con `--cortex-sources network,eventlog,forensics` eliges cuáles.
 
+Todos los comandos de este artículo necesitan tres valores del tenant: la URL de su API, una clave de API y el ID de esa clave. Antes de lanzar ninguna consulta, comprueba que funcionan: es un solo comando y está en la sección «Antes de leer nada: comprobar la conexión», más abajo.
+
 ---
 
 ## Fuente 1: Conexiones de red
 
 ### Qué captura
 
-Los agentes de Cortex XDR registran las conexiones de red establecidas por los procesos de cada endpoint. Para movimiento lateral, el set de puertos admin que masstin consulta por defecto es:
+Los agentes de Cortex XDR registran las conexiones de red establecidas por los procesos de cada endpoint. Para movimiento lateral, los puertos que masstin consulta por defecto son:
 
 | Puerto | Protocolo | Relevancia |
 |:------:|-----------|-----------|
@@ -38,7 +40,11 @@ Los agentes de Cortex XDR registran las conexiones de red establecidas por los p
 | 5985 | WinRM (HTTP)  | PowerShell Remoting |
 | 5986 | WinRM (HTTPS) | PowerShell Remoting |
 
-`--admin-ports` amplía el set para incluir 135 (RPC), 139 (NetBIOS), 1433 (MSSQL), 3306 (MySQL) y 5900 (VNC) y tener visibilidad de más rutas de pivoting. `--ignore-local` empuja el filtrado de loopback/link-local/conexiones al mismo host al lado servidor para no traer datos irrelevantes, y sobre ventanas amplias `--start-time`/`--end-time` hacen auto-paginación por bisección temporal si una ventana individual satura el cap de 1M de la API.
+Tres opciones cambian lo que se pide:
+
+- `--admin-ports` añade a esa lista los puertos 135 (RPC), 139 (NetBIOS), 1433 (MSSQL), 3306 (MySQL) y 5900 (VNC), para ver más rutas de pivoting (saltos de una máquina a otra).
+- `--ignore-local` descarta las conexiones que no dicen nada sobre movimiento lateral: las de loopback (la máquina hablando consigo misma, `127.0.0.1`), las link-local y las de un host a sí mismo. El filtro se aplica en el propio Cortex, así que esos datos ni se descargan.
+- `--start-time` y `--end-time` acotan el periodo. La API devuelve como mucho un millón de resultados por consulta. Si el periodo tiene más, masstin lo parte en trozos más pequeños y los pide uno a uno, sin que tengas que hacer nada.
 
 ### Qué información se obtiene
 
@@ -111,7 +117,7 @@ La query de masstin cubre todo el set de eventos de movimiento lateral que masst
 - **WinRM/Operational** -- inicio de sesión PowerShell Remoting (6)
 - **WMI-Activity/Operational** -- WMI remoto (5858)
 
-La extracción por regex sobre el campo `message` localizado incluye variantes en inglés, español, alemán, francés e italiano, y hace auto-paginación por bisección temporal si una ventana individual satura el cap de 1M de la API.
+La extracción por regex sobre el campo `message` localizado incluye variantes en inglés, español, alemán, francés e italiano. Igual que en la fuente de red, si un periodo tiene más de un millón de resultados masstin lo parte en trozos y los pide uno a uno.
 
 ### Cómo masstin obtiene estos datos
 
@@ -122,7 +128,7 @@ masstin -a parse-cortex --cortex-url https://api-xxxx.xdr.xx.paloaltonetworks.co
   -o cortex-evtx.csv
 ```
 
-Masstin consulta los logs recopilados por los agentes forenses y extrae los eventos de movimiento lateral, generándolos en el mismo formato CSV normalizado.
+Masstin consulta los logs recopilados por los agentes forenses y extrae los eventos de movimiento lateral, generándolos en el mismo formato CSV normalizado. Esta fuente sola existe también como acción avanzada aparte, `parse-cortex-evtx-forensics`; por eso verás ese nombre en otros artículos.
 
 > **Ventaja práctica:** En lugar de tener que acceder físicamente a cada máquina o desplegar herramientas de triage como KAPE, puedes aprovechar la infraestructura de Cortex XDR existente para recopilar los EVTX de forma remota y centralizada, y luego analizarlos con masstin.
 
@@ -142,6 +148,8 @@ Masstin consulta los logs recopilados por los agentes forenses y extrae los even
 
 ## Antes de leer nada: comprobar la conexión
 
+Masstin lee el tenant con XQL, el lenguaje de consultas de Cortex XDR. Cada consulta XQL gasta «unidades de cómputo» de una cuota que tiene el tenant, así que conviene no malgastarlas.
+
 Lo primero que falla con una API es la clave. Para no enterarte a mitad de una consulta que gasta unidades de cómputo, masstin puede preguntar antes:
 
 ```bash
@@ -150,7 +158,7 @@ masstin -a parse-cortex --cortex-url https://api-xxxx.xdr.xx.paloaltonetworks.co
 
 Hace una sola petición, la de la cuota de XQL, que no cuesta nada. Si el tenant acepta, te dice qué tipo de clave es (Standard o Advanced) y cuánta cuota llevas gastada hoy. Si no, te enseña lo que respondió el tenant y lo que suele significar: una URL que no existe, un ID que no corresponde a esa clave, un rol que no puede lanzar XQL. No lee ni escribe nada, y el código de salida es 0 cuando el tenant acepta, por si lo quieres en un script.
 
-La clave y su ID se piden por consola, o se leen de `CORTEX_API_KEY` y `CORTEX_API_KEY_ID`. Nunca van en la línea de comandos.
+La clave y su ID se piden por consola, o se leen de `CORTEX_API_KEY` y `CORTEX_API_KEY_ID`. Nunca van en la línea de comandos. Los tres valores (la URL, la clave y su ID) salen de la consola de Cortex XDR, donde se crean las claves de API; el primer paso del asistente de la ventana, que viene a continuación, te dice dónde está cada uno.
 
 ---
 
@@ -176,7 +184,7 @@ El flujo de trabajo recomendado cuando tienes Cortex XDR disponible:
 
 | Paso | Acción | Fuente |
 |:----:|--------|--------|
-| 1 | Desplegar agentes de recolección forense en endpoints clave | Cortex XDR |
+| 1 | Solo si quieres la fuente 3 (canales de RDP, SMB y WinRM): desplegar agentes de recolección forense en endpoints clave. Las otras dos fuentes no necesitan desplegar nada | Cortex XDR |
 | 2 | Comprobar que la clave funciona | `parse-cortex --cortex-check` |
 | 3 | Leer las tres fuentes del tenant en una timeline | `parse-cortex` |
 | 4 | Complementar con EVTX nativos si están disponibles | `parse` |

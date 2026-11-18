@@ -54,8 +54,8 @@ And in the report accounts come out in upper case with underscores (`SVC_SQL@DEV
 Line by line:
 
 - **Machines.** There were 367 nodes and they were 220 machines: 147 addresses turned out to be machines that already had a name.
-- **Panel.** Only destinations with continuous logs are compared. Of a machine you have three days of logs for, nobody can say what is normal.
-- **Connections.** The investigated period holds 563 connections. 531 had happened before: they are habitual and are not even tested. Of the 32 new ones, **24 are significant**.
+- **Panel.** Only destinations with continuous logs are compared. Of a machine you have three days of logs for, nobody can say what is normal. *Form the null* means those 35 days are the yardstick: in statistics, "the null" is the normal thing you compare against.
+- **Connections.** The investigated period holds 563 connections. 531 had happened before: they are habitual and are not even tested. Of the 32 new ones, **24 are significant**. `p = 1` is the statistical way of saying "nothing odd", which is why the habitual ones are not tested. `FDR 0.05` is how strict it is: you accept that up to 5 % of what comes out significant is a false finding. It is changed with `--alpha`.
 - **Score.** The most a connection can score with this data. With ten weeks of reference, a logon cannot be rarer than "one in 13,590".
 
 With that last line the tool is telling you how far its own sight reaches.
@@ -101,6 +101,8 @@ If you do not want it to touch the timeline, `--no-annotate`.
 | 24 | 17:22 | ADM-JUMP01 | PTR-SRV01 | ADM_NORA@LEONCORP | login OK | 38 |
 
 Row 1 is the development domain's administrator logging on to the file server **from the Linux web server**. Row 13 is the brute force: the 73 is the failed attempts with the `deploy` account. That address failed 184 times in all, trying other user names too, but for the hunt each account is a separate connection. Row 24 is something else, and I will come back to it.
+
+The order is not by score alone, which is why row 24, with 38, comes after row 13, with 29. Among the significant ones the class comes first and rarity second: those that join a credential switch with a new access go ahead, and a habitual credential on a new connection, which is what row 24 is, goes behind. The classes are explained further down.
 
 The columns you use most:
 
@@ -149,10 +151,10 @@ For each one:
 - **Accounts it used for the first time.** Whose each account is: *"`SVC_SQL`: in the baseline it logged in from DEV-SRV01 (71 days), PTR-SRV01 (71 days). This origin had never used it"*.
 - **Could be benign if.** What legitimate situation produces the same pattern: a shared jump host, an orchestration account pointed at new machines, a technician at a colleague's workstation.
 - **To rule that out.** How to dismiss it.
-- **Events to pull.** Which events to go and fetch: 4648 and 4688 on the origin, 4768, 4769 and 4776 on the domain controller, 4672, 7045 and 4698 on the destination.
+- **Events to pull.** Which Windows events to go and fetch, by number (Event ID). On the origin, 4648 (logon with explicit credentials) and 4688 (process creation). On the domain controller, 4768 and 4769 (Kerberos: the TGT and the service ticket) and 4776 (NTLM). On the destination, 4672 (privileges), 7045 (service installed) and 4698 (scheduled task).
 
 The last three sections are the ones that save the most time. The hunt does not stop at "look at this": it tells you what to look at and how to rule it out.
 
 ## How far to trust it
 
-On the public LANL set (58 days of a real enterprise, with a labelled red team), 99 of the hunt's first 100 rows are red team, and the first 500, out of 465,000, hold 286 of its 444 connections (64 %). What it does not find is measured too: the machine that made one quiet logon per destination, with a different user each time. The details are in [the main article](/en/tools/masstin-graph-hunt/).
+On the public LANL set (58 days of a real enterprise, with a labelled red team), the hunt's first 100 rows are all red team, and the first 500, out of 465,000, hold 288 of its 444 connections (65 %). What it does not find is measured too: the machine that made one quiet logon per destination, with a different user each time. The details are in [the main article](/en/tools/masstin-graph-hunt/).

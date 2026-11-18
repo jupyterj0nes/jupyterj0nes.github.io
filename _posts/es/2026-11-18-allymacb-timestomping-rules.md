@@ -38,7 +38,7 @@ En Linux pasa algo parecido con otra pareja: `mtime` se cambia con un `touch`, p
 | `usn_basic_info` | Un registro del diario USN cuyo único motivo es «cambio de información básica»: se tocaron fechas o atributos sin tocar los datos | `attrib`, agentes de copia de seguridad |
 | `backdated` | `--carve` encontró un estado anterior de ese registro con una fecha **posterior** a la actual: las fechas se movieron hacia atrás | Nada legítimo |
 
-**Sobre fechas de cualquier sistema:**
+**Sobre fechas de cualquier sistema (las dos últimas, solo en Unix):**
 
 | Regla | Qué ve | Qué más la produce |
 |---|---|---|
@@ -74,7 +74,9 @@ La medida es sencilla: se pasa la regla por un sistema limpio y se cuenta cuánt
 | `m_before_b` en Unix | 71 982 de 77 881 | 0. Ruido |
 | `future`, `pre_1980`, `m_after_c` en Unix | Ninguna vez | 49 |
 
-Una regla que salta en más de un registro limpio de cada diez es ruido: se anota en la explicación de la fila, pero no da estado ni puntos.
+Los puntos salen de esa proporción, con la cuenta que explica [la escala del hunt](/es/tools/hunt-score-across-tools/): cada diez puntos, diez veces más rara. Un ejemplo: `b_after_c` saltó en 16 964 registros de 431 153, más o menos uno de cada veinticinco, y eso son 14 puntos.
+
+Una regla que salta en más de un registro limpio de cada diez es ruido: se anota en la explicación de la fila, pero no da estado ni puntos. Es lo que le pasa a `si_before_fn`: el 6 de la tabla es lo que mediría, pero como es ruido, en la práctica no puntúa.
 
 Las dos primeras líneas de esa tabla son lo que más sorprende:
 
@@ -93,14 +95,21 @@ Lo que los quita no es otra regla, sino dos cosas que el volumen sabe de sí mis
 
 **La ventana de instalación.** Un volumen nace en un momento concreto y se llena de golpe. En la referencia, el 98 % de los registros cambiaron en las cuatro horas siguientes al nacimiento. allymacb calcula esa ventana a partir del propio volumen, y lo que cambió dentro de ella queda como `baseline`: instalado con el sistema. Sus reglas de fechas conservan la explicación y no suman.
 
-En la imagen de nuestro laboratorio se ve así:
+En la imagen de nuestro laboratorio, que es otra máquina y tiene sus propias cifras, se ve así:
 
 ```
 p1 $MFT: installed from 2026-10-26T03:37:07Z to 2026-10-26T05:59:59Z, 493053 of 519302 records
 87332 file(s) installed with their volume: the rules that fired on them add nothing
 ```
 
-**La hora, comparada con horas limpias.** Fuera de la instalación, cada registro se juzga junto a los demás de su hora. Si en esa hora 1 139 ficheros de 3 319 llevan el mismo patrón, eso no son 1 139 anomalías: es una operación, y la pregunta es si una máquina limpia tiene horas así. El primer arranque de una máquina virtual las tiene, y sale como `habitual` con los números al lado:
+**La hora, comparada con horas limpias.** Fuera de la instalación, cada registro se juzga junto a los demás de su hora. La idea, paso a paso:
+
+1. Se agrupan los registros que cambiaron en la misma hora y llevan el mismo patrón de reglas.
+2. Si en esa hora 1 139 ficheros de 3 319 llevan el mismo patrón, eso no son 1 139 anomalías: es una sola operación.
+3. La pregunta pasa a ser si una máquina limpia tiene horas así. Para responderla, allymacb lleva medidas las horas de máquinas limpias.
+4. Si las tiene, el grupo entero se «pliega»: todos sus registros quedan como `habitual`, sin puntos.
+
+El primer arranque de una máquina virtual es una de esas horas, y sale como `habitual` con los números al lado:
 
 ```
 1139 of the 3319 records changed in 2026-11-03T10 carry si_before_fn+si_subsec_zero
@@ -125,7 +134,7 @@ De doscientas mil a dos. Y `invoice.pdf.exe` es justo lo que había que encontra
 ## Lo que no puede decir
 
 - **Ninguna regla es una prueba.** Dicen dónde mirar primero.
-- **La referencia limpia tiene catorce horas medidas.** Con catorce, ningún patrón puede ser más raro que uno entre quince. En NTFS eso significa que, hoy, solo los patrones que una máquina limpia no produce nunca llegan a tener estado por las reglas. Una única copia con fechas conservadas, en una hora tranquila, no destaca.
+- **La referencia limpia es pequeña: catorce horas medidas.** Con tan pocas horas para comparar, lo más raro que se puede afirmar de un patrón es «uno entre quince», y eso no basta para darle un estado. La consecuencia en NTFS: hoy solo reciben estado por las reglas los patrones que una máquina limpia no produce nunca. Una única copia con fechas conservadas, en una hora tranquila, no destaca.
 - **`backdated` necesita `--carve`,** y no está medida todavía: avisa, pero no suma puntos.
 - **Un atacante que cambie también `$FILE_NAME`** (hay que mover o renombrar el fichero después de falsear la fecha) escapa a `si_before_fn`. Queda el diario USN, que anota el cambio de fechas como `usn_basic_info`, y por eso conviene darle a allymacb el `$MFT` y el diario del mismo volumen en una sola ejecución. Sobre una imagen lo hace solo.
 

@@ -19,6 +19,8 @@ Con el grafo delante la tentación es seguir las flechas con el dedo. Sale mal c
 
 **Tools › Paths** hace esa cuenta por ti.
 
+Una cosa antes de buscar: si una misma máquina sale en el mapa dos veces, una con su nombre y otra como dirección IP, únelas primero en [Hosts y direcciones](/es/tools/masstin-viewer-hosts-addresses/). Un camino no puede pasar de un nodo al otro, como verás más abajo.
+
 ## Origen, destino y un botón
 
 [![La ventana Paths con origen LEO-DC01 y destino PTR-SRV01: un camino de tres saltos encontrado, con la cuenta y la hora de cada uno](/assets/images/viewer/p-time.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/p-time.webp)
@@ -34,6 +36,12 @@ El resultado es una lista de cadenas, la más corta primero:
 ```
 
 Cada salto lleva la cuenta que se usó y la hora. La regla es una sola: **un salto sale de una máquina después de que entrara el anterior**. Eso es lo que hace que la cadena pudiera ocurrir de verdad.
+
+Tres detalles para leer esa línea:
+
+- **`0 min`** es el tiempo entre el primer salto y el último, en minutos enteros. Aquí toda la cadena ocurrió en menos de un minuto, aunque las horas pasen de 22:31 a 22:32.
+- **Las flechas no son todas iguales.** `-( )->` es un salto normal. `=( )=>` es un salto del que la máquina intermedia dejó escrito que lo hizo la sesión que acababa de entrar. Esa marca sale siempre que el registro existe, también buscando por tiempo. Qué registro es y cuánto vale está en [los caminos por sesión](/es/tools/masstin-viewer-session-paths/).
+- **La cuenta lleva su dominio detrás de la `@`.** Cuando ahí va el nombre de la propia máquina, como en `masstin.path@PTR-SRV01`, es una cuenta local de esa máquina y no una del dominio.
 
 Este ejemplo lo provocamos nosotros en el laboratorio para tener algo que comprobar: creamos una cuenta (`masstin.path`), entramos con ella en `DEV-SRV01` desde el controlador de dominio, desde ahí saltamos a `DEV-DC01` y desde ahí a un servidor de otro dominio. Después recogimos los logs de las cuatro máquinas y le preguntamos a masstin sin decirle nada más. Encontró la cadena y solo esa.
 
@@ -59,11 +67,11 @@ Pulsando **settings** se despliega todo lo demás. No hace falta tocarlo para em
 | **Account** | Solo los saltos de una cuenta. |
 | **From / To** | Un periodo propio para la búsqueda, distinto del del mapa. |
 | **the same account all along** | La cadena entera con la misma cuenta, sea cual sea. |
-| **Hops are** | Qué cuenta como salto. Por defecto solo los logons correctos, sin cuentas de máquina. |
+| **Hops are** | Qué cuenta como salto. Por defecto solo los logons correctos, sin cuentas de máquina. Puedes añadir los logons fallidos, las conexiones sin logon y los cierres de sesión, y dejar entrar las cuentas de máquina. |
 
 ## Tres cosas que te van a pasar
 
-**La búsqueda respeta los filtros.** Si tienes puesta la vista «Findings», solo busca entre los hallazgos del hunt, y lo normal es que no encuentre nada. No es un fallo: te lo dice debajo del botón («Searched … in 851 of 851 rows») y tienes al lado el interruptor para buscar en toda la timeline.
+**La búsqueda respeta los filtros.** Si tienes puesta la vista «Findings», solo busca entre los hallazgos del [hunt](/es/tools/masstin-graph-hunt/) (el análisis de masstin que señala las conexiones raras), y lo normal es que no encuentre nada. No es un fallo: debajo del botón te dice en cuántas filas ha buscado («Searched … in 851 of 851 rows» es una búsqueda en todas; con los filtros recortando, el primer número es menor que el segundo) y tienes al lado el interruptor para buscar en toda la timeline.
 
 **El camino se corta en una IP.** Los logons Kerberos solo traen la dirección de origen, no el nombre. Si `10.10.0.38` y `DEV-SRV01` son dos nodos, ningún camino pasa de uno a otro. Se arregla en [Hosts y direcciones](/es/tools/masstin-viewer-hosts-addresses/), y la propia ventana te avisa cuando hay direcciones sueltas.
 

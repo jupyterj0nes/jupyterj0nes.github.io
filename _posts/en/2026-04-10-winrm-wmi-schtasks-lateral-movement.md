@@ -22,6 +22,8 @@ Most lateral movement detection focuses on Security.evtx — Event IDs 4624, 462
 
 Masstin parses all three automatically from forensic images. No extra configuration, no manual extraction.
 
+Each section has a table that says which column of masstin's CSV each piece of data ends up in. Masstin writes one row per event: `src_computer` and `src_ip` are the source machine, `dst_computer` the destination and `detail` a text with the context. The rest of the columns are in [the CSV format](/en/tools/masstin-csv-format/).
+
 ## WinRM/Operational — Event ID 6
 
 When an attacker uses PowerShell Remoting (`Enter-PSSession`, `Invoke-Command`), the **source system** logs Event ID 6 in `Microsoft-Windows-WinRM/Operational`. This event contains the `connection` field with the destination hostname or IP:
@@ -96,7 +98,7 @@ The Author field keeps who registered the task, usually as `MACHINE\user` or `DO
 
 **Filtering, and its limits:** masstin takes the machine's name from its own EVTX and compares it with the Author's. It only flags tasks where they differ. It is a **lead, not proof**: a task created locally with a domain account (the prefix is the domain, not the machine) and a machine renamed after the task was created both match too. Before stating that a task came from outside, check that the Author's name really is another machine on the network.
 
-**Why this matters:** Scheduled Tasks are a common persistence and lateral movement mechanism. Even when attackers delete the task after execution (cleaning up Event IDs 4698/4699), the task XML file may still exist on disk — or be recoverable from VSS snapshots.
+**Why this matters:** Scheduled Tasks are a common persistence and lateral movement mechanism. Even when attackers delete the task after execution (cleaning up Event IDs 4698/4699, the Security.evtx events that record a task being created and deleted), the task XML file may still exist on disk — or be recoverable from VSS snapshots, the copies of an earlier moment of the disk that Windows keeps.
 
 ## How masstin handles these artifacts
 
@@ -105,6 +107,8 @@ All three artifact types are extracted automatically when `parse` reads a disk i
 ```bash
 masstin -a parse -d /evidence/ -o timeline.csv
 ```
+
+`/evidence/` is the folder that holds the images: masstin walks it and reads every disk image it finds. The WinRM and WMI EVTX are read just the same when they are loose or inside a triage.
 
 For each forensic image:
 

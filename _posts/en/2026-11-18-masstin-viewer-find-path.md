@@ -19,6 +19,8 @@ With the graph in front of you, the temptation is to follow the arrows with a fi
 
 **Tools › Paths** does that sum for you.
 
+One thing before you search: if the same machine is on the map twice, once by its name and once as an IP address, join the two first in [Hosts and addresses](/en/tools/masstin-viewer-hosts-addresses/). A path cannot get from one node to the other, as you will see further down.
+
 ## Origin, destination and one button
 
 [![The Paths window with origin LEO-DC01 and destination PTR-SRV01: one three-hop path found, with the account and the time of each hop](/assets/images/viewer/p-time.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/p-time.webp)
@@ -34,6 +36,12 @@ The result is a list of chains, shortest first:
 ```
 
 Each hop carries the account that was used and the time. There is one rule: **a hop leaves a machine after the previous one came into it**. That is what makes the chain something that could really have happened.
+
+Three details for reading that line:
+
+- **`0 min`** is the time between the first hop and the last, in whole minutes. Here the whole chain happened in under a minute, even though the times go from 22:31 to 22:32.
+- **The arrows are not all the same.** `-( )->` is an ordinary hop. `=( )=>` is a hop the machine in the middle wrote down as made by the session that had just come in. That mark shows whenever the record exists, when searching by time too. Which record it is and what it is worth is in [paths by session](/en/tools/masstin-viewer-session-paths/).
+- **The account carries its domain after the `@`.** When that is the machine's own name, as in `masstin.path@PTR-SRV01`, it is a local account of that machine and not a domain one.
 
 We caused this example ourselves in the lab, to have something to check against: we created an account (`masstin.path`), logged into `DEV-SRV01` with it from the domain controller, hopped from there to `DEV-DC01` and from there to a server in another domain. Then we collected the logs of the four machines and asked masstin, telling it nothing else. It found the chain, and only that one.
 
@@ -59,11 +67,11 @@ Pressing **settings** unfolds everything else. You do not need to touch it to ge
 | **Account** | Only the hops of one account. |
 | **From / To** | A period for the search itself, separate from the map's. |
 | **the same account all along** | The whole chain with one account, whichever it is. |
-| **Hops are** | What counts as a hop. By default only successful logons, with no machine accounts. |
+| **Hops are** | What counts as a hop. By default only successful logons, with no machine accounts. You can add failed logons, connections without a logon and logoffs, and let machine accounts in. |
 
 ## Three things that will happen to you
 
-**The search respects the filters.** If you are on the "Findings" view, it only searches among the hunt's findings, and the usual outcome is that it finds nothing. That is not a bug: it says so under the button ("Searched … in 851 of 851 rows") and the switch to search the whole timeline is right there.
+**The search respects the filters.** If you are on the "Findings" view, it only searches among the findings of the [hunt](/en/tools/masstin-graph-hunt/) (masstin's analysis that points at the odd connections), and the usual outcome is that it finds nothing. That is not a bug: under the button it says how many rows it searched ("Searched … in 851 of 851 rows" is a search in all of them; with the filters cutting, the first number is lower than the second) and the switch to search the whole timeline is right there.
 
 **The path breaks at an IP.** Kerberos logons carry only the origin address, not the name. If `10.10.0.38` and `DEV-SRV01` are two nodes, no path gets from one to the other. You fix that in [Hosts and addresses](/en/tools/masstin-viewer-hosts-addresses/), and the window itself warns you when there are loose addresses.
 

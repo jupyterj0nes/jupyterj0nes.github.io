@@ -36,6 +36,8 @@ If you don't identify all persistence mechanisms, the attacker will return after
 
 ## The 24 persistence mechanisms
 
+The "MITRE Technique" column uses the codes of MITRE ATT&CK, a public catalogue of attack techniques. Each technique has a code (for example, T1547.001) you can search for to read how it works.
+
 ### Windows Registry
 
 | Mechanism | MITRE Technique | Description |
@@ -64,11 +66,13 @@ If you don't identify all persistence mechanisms, the attacker will return after
 | WerFaultHangs | — | Windows error handler abuse |
 | Logon Scripts | T1037.001 | Scripts executed at logon |
 
-And many more, totaling **24 techniques**.
+These tables show 13 of the **24 techniques**. The full list is in the tool's repository.
 
 ## How it works
 
-Boromir scans the system (or a forensic image) looking for all known persistence mechanisms:
+This article is an introduction to the tool, not a usage guide. To install it and see its requirements and options, go to the repository's README.
+
+Boromir scans the system (or a forensic image) looking for all known persistence mechanisms. A mounted forensic image is the copy of a disk opened as if it were one more drive, so its files show up as ordinary folders:
 
 ```bash
 python boromir.py --target /evidence/mounted_image/ --output results.csv --timezone "Europe/Madrid"

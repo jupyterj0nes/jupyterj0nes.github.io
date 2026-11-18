@@ -23,6 +23,8 @@ masstin -a view -f timeline.csv
 
 Double-clicking the executable works too, and so does running `masstin` with no arguments: you get a welcome screen where you drop the evidence or a timeline you already have.
 
+The timeline is the CSV masstin writes when it reads the evidence, one row per access event. If you do not have one yet, the [ingest wizard](/en/tools/masstin-viewer-ingest/) makes it from the window itself.
+
 ## What you see
 
 [![masstin's viewer on the lab timeline: fourteen machines, the domain controllers in violet, servers as racks, and the accounts written on every connection](/assets/images/viewer/v-overview.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/v-overview.webp)
@@ -31,11 +33,11 @@ This is our lab's timeline: 28,672 rows from one week, fourteen machines, 23 acc
 
 Each machine is drawn as what it is. A monitor is a workstation, a rack is a server, the rack with the key is a domain controller. The antenna is an IP address the timeline has no name for. A globe would be an address from outside the network.
 
-The lines are connections, with the account written on them. They get thicker with more events, grey when the logon went through, red when it failed, and dotted purple when it is a connection without a logon (a 4648, a Kerberos ticket, an RDP that never authenticated).
+The lines are connections, with the account written on them. They get thicker with more events, grey when the logon went through, red when it failed, and dotted purple when it is a connection without a logon (a 4648, a Kerberos ticket, an RDP that never authenticated). The 4648 is the event Windows writes when someone uses explicit credentials, different from those of their session. A Kerberos ticket is the permission an account asks the domain controller for to get into another machine.
 
 Around the map there are three areas:
 
-- **On the left, the filters.** Three views (the hunt's findings, one machine's neighbourhood, or everything), search by machine, account and logon type, and the time window.
+- **On the left, the filters.** Three views (the hunt's findings, one machine's neighbourhood, or everything), search by machine, account and logon type, and the time window. The hunt is masstin's analysis that learns what is normal in the timeline and points at the odd connections: [it is explained here](/en/tools/masstin-graph-hunt/), and [here what its states and its score mean](/en/tools/hunt-score-across-tools/).
 - **On the right, the inspector.** Click a machine or a connection and it tells you what is behind it.
 - **At the bottom, the time strip.** A histogram of the whole timeline with two handles. Move them and the map keeps that period.
 
@@ -51,7 +53,7 @@ A graph summarises, and a summary hides things. That is why the **Timeline** but
 
 [![Timeline mode filtered by logon type 10: the rows of several RDP sessions of one account, with events 131, 1149, 4624, 21 and 22 one after another](/assets/images/viewer/v-timeline.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/v-timeline.webp)
 
-Here I filtered on `logon_type` 10 and 54 rows of the 28,672 are left. You can see the full footprint of an RDP session: the 131 from RdpCoreTS when the connection arrives, the 1149 when it is accepted, the 4624 of the logon, the 21 and 22 from the session manager, and at the end the 4647 and the 24 of the logoff. Seven or eight rows from four different logs for one thing one person did. That is exactly what the graph folds into a single line.
+Here I filtered on `logon_type` 10 and 54 rows of the 28,672 are left. Logon type 10 is the remote interactive one: someone coming in over remote desktop (RDP). The numbers that follow are Windows event IDs, and each one is explained in [the RDP events](/en/artifacts/terminal-services-evtx/) and in [the Security log](/en/artifacts/security-evtx-lateral-movement/). You can see the full footprint of an RDP session: the 131 from RdpCoreTS when the connection arrives, the 1149 when it is accepted, the 4624 of the logon, the 21 and 22 from the session manager, and at the end the 4647 and the 24 of the logoff. Seven or eight rows from four different logs for one thing one person did. That is exactly what the graph folds into a single line.
 
 Filters add up ("contains", "does not contain", per column), and the table handles a million rows without noticing, because it only draws the ones on screen.
 

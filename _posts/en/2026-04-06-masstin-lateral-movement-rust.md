@@ -59,6 +59,8 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 
 ## Key Features
 
+This table is reference material: it lists everything masstin does, with technical detail you do not need to get started. If this is your first time, skip to [Install](#install) and come back when you are looking for something specific.
+
 | Feature | Description | Article |
 |---------|-------------|---------|
 | **Unified cross-OS image parsing** | **A single `parse` command auto-detects the OS of every partition** — NTFS gets Windows parsing (EVTX + UAL + VSS), ext4 gets Linux parsing (auth.log, wtmp, audit.log, **systemd-journald binary logs**, etc.) — all merged into one timeline. Point at a folder of mixed images and get a single CSV. Zero manual steps.  | [Forensic images](/en/tools/masstin-vss-recovery/) |
@@ -101,12 +103,22 @@ Masstin parses **all** these sources and merges them into a **single chronologic
 
 Go to [**Releases**](https://github.com/jupyterj0nes/masstin/releases) and download the binary for your platform. That's it.
 
+The binary is a console program: it has no installer and it does not open with a double click. To use it:
+
+1. Open a terminal (PowerShell on Windows) in the folder where you downloaded it.
+2. On Linux and macOS, mark it as executable first (`chmod +x` on the file).
+3. The examples on this page type plain `masstin`. You can rename the downloaded file to `masstin` (`masstin.exe` on Windows) or type the name it has. If the folder is not in your `PATH`, call it with `.\masstin.exe` on Windows and `./masstin` on Linux and macOS.
+
 ### Build from source (alternative)
 
 ```bash
 git clone https://github.com/jupyterj0nes/masstin.git
 cd masstin && cargo build --release
 ```
+
+## First steps
+
+With the binary ready, this is the usage guide, in the order the work usually goes: parse the evidence, look at the graph, follow the trail and hunt.
 
 ### Parse evidence
 
@@ -145,7 +157,7 @@ masstin -a load-neo4j -f full-timeline.csv --database localhost:7687 --user neo4
 
 ### Reconstruct the attacker's path
 
-The temporal path query finds the chronologically coherent route between two nodes:
+The temporal path query finds the chronologically coherent route between two nodes. As written it is for Memgraph: `localDateTime()` is one of its functions. The Neo4j version is in the [Neo4j article](/en/tools/neo4j-cypher-visualization/).
 
 ```cypher
 MATCH path = (start:host {name:'10.10.1.50'})-[*]->(end:host {name:'SRV-BACKUP'})
@@ -187,7 +199,15 @@ All of this comes with masstin 1.5.0.
 
 ### Hunt without knowing what to look for
 
-Once the timeline exists, `graph-hunt-csv` asks the question an analyst brings to the first day: of everything that happened after the compromise, what is new for this network? No database, no plugin: every window connection is measured against the baseline, the only number you choose is the false discovery rate, and the report explains each finding in words. No hint needed: on the public Los Alamos set (21 million logins, 749 labelled red-team events) the red-team machine comes out at rank 1 and 204 connections survive the 5 % false discovery rate. The 22-minute run is cut in the recording.
+Once the timeline exists, `graph-hunt-csv` asks the question an analyst brings to the first day: of everything that happened after the compromise, what is new for this network? No database, no plugin: every window connection is measured against the baseline, the only number you choose is the false discovery rate, and the report explains each finding in words.
+
+Three terms, in plain words:
+
+- **Baseline**: what the network was doing before the cutoff date (`--investigation-from`). It is taken as normal.
+- **p-value**: the probability of seeing something this unusual if it were normal activity. The smaller it is, the more unusual the connection.
+- **False discovery rate**: the share of findings you accept may be false alarms. At 5 %, out of every 100 flagged connections about 5 are expected to be nothing.
+
+No hint needed: on the public Los Alamos set (21 million logins, 749 labelled red-team events) the red-team machine comes out at rank 1 and 204 connections survive the 5 % false discovery rate. The 22-minute run is cut in the recording.
 
 ```bash
 masstin -a graph-hunt-csv -f timeline.csv --investigation-from "2026-03-15 00:00:00" \

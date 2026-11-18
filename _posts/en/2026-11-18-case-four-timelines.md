@@ -39,11 +39,13 @@ Without being told what to look for, this is what each puts at the very top on t
 | [allymacb](/en/tools/allymacb-filesystem-timeline/) | `invoice.pdf.exe`, deleted, modified in 2018 and created in 2026 |
 | [caarea](/en/tools/caarea-execution/) | `invoice.pdf.exe` and a `svch0st.exe` in `ProgramData`, run from PowerShell |
 
-Three findings from three sources of evidence that share nothing: the registry, the `$MFT` and the security log. Apart, each is a lead. The question is whether they are the same story.
+masstin is left out of the table on purpose: the logins it sees on this server are ordinary ones and, on their own, do not stand out. They come in in the next section.
+
+Three findings from three sources of evidence that share nothing: the Windows registry (where the system keeps its configuration), the `$MFT` (the disk's index of files) and the security log. Apart, each is a lead. The question is whether they are the same story.
 
 ## The same minute
 
-They all write the time in UTC and in the same format, so it is enough to filter the four timelines on the same interval and read them together. On 10 November, on `dev-srv01`:
+They all write the time in UTC and in the same format, so it is enough to filter the four timelines on the same interval and read them together. In practice: open each CSV in your viewer, keep the rows of 10 November whose time (the first column) is between 08:32 and 08:36, and sort on that column. On 10 November, on `dev-srv01`:
 
 | Time (UTC) | Who says it | What happens |
 |---|---|---|
@@ -76,11 +78,11 @@ And the other way round: without caarea, masstin would have two ordinary logins.
 
 So that the table can be made without effort, the four tools (and [etcdump](/en/tools/etcdump-linux-configuration/), for Linux configuration) write the same kind of file:
 
-- **19 columns**, each in the position of the one closest in meaning in the others: the time first, then the machine, the event type, the account, and at the end the file it was read from.
+- **19 columns**, each in the position of the one closest in meaning in the others: the time first, then the machine, the event type, the account, and at the end the file it was read from. That is 14 columns describing the event and 5 for analysis. masstin's, one by one, are in [its CSV format](/en/tools/masstin-csv-format/).
 - **Time in UTC, fixed width.** Sorting the text sorts the time.
 - **The same five columns at the end:** `hunt`, `hunt_score` and `hunt_why` for what the tool finds; `verdict` and `notes` for what the analyst decides.
 
-The three hunt columns use the same words everywhere: `significant`, `candidate`, `habitual`. And the same 0 to 100 scale, which measures the same thing in all of them: how rare this is compared with what is normal, not the confidence of whoever wrote the rule. A 78 in caarea and a 70 in allymacb can go in the same list.
+The three hunt columns use the same words everywhere. The ones you will see most are `significant`, `candidate` and `habitual`; the full list is in [the hunt scale](/en/tools/hunt-score-across-tools/). And the same 0 to 100 scale, which measures the same thing in all of them: how rare this is compared with what is normal, not the confidence of whoever wrote the rule. A 78 in caarea and a 70 in allymacb can go in the same list.
 
 The last two columns belong to the analyst and no tool writes in them. What is marked in a timeline stays in the timeline.
 

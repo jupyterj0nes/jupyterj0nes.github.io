@@ -14,6 +14,20 @@ comments: true
 
 *Esta es la Parte 8 de la serie [AD DFIR Lab]({% post_url es/2026-04-12-ad-dfir-lab-intro %}). Convertimos un snapshot estéril `clean-ad` en `noisy-ad-2years` — un dataset que parece un dominio que lleva dos años en uso real en una empresa.*
 
+**Cómo leer esta parte.** Es un diario de construcción, no un procedimiento paso a paso: cuenta qué se diseñó, qué falló y cómo se arregló, en el orden en que pasó. Los scripts viven en `/root/lab/phase10` en el servidor, el directorio desde el que se lanza el run más abajo. Lo que se construye aquí es el andamiaje y una primera versión con 11 personas humanas y actividad mínima; lo que falta está en "Lo que viene".
+
+Vocabulario que se repite:
+
+- **Persona**: un usuario simulado, con su horario, sus vacaciones y sus fechas de alta y baja.
+- **Round**: una tanda de actividad dentro de un día simulado. Cada día tiene de 1 a 4.
+- **Participante**: una pareja (VM, persona) dentro de un round.
+- **Stub**: actividad de relleno. En vez de trabajo real de usuario, cada participante solo escribe un fichero marker y una línea en `heartbeat.log`.
+- **Marker** (o sentinel marker): el fichero pequeño que deja cada participante. Prueba que ese round se ejecutó en esa VM con esa fecha.
+- **Checkpoint**: el fichero JSON donde se guarda el progreso para poder reanudar.
+- **Hook**: el punto del código donde más adelante se enchufará actividad real.
+- **Drift**: lo que se desvía el reloj de una VM respecto a la hora real.
+- **Ephemeral**: modo en el que phase10 guarda su estado en un directorio temporal en lugar de en el checkpoint principal.
+
 ## Por qué esta es la parte difícil
 
 Un laboratorio DFIR con solo ataques y sin ruido de base es un juguete didáctico, no un entorno de entrenamiento. Las investigaciones reales son 95% actividad normal de usuario y un 5% de señal de ataque escondida dentro. La habilidad del cazador es *ver la señal a través del ruido*. Si los únicos eventos en un DC son los de los cuatro domain admins que sembraste y el único Kerberoast de prueba, todo destaca. Todo parece sospechoso porque no está pasando nada más.
@@ -51,7 +65,7 @@ Eventos Sysmon por día:
 
 En el momento en que alguien haga `Group-Object { $_.TimeCreated.Date }`, el patrón periódico grita "sintético". Las empresas reales no trabajan en ráfagas de 30 segundos cada cuatro días.
 
-Así que tiré eso a la basura y rehice el modelo alrededor de **una iteración por día de calendario**. 729 días de 2024-04-13 a 2026-04-12, todos ejecutados, cada uno con un *perfil* derivado del calendario:
+Así que tiré eso a la basura y rehice el modelo alrededor de **una iteración por día de calendario**. 730 días de 2024-04-13 a 2026-04-12, todos ejecutados, cada uno con un *perfil* derivado del calendario:
 
 ```yaml
 workday_high:     4 rounds, intensidad 100%   # cierres de trimestre, deadlines
@@ -142,7 +156,7 @@ Esta es la *capa narrativa*. Cada uno de estos patrones produce una huella foren
 
 - **Nuevos hires**: el primer 4624 de samwell en DC01 es a las 2024-09-02 10:14, y nada de él existe antes. Corre una query de "primera aparición" y aparece en el mes correcto.
 - **Bajas**: el último evento Security de stannis es el 2025-09-15 sobre las 17:00. Después de esa fecha, su cuenta sigue en AD pero no se autentica nunca. `(Get-ADUser stannis -Properties LastLogonDate).LastLogonDate` te da la fecha exacta de salida.
-- **Baja maternal**: catelyn genera eventos de 2024-04-13 a 2025-04-20, luego nada, luego eventos otra vez desde 2025-10-15. Seis meses de silencio.
+- **Baja maternal**: catelyn genera eventos de 2024-04-13 hasta su baja (2025-04-20), luego nada, luego eventos otra vez desde 2025-10-16, el día siguiente al fin de la baja. Seis meses de silencio.
 - **Promoción**: arya genera eventos 22:00-02:00 en LNX01 de 2024-04 hasta 2025-10-16, y luego eventos 10:00-19:00 después. Un único día donde su horario cambia permanentemente.
 
 ## El orchestrator
@@ -153,7 +167,7 @@ El modelo de estado es de tres niveles:
 
 ```
 run
-└── days[]                 # 729 entradas, una por día de calendario
+└── days[]                 # 730 entradas, una por día de calendario
     └── rounds[]           # 1-4 por día, según el perfil
         └── participants[] # unidades de trabajo (vm, persona)
 ```
@@ -164,7 +178,7 @@ El bucle principal envuelve cada `qm guest exec` en un retry con backoff exponen
 
 ## Paralelismo donde importa
 
-La primera versión del bucle iteraba VMs secuencialmente dentro de cada round. Para un workday_normal con 3 rounds × 5 participantes cada uno, 15 llamadas secuenciales a `qm guest exec` = ~60 segundos por día. Extrapolado: 729 días × 60s = **más de 12 horas para el run completo**.
+La primera versión del bucle iteraba VMs secuencialmente dentro de cada round. Para un workday_normal con 3 rounds × 5 participantes cada uno, 15 llamadas secuenciales a `qm guest exec` = ~60 segundos por día. Extrapolado: 730 días × 60s = **más de 12 horas para el run completo**.
 
 El fix: dentro de un round, los participantes en VMs distintos son independientes (relojes distintos, payloads de actividad distintos, sin estado compartido). Los participantes en el MISMO VM tienen que seguir corriendo secuencialmente (reloj compartido). Así que el refactor agrupa los participantes pendientes por VM y reparte un worker thread por VM:
 
@@ -269,6 +283,8 @@ tmux new-session -d -s phase10 -c /root/lab/phase10 \
 La monitorización pasa por el bot de Telegram y algún `phase10.py --status` ocasional. El run es independiente de mi sesión SSH o de Claude o de cualquier cosa — tmux lo posee, systemd lo mantiene vivo a través de logouts, y el checkpoint + signal handler significan que lo peor que cualquier interrupción puede hacer es dejar el estado perfectamente recuperable.
 
 ## Qué verifiqué en los primeros 5 días del stub run
+
+Un paso atrás en la cronología: esta sección es de la validación de 5 días, anterior al run completo y a todo lo de wlms que acabas de leer.
 
 Antes incluso del crash de wlms, había sacado pruebas forenses exhaustivas de que el mecanismo de viaje en reloj estaba escribiendo correctamente en los logs de Windows. En solo 5 días de actividad stub (sin acciones de persona reales todavía, solo ficheros heartbeat):
 
@@ -520,7 +536,7 @@ El script de catchup en sí es un wrapper bash de ~100 líneas que:
 4. Reemplaza el snapshot `noisy-ad-current` con el nuevo estado
 5. Loguea todo en `/var/log/lab-catchup.log`
 
-La programación es **una vez al día a las 02:00 UTC** (04:00 CEST) vía `/etc/cron.d/lab-catchup`. Fuera de horas para el operador, y después de medianoche UTC para que "ayer" sea un día completo. La mayoría de ejecuciones generan exactamente 1 día de ruido en unos 90 segundos. Si el cron ha estado caído una semana, la siguiente ejecución genera 7 días en una sola invocación — idempotente y reanudable, la misma maquinaria que el run original completo.
+La programación es **una vez al día a las 02:00 UTC** (04:00 CEST) vía `/etc/cron.d/lab-catchup`. cron usa la hora local del servidor, así que en el fichero la línea es `0 4`. Fuera de horas para el operador, y después de medianoche UTC para que "ayer" sea un día completo. La mayoría de ejecuciones generan exactamente 1 día de ruido en unos 90 segundos. Si el cron ha estado caído una semana, la siguiente ejecución genera 7 días en una sola invocación — idempotente y reanudable, la misma maquinaria que el run original completo.
 
 **Comportamiento de Telegram**: silencio en éxito. Solo dispara pings cuando algo falla. Eso mantiene limpio el inbox de notificaciones y garantiza que cualquier mensaje significa "algo necesita atención ahora". Para verificar que el cron está vivo día a día:
 
@@ -542,13 +558,15 @@ Espera a que termine (éxito silencioso, o error por Telegram si falla), luego h
 
 El scaffolding está completo, el dataset está validado, y el par de snapshots `noisy-ad-2years` + `noisy-ad-current` está listo para usarse.
 
-**Matiz importante**: esto sigue siendo actividad stub. Cada tupla (persona, round) escribe un único fichero marker y una línea en heartbeat.log. Eso es suficiente para probar que el scaffolding funciona end-to-end Y para generar el ruido de fondo Sysmon/Security que Windows produce de forma natural cuando un proceso corre bajo el nombre de una persona. Pero NO es aún actividad realista a nivel de aplicación — jon.snow no abre documentos Word de verdad, samwell.tarly no hace push de commits git de verdad, y no hay historial de Chrome poblándose. Esos hooks son lo que cubrirá la Parte 9. La arquitectura es de lo que va la Parte 8.
+**Matiz importante**: esto sigue siendo actividad stub. Cada tupla (persona, round) escribe un único fichero marker y una línea en heartbeat.log. Eso es suficiente para probar que el scaffolding funciona end-to-end Y para generar el ruido de fondo Sysmon/Security que Windows produce de forma natural cuando un proceso corre bajo el nombre de una persona. Pero NO es aún actividad realista a nivel de aplicación — jon.snow no abre documentos Word de verdad, samwell.tarly no hace push de commits git de verdad, y no hay historial de Chrome poblándose. Esos hooks quedan para más adelante en la serie. La arquitectura es de lo que va la Parte 8.
 
 La buena noticia: la infraestructura que acabamos de construir significa que añadir actividad real de persona es *solo* una reescritura de `lib/activities.py`. El bucle diario, el paralelismo, el checkpoint, el viaje en reloj, el calendario español, el modelo de personas tri-dominio, el workaround de wlms, el restore de hwclock, el soporte de turno nocturno, las alertas Telegram y la verificación forense per-VM están hechos y son reutilizables.
 
 ## Postscript — 36 días en producción
 
 El texto de arriba describe el lab tal y como quedó el día que la cadena de snapshots se completó por primera vez. Seis semanas más tarde, el cron de catchup llevaba fallando silenciosamente cada noche desde su instalación. Los hallazgos de ese incidente merecen ser destacados aquí para que cualquiera que copie este diseño evite las mismas trampas.
+
+Aviso: este postscript nombra piezas que se añadieron al lab después de escribir el texto de arriba y que este artículo no explica. Son `phase10-lateral.py`, el "Step 4b de movimiento lateral" de `lab-catchup.sh`, y `gen-linux-authlog.py`, que genera el `auth.log` SSH sintético del host Linux.
 
 ### 1. cron NO incluye /usr/sbin en su PATH
 
@@ -591,7 +609,7 @@ Set-Date -Date ([datetime]::SpecifyKind(
     'Utc').ToLocalTime())
 ```
 
-Esto ahora se ejecuta en las seis VMs Windows como paso post-catchup. Importante porque el snapshot congela cualquier drift que exista en el momento del `qm snapshot` — cada rollback futuro desde `noisy-ad-current` arranca las VMs con ese drift, y si son 4 minutos te encuentras fallos de Kerberos dentro de la tolerancia de 5 minutos casi al instante.
+Esto ahora se ejecuta en las seis VMs Windows como paso post-catchup. Importante porque el snapshot congela cualquier drift que exista en el momento del `qm snapshot` — cada rollback futuro desde `noisy-ad-current` arranca las VMs con ese drift, y si son 4 minutos estás al borde de la tolerancia de 5 minutos de Kerberos: en cuanto el reloj deriva un poco más, llegan los fallos.
 
 ### 4. `gen-linux-authlog.py` necesitaba un modo incremental
 

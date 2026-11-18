@@ -26,9 +26,9 @@ Antes de abrir la ventana, mira dónde está. Si es una **sesión de escritorio 
 Renderer: software, drawn by the CPU (a remote desktop session: no GPU to draw with)
 ```
 
-No hay que configurar nada ni acordarse de ningún parámetro.
+No hay que configurar nada ni acordarse de ningún parámetro. Si abriste el visor con doble clic y no tienes consola delante, lo mismo lo dice **Help › About**.
 
-Ese rasterizador está pensado para este tipo de imagen. Recuerda lo que ya ha dibujado y solo repinta las zonas que cambian, usa las instrucciones vectoriales del procesador que encuentre (SSE4.1, AVX2 o NEON) y entrega la imagen al sistema como un mapa de bits normal, que es justo lo que un escritorio remoto transmite bien.
+Un rasterizador es la parte del programa que convierte el dibujo en los píxeles de la pantalla. Este está pensado para este tipo de imagen: recuerda lo que ya ha dibujado, solo repinta las zonas que cambian y entrega al sistema una imagen normal y corriente, que es justo lo que un escritorio remoto transmite bien.
 
 No es todo código nuestro, y hay que decirlo: parte del rasterizador de egui_software_backend, de DGriffin91 (licencia MIT o Apache-2.0), integrado y adaptado dentro de masstin.
 
@@ -65,9 +65,11 @@ masstin -a view -f timeline.csv --renderer software
 masstin -a view -f timeline.csv --renderer glow
 ```
 
+`software` es el rasterizador por CPU del que habla este artículo, y `glow` es el dibujo normal con OpenGL, el que usa la tarjeta gráfica.
+
 `software` funciona en cualquier máquina, Linux y macOS incluidos. Viene bien cuando un controlador gráfico da guerra, que en máquinas virtuales pasa más de lo que debería.
 
-También hay variables de entorno, por si lo lanzas desde un script: `MASSTIN_VIEW_RENDERER` y `MASSTIN_VIEW_LIGHT=1`.
+También hay variables de entorno, por si lo lanzas desde un script: `MASSTIN_VIEW_RENDERER` y `MASSTIN_VIEW_LIGHT=1`. La primera acepta los mismos dos valores que `--renderer` (`software` o `glow`). La segunda pide el modo ligero desde el arranque. Una variable de entorno se define antes de lanzar el programa: en PowerShell, `$env:MASSTIN_VIEW_LIGHT = "1"`; en bash, `export MASSTIN_VIEW_LIGHT=1`.
 
 ## Saber qué está pasando
 

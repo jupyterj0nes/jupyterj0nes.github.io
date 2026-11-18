@@ -20,13 +20,15 @@ En un Linux casi todo lo que importa de un caso es texto: quién puede hacer sud
 etcdump -f lnx01-triage.tgz -o lnx01-etc --summary
 ```
 
+`-f` es la evidencia, `-o` la carpeta donde deja el resultado, y `--summary` hace que al terminar imprima en la consola un resumen como el de más abajo.
+
 ## Lo que lee
 
 Un triage (UAC, o cualquier carpeta que tenga un `etc/passwd`), un zip, un tar, o una imagen de disco con ext4, XFS o LVM dentro. Si la entrada tiene varios Linux, los encuentra todos.
 
 Solo recorre las carpetas de configuración, nunca el volumen entero. Por eso tarda segundos.
 
-Le di los dos triages Linux de nuestro laboratorio:
+Le di los dos triages Linux de nuestro laboratorio. Para pasarle más de un fichero se repite `-f`, una vez por cada uno:
 
 ```
 leo-lnx01-triage.tgz: computer leo-lnx01, 1 Linux root(s) (tar)
@@ -52,7 +54,7 @@ Las áreas son veintitrés: cuentas, sudo, SSH, claves, red, montajes, cron, at,
 
 ## El texto
 
-Esta es la parte que más se usa. Por cada máquina y cada área hay un fichero de texto. Este es el de sudo, entero:
+Esta es la parte que más se usa. Por cada máquina y cada área hay un fichero de texto en la carpeta de salida, con el área al final del nombre: `..._sudo.txt`, `..._ssh.txt`. Al lado quedan `timeline.csv`, `files.txt` (una línea por fichero de configuración leído) y `roots.txt`. Este es el de sudo, entero:
 
 ```
 == etc/sudoers  (live, 1708 bytes, modified 2026-11-03T12:06:38.061340Z)
@@ -69,7 +71,7 @@ Esta es la parte que más se usa. Por cada máquina y cada área hay un fichero 
   [   4] ubuntu = ALL=(ALL) NOPASSWD:ALL    <<< habitual rule LNX-SUDO-NOPASSWD-ALL (medium)
 ```
 
-Cada fichero con su fecha de modificación, cada línea útil con su número, sin comentarios ni líneas en blanco. Y una marca `<<<` donde saltó una regla.
+Cada fichero con su fecha de modificación, cada línea útil con su número, sin comentarios ni líneas en blanco. Ese número entre corchetes es la línea del fichero original (`[  55]` es la línea 55 de `sudoers`), no una puntuación. Y una marca `<<<` donde saltó una regla.
 
 Las dos últimas marcas dicen cosas distintas, y ahí está la gracia. Las dos líneas dan sudo completo sin contraseña. La de `ubuntu` es `habitual`: la trae cualquier imagen de Ubuntu en la nube. La de `%Leadership` es `candidate`: esa no la trae nadie. En el laboratorio es una debilidad puesta a propósito. En un caso real sería la primera pregunta para el administrador.
 
@@ -111,13 +113,13 @@ Son 51, y buscan lo que deja un atacante que quiere volver:
 - Hooks de APT, repositorios sin firma, reglas de udev con `RUN+=`.
 - El historial del shell desactivado, `PROMPT_COMMAND`, alias de `sudo` en un perfil.
 
-`etcdump --list-rules` las enseña todas con su definición, y con `--rules` se añaden las propias en YAML.
+`etcdump --list-rules` las enseña todas con su definición. Para añadir las tuyas, las escribes en YAML con ese mismo formato y le pasas `--rules` seguido del fichero o de la carpeta donde están.
 
 Igual que en el resto de la familia, la puntuación de una regla no la decide nadie: es lo rara que resultó en un Linux limpio. Una regla que salta en una instalación de fábrica vale poco, y el elemento exacto que la hizo saltar allí queda como `habitual` en cualquier otra máquina.
 
 ## Lo que salió, sin maquillar
 
-De 15 252 elementos, las reglas marcaron 18 para leer. No hay ningún ataque en la configuración de estas dos máquinas, así que lo interesante es ver qué clase de cosas salen:
+De 15 252 elementos, las reglas marcaron 18 para leer. No hay ningún ataque en la configuración de estas dos máquinas, así que lo interesante es ver qué clase de cosas salen. La tabla no lista los 18 uno a uno: los agrupa por clases, y alguna fila reúne varios elementos.
 
 | Qué | Estado | Qué es en realidad |
 |---|---|---|
@@ -147,6 +149,8 @@ Es el caso del cron que alguien crea, deja ejecutarse una vez y borra. En un tri
 ```
 2026-11-03T12:06:38Z  leo-lnx01  etc:sudo  %Leadership  ALL=(ALL) NOPASSWD:ALL  candidate  35
 ```
+
+El 35 del final es la puntuación. El artículo de [faramir](/es/tools/faramir-persistence/) da 29 a esta misma línea, y no es un error: cada herramienta mide sus reglas contra su propia referencia limpia.
 
 Esa fecha es la del fichero entero, no la de la línea. Dice cuándo se tocó `sudoers` por última vez, no cuándo se añadió esa regla. Aun así sirve: puesta junto a los logins de [masstin](/es/tools/masstin-parse/) responde a quién estaba dentro cuando se modificó.
 

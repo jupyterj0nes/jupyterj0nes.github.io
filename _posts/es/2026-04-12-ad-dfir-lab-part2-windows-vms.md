@@ -137,7 +137,7 @@ Las ISOs de evaluación no necesitan clave de producto. Si pones una clave KMS r
 
 ### Post-instalación automática
 
-En `FirstLogonCommands` configuramos todo lo que necesitamos después de instalar:
+En `FirstLogonCommands` configuramos todo lo que necesitamos después de instalar. Aquí solo se muestran tres de los comandos del fichero; por eso los valores de `Order` (2, 4, 7) no son consecutivos:
 
 ```xml
 <FirstLogonCommands>
@@ -184,7 +184,9 @@ Este ISO de pocos KB se monta como `ide3` y Windows Setup lo encuentra automáti
 
 ## Ubuntu: Cloud Image + Cloud-Init
 
-Para Ubuntu, intentar automatizar la ISO del servidor con autoinstall es frágil — hay prompts de confirmación que rompen la automatización. La solución más limpia: usar la **cloud image** con **cloud-init de Proxmox**:
+Para Ubuntu, intentar automatizar la ISO del servidor con autoinstall es frágil — hay prompts de confirmación que rompen la automatización. La solución más limpia: usar la **cloud image** con **cloud-init de Proxmox**. Una cloud image es un disco ya instalado, y cloud-init es el mecanismo que le pone usuario, red y claves SSH en el primer arranque.
+
+Antes de importar el disco, la VM 107 tiene que existir: se crea con `qm create` como las demás, con los valores de la tabla de arriba.
 
 ```bash
 # Descargar cloud image (700 MB vs 2 GB de la ISO)
@@ -220,7 +222,7 @@ ssh ubuntu@VM_IP 'sudo apt install -y qemu-guest-agent && sudo systemctl enable 
 
 ## Kali: Preseed inyectado en el initrd
 
-Kali fue el más complejo de automatizar. Tres problemas:
+Kali fue el más complejo de automatizar. Un preseed es un fichero con las respuestas a las preguntas del instalador de Debian (y Kali es un Debian); el initrd es el pequeño sistema que el instalador carga en memoria al arrancar. Tres problemas, y un cuarto de regalo:
 
 1. **La ISO oficial usa `simple-cdd`** con profiles que sobreescriben cualquier preseed externo
 2. **El preseed debe estar disponible antes de que el installer pregunte el idioma** — no basta con montarlo como CD
@@ -236,6 +238,8 @@ Y como bonus, sin DHCP en la VLAN 20, el installer falla en la configuración de
 ![Kali network autoconfiguration failed](/assets/img/posts/ad-dfir-lab/kali-network-failed.png){:loading="lazy"}
 
 ### La solución: inyectar el preseed en el initrd
+
+`preseed-kali.cfg` es nuestro fichero de respuestas; sus líneas clave están en la sección siguiente.
 
 ```bash
 # Extraer la ISO
@@ -310,6 +314,8 @@ iptables -t nat -A POSTROUTING -s 192.168.10.0/24 -o vmbr0 -j MASQUERADE
 iptables -t nat -A POSTROUTING -s 192.168.20.0/24 -o vmbr0 -j MASQUERADE
 ```
 
+Ojo: con esto solo, el host todavía no llega a las VMs. Falta añadir las VLANs al self-port del bridge (`bridge vlan add dev vmbr0 vid 10 self`, y lo mismo con `vid 20`). Está explicado más abajo, en "Cuidado con las VLANs y Hetzner"; hazlo en este mismo momento.
+
 Esto es temporal — en la Part 3 pfSense se encargará del routing y NAT.
 
 ## QEMU Guest Agent: el último obstáculo (y por qué necesita intervención manual)
@@ -351,7 +357,7 @@ El procedimiento manual por VM:
 1. Abrir la consola VNC en el web UI de Proxmox
 2. Login como `vagrant`/`vagrant`
 3. Abrir PowerShell como administrador
-4. Ejecutar: `D:\virtio-win-guest-tools.exe`
+4. Ejecutar: `D:\virtio-win-guest-tools.exe` (la letra puede ser `E:` o `F:`; es la unidad de CD con la etiqueta `virtio-win`)
 5. Click en el asistente: Next → Install → Finish
 6. `Restart-Computer -Force`
 
@@ -395,8 +401,8 @@ VMID NAME                 STATUS     MEM(MB)    BOOTDISK(GB)
  108 KALI-nightking       running    4096       30.00
 ```
 
-8 máquinas virtuales instaladas sin tocar un solo prompt:
-- **Windows**: con guest agent, WinRM, RDP, firewall deshabilitado, usuario `vagrant/vagrant`
+8 máquinas virtuales instaladas sin tocar un solo prompt del instalador. Lo único manual son los ~6 minutos del guest agent en Windows que acabamos de ver:
+- **Windows**: con guest agent (tras ese paso manual), WinRM, RDP, firewall deshabilitado, usuario `vagrant/vagrant`
 - **Ubuntu**: con SSH, cloud-init, usuario `ubuntu/ubuntu`
 - **Kali**: con `kali-linux-default`, SSH, usuario `kali/kali`
 
@@ -442,7 +448,7 @@ done
 
 ## Estado final
 
-Tras Phase 5, el laboratorio queda así:
+Tras la configuración post-instalación, el laboratorio queda así:
 
 | VMID | Hostname | IP | Rol |
 |------|----------|-----|-----|
@@ -461,6 +467,6 @@ Listas para el siguiente paso: configurar pfSense como router entre las dos VLAN
 
 ---
 
-*Siguiente: Part 3 — Beyond the Wall: pfSense, VLANs and Network Segmentation*
+*Siguiente: [Part 3 — Beyond the Wall: pfSense, VLANs and Network Segmentation]({% post_url es/2026-04-12-ad-dfir-lab-part3-pfsense %})*
 
 *Anterior: [Part 1 — From Bare Metal to Proxmox]({% post_url es/2026-04-12-ad-dfir-lab-part1-proxmox %})*

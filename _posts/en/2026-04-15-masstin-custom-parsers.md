@@ -16,13 +16,15 @@ comments: true
 
 Every DFIR case reaches the same friction point. The Windows side is tractable — EVTX, UAL, prefetch, registry, all well-defined formats. The Linux side is a bit messier but still bounded — auth.log, secure, wtmp, audit. And then comes the rest: Palo Alto GlobalProtect, Cisco AnyConnect, Fortinet SSL-VPN, Checkpoint, OpenVPN, Squid, Cloudflare Access, ZScaler, every hardware firewall, every cloud VPN. Each one has its own log format, its own conventions, its own quirks, and writing a dedicated parser per vendor is a losing battle.
 
-Masstin's answer is custom parsers: `parse --rules` reads **any text log** using **YAML rule files**. One file per vendor format. A library of pre-built rules that grows over time. Inside each file, a list of sub-parsers handles the different line types the same product emits. The output is the same 14-column CSV timeline masstin uses everywhere else, so a carved EVTX chunk from a desktop, a Linux SSH brute-force, and a GlobalProtect VPN login appear side by side, ready for graph visualisation and temporal path reconstruction.
+Masstin's answer is custom parsers: `parse --rules` reads **any text log** using **YAML rule files**. One file per vendor format. A library of pre-built rules that grows over time. Inside each file, a list of sub-parsers handles the different line types the same product emits. The output is the same CSV timeline masstin uses everywhere else, so a carved EVTX chunk from a desktop, a Linux SSH brute-force, and a GlobalProtect VPN login appear side by side, ready for graph visualisation and temporal path reconstruction.
 
 This post walks through the design, the schema, and the first rule that ships with the library: a fully researched Palo Alto GlobalProtect parser built from the official Palo Alto Networks documentation and validated against real sample log lines.
 
 ---
 
 ## Design decisions
+
+This section tells why the schema is the way it is, and it is for people who will write rules. If you only want to read your logs with the rules that already ship, skip to [Using it](#using-it). The names that come up here are other ways of describing logs: Sigma is a detection-rule format written in YAML, Grok is the set of patterns Logstash uses to split log lines, and Lua is a scripting language.
 
 The schema is intentionally **boring**: flat YAML, four blocks per parser, string substitution for the output mapping. We explicitly avoided:
 
@@ -40,6 +42,12 @@ What we kept:
 ---
 
 ## The schema in one glance
+
+Three things to read the example below:
+
+- `fields_by_index` names the CSV columns by position, starting at 0: the one at index 6 becomes `generated_time`.
+- `strip_before` removes the start of a field, up to the text you give it.
+- `${name}` is replaced by the value of the field with that name.
 
 ```yaml
 meta:
@@ -228,6 +236,8 @@ The contribution model is the same as Sigma rules: collect sample lines, write t
 
 ## Using it
 
+The `rules/` folder is not inside the binary: it lives in the [masstin repository](https://github.com/jupyterj0nes/masstin/tree/main/rules). Before running these commands, clone the repository or download that folder. `--rules` takes the path of one rule file or of the whole folder; in the examples, `rules/` sits in the folder you run masstin from.
+
 ```bash
 # Single rule file
 masstin -a parse --rules rules/vpn/palo-alto-globalprotect.yaml -f vpn.log -o timeline.csv
@@ -247,6 +257,8 @@ Point it at any masstin-compatible output (Neo4j, Memgraph, the CSV merge pipeli
 ---
 
 ## Related: noise filtering for the unified timeline
+
+This section is a summary of another topic, which has an article of its own: [noise filtering](/en/tools/masstin-noise-filtering/). You do not need it to write or use rules; if you came for the parsers, you can skip to "What's next".
 
 Once you start feeding VPN / firewall / proxy logs into the masstin timeline alongside Windows EVTX and Linux auth logs, the combined output grows fast — and a lot of what grows is noise. Service logons from `LOCAL SYSTEM`, failed RDP attempts where the source IP was never captured, brute force from noisy jumpboxes, machine account (`HOST$`) network authentications, and so on.
 

@@ -22,6 +22,8 @@ Neo4j turns [masstin's](/en/tools/masstin-lateral-movement-rust/) timeline into 
 
 ## Data transformations
 
+This rule only matters once you write queries. If you have not loaded anything yet, you can go to the "Installing Neo4j" section and come back here afterwards.
+
 Masstin preserves the original values from the evidence as much as possible. Node names (hostnames, IPs) are stored as they are, only turned to **upper case** so that `srv-file01` and `SRV-FILE01` are one node. Dots and hyphens are left alone: `10.10.1.50` stays `10.10.1.50`.
 
 The only transformation applies to **relationship types** (the edge label, which represents the user account). This is a Cypher language restriction — relationship types must be valid identifiers and cannot contain dots, hyphens, or start with a number:
@@ -58,11 +60,20 @@ By filtering for the period when you suspect the attack started, all the histori
 | **macOS** | `brew install neo4j` or download from [neo4j.com/download](https://neo4j.com/download/). Start with `neo4j start`. Access at `http://localhost:7474` |
 | **Docker** | `docker run -p 7474:7474 -p 7687:7687 -e NEO4J_AUTH=neo4j/password neo4j` |
 
+In Neo4j Desktop, creating the database asks you for a password for the `neo4j` user. Write it down: it is the one masstin will ask for when loading. The database has to be started before you load anything.
+
+The queries in this article are typed in the Neo4j Browser, the page that opens at `http://localhost:7474`: paste them into the query box at the top and run them.
+
 Load data with:
 
 ```bash
 masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j
 ```
+
+Two things about this command:
+
+- **The password is not in the command.** masstin asks for it on the console when it connects. For a script, put it in the `NEO4J_PASSWORD` environment variable beforehand and it will not ask.
+- **`--database` takes both forms**: `localhost:7687` or the full address `bolt://localhost:7687`. With no scheme, masstin adds `bolt://`.
 
 ### Two loading modes: grouped vs ungrouped
 
@@ -218,7 +229,9 @@ LIMIT 10
 
 ### Temporal path between two hosts
 
-This is one of the most powerful queries for incident reconstruction. It finds all paths between two hosts where **each hop is chronologically later than the previous one** — giving you the actual attack chain as it happened in time:
+This is one of the most powerful queries for incident reconstruction. It finds all paths between two hosts where **each hop is chronologically later than the previous one** — giving you the actual attack chain as it happened in time.
+
+It needs a load made with `--ungrouped`. In the default (grouped) load each edge keeps only the date of the first event, and a chain of hops cannot be ordered with that:
 
 ```cypher
 MATCH path = (start:host {name:'10.99.88.77'})-[*]->(end:host {name:'SRV-BACKUP'})

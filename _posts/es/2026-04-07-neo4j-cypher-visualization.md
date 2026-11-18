@@ -22,6 +22,8 @@ Neo4j convierte la timeline de [masstin](/es/tools/masstin-lateral-movement-rust
 
 ## Transformaciones de datos
 
+Esta regla solo importa cuando escribas queries. Si todavía no has cargado nada, puedes ir a la sección «Instalación de Neo4j» y volver aquí después.
+
 Masstin preserva los valores originales de la evidencia en la medida de lo posible. Los nombres de nodos (hostnames, IPs) se guardan tal cual, solo pasados a **mayúsculas** para que `srv-file01` y `SRV-FILE01` sean el mismo nodo. Los puntos y los guiones no se tocan: `10.10.1.50` se mantiene como `10.10.1.50`.
 
 La única transformación se aplica a los **tipos de relación** (la etiqueta del edge, que representa la cuenta de usuario). Es una restricción del lenguaje Cypher — los tipos de relación deben ser identificadores válidos y no pueden contener puntos, guiones ni empezar por un número:
@@ -58,11 +60,20 @@ Al filtrar por el periodo en el que sospechas que comenzó el ataque, todo el ru
 | **macOS** | `brew install neo4j` o descarga desde [neo4j.com/download](https://neo4j.com/download/). Inicia con `neo4j start`. Accede en `http://localhost:7474` |
 | **Docker** | `docker run -p 7474:7474 -p 7687:7687 -e NEO4J_AUTH=neo4j/password neo4j` |
 
+En Neo4j Desktop, al crear la base de datos se te pide una contraseña para el usuario `neo4j`. Apúntala: es la que masstin te pedirá al cargar. La base de datos tiene que estar arrancada antes de cargar nada.
+
+Las queries de este artículo se escriben en el Neo4j Browser, la página que se abre en `http://localhost:7474`: se pegan en la caja de consultas de arriba y se ejecutan.
+
 Carga los datos con:
 
 ```bash
 masstin -a load-neo4j -f timeline.csv --database localhost:7687 --user neo4j
 ```
+
+Dos cosas sobre este comando:
+
+- **La contraseña no va en el comando.** masstin la pide por consola al conectar. Para un script, déjala antes en la variable de entorno `NEO4J_PASSWORD` y no la preguntará.
+- **`--database` acepta las dos formas**: `localhost:7687` o la dirección completa `bolt://localhost:7687`. Si no pones esquema, masstin añade `bolt://`.
 
 ### Dos modos de carga: agrupado vs sin agrupar
 
@@ -218,7 +229,9 @@ LIMIT 10
 
 ### Camino temporal entre dos hosts
 
-Esta es una de las queries más potentes para la reconstrucción de incidentes. Encuentra todos los caminos entre dos hosts donde **cada salto es cronológicamente posterior al anterior** — dándote la cadena real del ataque tal como ocurrió en el tiempo:
+Esta es una de las queries más potentes para la reconstrucción de incidentes. Encuentra todos los caminos entre dos hosts donde **cada salto es cronológicamente posterior al anterior** — dándote la cadena real del ataque tal como ocurrió en el tiempo.
+
+Necesita una carga con `--ungrouped`. En la carga por defecto (agrupada) cada arista guarda solo la fecha del primer evento, y con eso no se puede ordenar una cadena de saltos:
 
 ```cypher
 MATCH path = (start:host {name:'10.99.88.77'})-[*]->(end:host {name:'SRV-BACKUP'})

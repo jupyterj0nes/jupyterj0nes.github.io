@@ -14,9 +14,19 @@ comments: true
 ---
 Todas las herramientas de esta página aceptan lo mismo: una imagen E01, un VMDK, un triage en un zip, una carpeta. Y todas recuperan cosas borradas de la misma manera. Ese trabajo se ha ido sacando de las herramientas a tres bibliotecas, para hacerlo una sola vez.
 
-No están las tres en el mismo punto. **blockcarve** ya está debajo de las cuatro herramientas principales. **evidencefs** y **dirtyhive** nacieron del código de masstin y de faramir. Hoy evidencefs está debajo de etcdump, y las dos, debajo de las herramientas que están en preparación; las cuatro principales conservan todavía sus propios lectores, de los que salieron.
+No están las tres en el mismo punto:
 
-Son públicas y se pueden usar por separado. Este artículo es para quien quiera saber qué hay debajo, o para quien escriba sus propias herramientas en Rust y no quiera volver a escribir un lector de E01.
+| Biblioteca | Qué hace | Quién la usa hoy |
+|---|---|---|
+| **blockcarve** | Recupera estructuras borradas | Las cuatro herramientas principales |
+| **evidencefs** | Abre la evidencia | etcdump y las herramientas en preparación |
+| **dirtyhive** | Lee el registro | Las herramientas en preparación |
+
+evidencefs y dirtyhive nacieron del código de masstin y de faramir. Las cuatro principales conservan todavía sus propios lectores, de los que salieron.
+
+Son públicas y se pueden usar por separado. Este artículo es para quien quiera saber qué hay debajo, o para quien escriba sus propias herramientas en Rust y no quiera volver a escribir un lector de E01. Si estás empezando y solo quieres usar las herramientas, puedes saltártelo: no hace falta para seguir los demás.
+
+Una nota para quien vaya a programar: los trozos de código de abajo son fragmentos, sin las líneas `use`. Los ejemplos completos están en el README de cada biblioteca. Y cada una tiene su propio tipo `OpenOptions`: el de evidencefs y el de dirtyhive no son el mismo.
 
 ## evidencefs: una sola forma de abrir la evidencia
 
@@ -63,15 +73,15 @@ Cuando se borra un fichero y el sistema de ficheros lo olvida, los bytes siguen 
 
 blockcarve lee en bloques de 4 MB, busca candidatos alineados a sector y, antes de aceptar uno, lo obliga a demostrar que es lo que dice ser:
 
-- Un **hive de registro** se sigue bin a bin desde su cabecera y se comprueba su clave raíz.
-- Un **trozo de log de eventos** tiene que pasar sus sumas CRC32.
-- Un **registro del `$MFT`** tiene que tener su geometría y sus correcciones en orden.
+- Un **hive de registro** se sigue bin a bin desde su cabecera y se comprueba su clave raíz. Los bins son los bloques en que se divide un hive por dentro.
+- Un **trozo de log de eventos** tiene que pasar sus sumas CRC32. Una suma CRC32 es un número calculado a partir de los datos: si los datos no son los originales, no coincide.
+- Un **registro del `$MFT`** tiene que tener su geometría y sus correcciones en orden. Las correcciones (*fixups*) son unos bytes de control que NTFS pone al final de cada sector del registro.
 
 Una firma que aparece por casualidad en mitad de un fichero de vídeo no pasa ninguna de esas pruebas.
 
 También sabe de discos dañados. Un segmento roto de un E01 puede dejar a un descompresor dando vueltas para siempre, así que cada lectura corre con un tiempo máximo: si se pasa, se salta esa ventana, se apunta y se sigue. Un fallo de lectura cuesta un trozo, nunca la ejecución.
 
-Es lo que hay detrás de `--carve` en masstin (logs de eventos), faramir (hives), allymacb (registros del `$MFT` e índices) y caarea (todo lo anterior y Prefetch). Todas aceptan una estructura por las mismas razones.
+Es lo que hay detrás de `--carve` en masstin (logs de eventos), faramir (hives), allymacb (registros del `$MFT` e índices) y caarea (todo lo anterior, Prefetch y algunas estructuras más; la lista completa está en [el artículo de carving](/es/tools/carving-across-tools/)). Todas aceptan una estructura por las mismas razones.
 
 Dentro van también las dos piezas del registro que comparten todas: el recorrido de las celdas libres de un hive, que es de donde salen las claves borradas, y la aplicación de los logs de transacciones.
 
@@ -86,9 +96,9 @@ dirtyhive hace cuatro cosas, en orden:
 3. **Los aplica en memoria**, validando cada entrada. Un log truncado se aplica hasta donde está bien; uno con basura no puede tumbar el programa.
 4. **Recorre las celdas libres** y devuelve las claves y valores borrados, con su ruta reconstruida.
 
-El motor que aplica los logs es el de blockcarve, y está comprobado contra los hives que el propio Windows 10 y Windows 7 recuperaron en el corpus público de pruebas de `yarp`: el resultado coincide.
+El motor que aplica los logs es el de blockcarve. Puede sorprender encontrarlo en una biblioteca de carving: está ahí porque, como se dijo arriba, blockcarve lleva dentro las dos piezas del registro que ya compartían todas las herramientas. dirtyhive las reutiliza en vez de escribirlas otra vez. Ese motor está comprobado contra los hives que el propio Windows 10 y Windows 7 recuperaron en el corpus público de pruebas de `yarp`: el resultado coincide.
 
-En el caso de nuestro laboratorio, sobre la imagen de un servidor, ese mismo motor es el que se ve trabajar: caarea aplicó los logs de `SECURITY`, de Amcache y de dos `NTUSER.DAT` antes de leerlos, y faramir sacó 711 claves borradas solo del `SOFTWARE`. dirtyhive es esa forma de leer un hive, sacada de faramir y puesta en una biblioteca para las herramientas nuevas.
+En el caso de nuestro laboratorio, sobre la imagen de un servidor, ese mismo motor es el que se ve trabajar: caarea aplicó los logs de `SECURITY`, de Amcache y de dos `NTUSER.DAT` antes de leerlos, y faramir sacó 711 claves borradas solo del `SOFTWARE`. dirtyhive es esa forma de leer un hive, sacada de faramir y puesta en una biblioteca para las herramientas nuevas. En el fragmento, `path` es la ruta al fichero del hive:
 
 ```rust
 let opts = OpenOptions::new().search_root("D:/evidence/host01");

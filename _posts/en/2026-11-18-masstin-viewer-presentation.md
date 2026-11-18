@@ -23,6 +23,13 @@ A table is no good for that, and a static graph only halfway. What works is watc
 
 That is forty seconds recorded from the viewer itself, unedited. It is one evening in the lab, 526 rows, with the chain of hops we used in the [Find path](/en/tools/masstin-viewer-find-path/) article.
 
+Four names look alike and are worth telling apart before starting:
+
+- **Present** plays the story in the window, for telling it live.
+- **Story…** is the editor where you decide how it is told: the pace, the pauses, the captions. It is in the Tools menu, as *Story and recording…*.
+- **Cinematic** is not another mode but a look: a tick box in the editor that adds the clock, the caption and the cards to that same story.
+- **Record…** is a button in the editor that writes the story to a video file.
+
 ## Present
 
 The **Present** button at the bottom right plays the view as a story, full window. Each connection draws itself from origin to destination when its turn comes, the machine it reaches appears at that moment, a clock shows the time and a caption says what happened.
@@ -45,7 +52,7 @@ The rest, in case it needs tuning:
 
 - **What a step is.** One row, or every row within *n* seconds of the first. A spray over twenty machines in three seconds is one step, not twenty.
 - **The pace.** The same seconds for every step, or the real gaps compressed. With the second, two days between two hops are felt without having to wait for them.
-- **Pauses.** An extra stop on `significant` connections, and another at the end.
+- **Pauses.** An extra stop on `significant` connections, and another at the end. `significant` is the state the [hunt](/en/tools/masstin-graph-hunt/), masstin's analysis, gives to the connections that clear its bar for rarity ([the states and the score](/en/tools/hunt-score-across-tools/)).
 - **Stretches.** Parts of the timeline at their own speed. The week when nothing happens, in two seconds; the hour of the intrusion, step by step.
 - **Per step.** Its seconds, its caption, skipping it or giving it emphasis.
 
@@ -73,6 +80,8 @@ The caption carrying your note is why it pays to [write notes](/en/tools/masstin
 
 **Record…** writes the story to a file. Format: **GIF**, **MP4** (it needs `ffmpeg` on the PATH; it is H.264 and plays in PowerPoint, Keynote and browsers) or loose **PNG frames**. Size: the window's, 1280 × 720, 1600 × 900 or 1920 × 1080. And before it starts, the dialog tells you roughly how big the file will be.
 
+`ffmpeg` is a free video program installed separately; masstin does not ship it. "On the PATH" means the system finds it by its name: open a terminal, type `ffmpeg -version` and, if it answers with its version, it is ready. If you do not have it, GIF and PNG work all the same.
+
 The GIFs are done with care, which is unusual. Each frame stores only the pixels that changed, so a story of seventy connections at 720p comes to about 4.7 MB. The same content as MP4, 1.8 MB.
 
 Esc stops the recording and keeps what was recorded.
@@ -88,5 +97,17 @@ The recording can also be started without touching the window:
 ```bash
 MASSTIN_VIEW_AUTO="record=mp4:20:1,quit" masstin -a view -f timeline.csv
 ```
+
+That line is for bash (Linux, macOS, Git Bash). In PowerShell, the variable is set first:
+
+```powershell
+$env:MASSTIN_VIEW_AUTO = "record=mp4:20:1,quit"; masstin -a view -f timeline.csv
+```
+
+`MASSTIN_VIEW_AUTO` is an environment variable holding a comma-separated list of actions the viewer runs when it opens. Here there are two: `record` and `quit`. The three fields of `record=mp4:20:1` are:
+
+- the **format**: `gif`, `png` or `mp4`;
+- the **frames a second**: here, 20;
+- the **size**: `0` is the window's, `1` is 720p, `2` is 1080p and `3` is 1600 × 900.
 
 It opens, records the story at 720p and 20 frames a second, and closes. The video above came out of a line like that one.

@@ -19,7 +19,9 @@ comments: true
 
 That is the whole of the [DFIR Madness "Szechuan sauce"](https://dfirmadness.com/the-stolen-szechuan-sauce/) case in one command: the timeline masstin parsed from the two disk images, one known-bad IP as a seed, and 0.2 seconds later the chain. The attacker enters the domain controller as `ADMINISTRATOR` over RDP, the DC reaches the workstation with the built-in administrator's SID and then with the named account, and the workstation goes back to the DC. Every hop carries a certainty: 1 for the seed's own login, 1/55 and 1/63 where the DC had dozens of sessions open and any of them could have been the hand on the keyboard, 1/9 for the way back.
 
-This post is about the engine behind that output. It replaced the one I wrote about in May.
+Three words from that paragraph, in case you have just arrived. A **seed** is something you already know is bad (an address, a machine or an account) and from which the trail is followed. A **session** is what goes from a login to its end. And the **certainty** of a hop is 1 divided by the sessions that were open on the machine it leaves from. It is told slowly in [the seeds article](/en/tools/masstin-hunt-seeds/).
+
+This post is about the engine behind that output. It replaced the one I wrote about in May. It is the most technical of the series: if this is your first contact with the hunt, start with [the hunt from the viewer](/en/tools/masstin-hunt-viewer/), which shows it step by step, and come back afterwards.
 
 ## The question after `load-*`
 
@@ -58,7 +60,17 @@ The terminal tells you what it is measuring before it tells you what it found:
 
 Each line is a decision the engine made and you can disagree with. Two IPs were folded into host names because the same logins were recorded under both far more often than chance allows. Seven destinations have continuous log coverage, so counts are only compared on them. One baseline day forms the null, which is why nothing is significant here: Szechuan ships two days of logs, and with one day of reference the engine cannot tell "new" from "unseen". It says so instead of inventing a threshold. The seed reconstruction does not need a null, so the chain comes out anyway.
 
+As a first example of a detection tool it is confusing, because it detects nothing. It is here for the chain. A run with weeks of reference and real findings, read line by line, is in [reading the result](/en/tools/masstin-hunt-report/).
+
 ## How it decides
+
+This section is the densest. Five terms that appear here and in the console above, in plain words:
+
+- **Baseline and window.** What comes before `--investigation-from` is the baseline: the reference for what is normal. What comes after is the window: what is examined.
+- **Null.** In statistics, the null hypothesis is "nothing odd is going on here". Here the null is the baseline days, which are the yardstick.
+- **p-value.** The probability of seeing something at least this rare when nothing is going on. The smaller, the rarer.
+- **Benjamini-Hochberg and FDR.** When you run many tests at once, some come out "rare" by pure chance. Benjamini-Hochberg is the standard procedure for deciding which to call significant so that the share of false findings (the FDR, false discovery rate) stays within what you asked for.
+- **Community and centrality.** They are graph measures. A community is a group of machines that mostly talk to each other. Centrality measures how important a machine is in the network by its connections.
 
 **The unit is the connection.** One origin, one destination, one account, one result (login, failure, or a touch without authentication), on one UTC day. A connection that already happened on another earlier day is habitual: p = 1, never reported. The hunt is only ever about the new ones.
 
@@ -81,6 +93,15 @@ account, result, events, logs, signature, why_unusual, evidence, chain, campaign
 
 `why_unusual` is the reason in short phrases: *origin never seen before; that day the origin reached 29 destination(s) for the first time; the account belongs elsewhere: 100% of its earlier login-days came from C8198*. `evidence` repeats each reason with the baseline count behind it, so every claim can be checked. `signature` is the Hopper class, one value to filter on. `chain` is the connection's place in the seed reconstruction when you gave one.
 
+Four more that do not explain themselves:
+
+- **`q_value`**: the p-value once adjusted by Benjamini-Hochberg. It is the one compared with the rate you asked for.
+- **`logs`**: the log families that recorded the connection (secure, wtmp, audit, evtx...).
+- **`campaign`**: other origins with no history that share a new account and overlap in destinations with this one. They are annotated with each other.
+- **`cypher_snippet`**: a query in Cypher, the language of graph databases, to see that connection in Neo4j or Memgraph.
+
+Besides this CSV, `graph-hunt-csv` writes its verdict into the timeline itself, in three columns: `hunt`, `hunt_score` (0 to 100, how rare the connection is) and `hunt_why`. They are explained in [reading the result](/en/tools/masstin-hunt-report/).
+
 With `--report hunt.md` you also get one story per origin that has a significant connection: whether it existed in the baseline and what it usually did, what it did in the window in chronological phases, why each phase is unusual with the count behind every statement, who owns the accounts it used for the first time, its causal paths, the origins it moves with, and three paragraphs I found myself writing by hand on every case before they were generated: *could be benign if*, *to rule that out*, and *events to pull* (the raw Windows or Linux events that settle it, chosen from the log families that recorded the origin). On Neo4j each origin ends with a Browser query that draws exactly that subgraph.
 
 One more input, optional. `--seed` is what the video shows: hosts, IPs or accounts you already know are bad, followed through the sessions they opened until the end of the day, with a certainty on every hop and a Cypher query that draws the chain. masstin sees logins, not what was done inside the machine: PsExec, WMI or a service install are for other tools to find.
@@ -95,9 +116,9 @@ One measurement, with ground truth that was not produced by me.
 |---|---:|
 | connections in the window | 465,074 |
 | red-team connections among them | 444 |
-| significant at FDR 5 % | 204: 185 red team, 19 from one unlabelled machine that failed on 47 hosts and then logged in with 7 accounts new to it |
-| precision of the first 100 rows | 99 % |
-| red-team connections in the first 500 rows | 286 of 444 |
+| significant at FDR 5 % | 256: 230 red team, 25 from one unlabelled machine that failed on 47 hosts and then logged in with 7 accounts new to it, and 1 from another |
+| precision of the first 100 rows | 100 % |
+| red-team connections in the first 500 rows | 288 of 444 (65 %) |
 | incident-free period (days 40 to 43, 241,423 connections) | 0 significant |
 
 What it does not catch is also in the table: the second red-team machine made one quiet login per host with a different user each time, and this network's baseline contains that pattern thousands of times a day (people using their own account from a machine never seen before). No login-graph method detects those without an inventory of who owns which machine; Hopper's own misses are of that kind. For scale, Hopper reports 94.5 % detection at about nine alerts a day with an inventory and two months of training; the best graph-neural-network result on LANL reports an average precision of 0.32 that falls to 0.09 under fair labelling (Larroche, 2026).

@@ -41,15 +41,17 @@ Tienes dos caminos: partir de la regla de la biblioteca que más lea, o de una r
 
 Una regla tiene uno o varios **tipos de línea**. En este log hay tres: túnel arriba, túnel abajo y login fallido. Cada uno se reconoce por algo (un `action="tunnel-up"`) y da un tipo de evento distinto.
 
-Para crear un tipo de línea seleccionas un trozo de texto en una línea y lo conviertes en la condición. El estudio marca enseguida qué líneas cumplen esa condición, con un color por tipo.
+**Paso 2, qué líneas.** Para crear un tipo de línea seleccionas un trozo de texto en una línea y lo conviertes en la condición. El estudio marca enseguida qué líneas cumplen esa condición, con un color por tipo.
 
-En **Fields** ves cómo se corta la línea seleccionada: cada campo con su nombre y su valor. Para un log donde todas las líneas tienen la misma forma (JSON, CSV, clave=valor) hay un atajo, **One line type for every line**, que crea un único tipo con todos los campos ya nombrados.
+**Paso 3, qué campos.** En **Fields** ves cómo se corta la línea seleccionada: cada campo con su nombre y su valor. Para un log donde todas las líneas tienen la misma forma (JSON, CSV, clave=valor) hay un atajo, **One line type for every line**, que crea un único tipo con todos los campos ya nombrados.
 
 ## Paso 4: qué campo va a qué columna
 
 [![El paso Columns: la barra superior ya dice 100 %, con las líneas repartidas entre tres tipos; a la derecha el dibujo origen, cuenta y destino de la línea seleccionada, y abajo las filas de timeline que salen](/assets/images/viewer/st-columns.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/st-columns.webp)
 
 Este es el paso que importa. La timeline tiene columnas fijas, y para cada una dices con qué se rellena: un campo (`${remip}`), un texto fijo o las dos cosas (`${date} ${time}`).
+
+Las columnas son las de cualquier timeline de masstin, explicadas en [el formato CSV](/es/tools/masstin-csv-format/). Las que casi siempre hay que rellenar son la hora (`time_created`), el origen (`src_ip` o `src_computer`), el destino (`dst_computer`), la cuenta (`target_user_name`) y el tipo de evento (`event_type`).
 
 Lo bueno es el dibujo del medio. Para la línea seleccionada, enseña cómo queda la conexión: `198.51.100.210` → `FGT-LEO` como `mark.ops`, `SUCCESSFUL_LOGON`, `VPN`, a las 07:53:26. Si has puesto el origen y el destino al revés, se ve ahí, sin tener que leer el YAML.
 
@@ -73,7 +75,7 @@ La regla de la biblioteca espera un campo `sentbyte` que este log no trae. No ro
 
 La pestaña **YAML** enseña la regla tal como queda escrita. **Save as…** la guarda, y **Use it in the ingest** la lleva directamente al [asistente de ingesta](/es/tools/masstin-viewer-ingest/).
 
-Desde la terminal es lo mismo:
+Desde la terminal es lo mismo. `--rules` acepta una carpeta de reglas o un solo fichero YAML. En el ejemplo es `rules/`, la biblioteca de masstin, porque aquí la regla que lee el log ya está en ella. Para usar una regla que acabas de guardar con **Save as…**, dale a `--rules` la ruta de ese fichero, o guárdalo en la carpeta de reglas que le pases.
 
 ```bash
 masstin -a parse -f FGT-LEO.log --rules rules/ -o vpn.csv

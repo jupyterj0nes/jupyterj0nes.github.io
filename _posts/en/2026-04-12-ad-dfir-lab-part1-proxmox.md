@@ -31,7 +31,7 @@ For this lab we use a **Hetzner AX41-NVMe** from the [Server Auction](https://ww
 
 ## Before you start
 
-Every phase below runs a script from this series' repo, which lives at `/root/lab` on the server. So get it there first — clone it from the rescue system, and again on the freshly installed system after Part 1 (Part 1 reinstalls the OS, which wipes the disk):
+Every phase below runs a script from this series' repo, which lives at `/root/lab` on the server. So get it there first — clone it from the rescue system, and again on the freshly installed system after Step 2 of this article (Step 2 reinstalls the OS, which wipes the disk):
 
 ```bash
 git clone https://github.com/jupyterj0nes/ad-dfir-lab /root/lab
@@ -45,6 +45,10 @@ cp /root/lab/config/lab.env.example /root/lab/config/lab.env
 ```
 
 The IPs you'll see below (`203.0.113.x`) are placeholders; yours will be your server's real ones.
+
+The scripts are in `/root/lab/scripts` and you run them from that folder with `bash`, for example `bash 02-configure-proxmox.sh`. `01` runs in the rescue system (Step 2); `02` and `03` run on the installed system (Steps 3 and 4).
+
+The command blocks in each step are excerpts of what the script does, so you know what happens underneath. You don't have to type them by hand, and they are not the full sequence.
 
 ## Step 1: Rescue System
 
@@ -77,7 +81,7 @@ Hetzner provides `installimage`, a proprietary tool that installs the operating 
 
 ### Disk detection
 
-First, we detect the NVMe disks correctly. The rescue system has a loop device that can confuse detection:
+First, we detect the NVMe disks correctly. The rescue system has a loop device (a file the system presents as if it were a disk) that can confuse detection:
 
 ```bash
 DISKS=($(lsblk -dnpo NAME,TYPE | grep disk | grep -E "nvme|sd" | cut -d" " -f1 | head -2))
@@ -105,8 +109,8 @@ IMAGE /root/.oldroot/nfs/images/Debian-1213-bookworm-amd64-base.tar.gz
 ```
 
 Key points:
-- **Software RAID1** across both NVMe drives — if one fails, you don't lose the lab
-- **LVM** with a 50 GB root volume and 8 GB swap
+- **Software RAID1** across both NVMe drives — if one fails, you don't lose the lab. RAID1 keeps the same data on both disks; "software" means Linux manages it, with no dedicated controller
+- **LVM** with a 50 GB root volume and 8 GB swap. LVM is a layer that splits the disk into logical volumes you can create and resize without repartitioning; swap is disk space the system uses when it runs out of RAM
 - The remaining space in vg0 stays free for ZFS (we'll use it later)
 - **Debian 12 Bookworm** as the base — required by Proxmox 8
 
@@ -122,6 +126,8 @@ After rebooting, we're on a clean Debian 12. The script [`02-configure-proxmox.s
 
 ### Repository and packages
 
+The block shows only the two main steps. If you did it by hand, between them you have to add the Proxmox repository key and run `apt-get update`; without that, the install fails.
+
 ```bash
 # Add Proxmox repo (community, no subscription)
 echo "deb [arch=amd64] http://download.proxmox.com/debian/pve bookworm pve-no-subscription" \
@@ -135,7 +141,7 @@ Proxmox installation takes about 3 minutes and includes the Proxmox kernel (6.8.
 
 ### VLAN-aware bridge
 
-A VLAN splits one physical network into several isolated virtual ones, each identified by a numeric tag. For VMs to have networking we need a bridge; Proxmox uses `vmbr0` as the main one, and we configure it as **VLAN-aware** so that single bridge can carry several VLANs — one segment per VM group:
+A VLAN splits one physical network into several isolated virtual ones, each identified by a numeric tag. For VMs to have networking we need a bridge; Proxmox uses `vmbr0` as the main one, and we configure it as **VLAN-aware** so that single bridge can carry several VLANs — one segment per VM group. This configuration goes in `/etc/network/interfaces`, Debian's network file:
 
 ```
 auto vmbr0
@@ -252,6 +258,6 @@ Total time: **about 20 minutes** from blank server.
 
 ---
 
-*Next: Part 2 — The Seven Kingdoms: Deploying Windows VMs with Unattended Install*
+*Next: [Part 2 — The Seven Kingdoms: Deploying Windows VMs with Unattended Install]({% post_url en/2026-04-12-ad-dfir-lab-part2-windows-vms %})*
 
 *Previous: [Introduction — The Iron Throne of DFIR]({% post_url en/2026-04-12-ad-dfir-lab-intro %})*

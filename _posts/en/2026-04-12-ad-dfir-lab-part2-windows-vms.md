@@ -91,6 +91,8 @@ Windows doesn't include VirtIO drivers out of the box. Without them, the install
 </component>
 ```
 
+We include paths for `D:`, `E:` and `F:` because the CD drive letter depends on the mount order and varies between VMs.
+
 ### Edition selection by INDEX
 
 Evaluation ISOs contain multiple editions. A common mistake is selecting by name — but names vary between versions. Much more reliable: select by **INDEX**:
@@ -112,6 +114,13 @@ mount -o loop windows-server-2019.iso /mnt/iso
 wiminfo /mnt/iso/sources/install.wim
 ```
 
+```
+Index 1: Windows Server 2019 SERVERSTANDARDCORE (Server Core)
+Index 2: Windows Server 2019 SERVERSTANDARD (Desktop Experience) ← this one
+Index 3: Windows Server 2019 SERVERDATACENTERCORE
+Index 4: Windows Server 2019 SERVERDATACENTER
+```
+
 After a few minutes, the installer boots and starts copying files without intervention:
 
 ![Windows Server 2019 installing files](/assets/img/posts/ad-dfir-lab/win-installing-files.png){:loading="lazy"}
@@ -122,11 +131,18 @@ And ~15 minutes later, the VM shows up with the desktop ready, Server Manager op
 
 ### No product key needed
 
-Evaluation ISOs don't need a product key. If you include a KMS retail key, the installer shows "No images are available". Simply omit the `ProductKey` block.
+Evaluation ISOs don't need a product key. If you include a KMS retail key, the installer shows "No images are available". Simply omit the `ProductKey` block:
+
+```xml
+<UserData>
+  <AcceptEula>true</AcceptEula>
+  <!-- No ProductKey for evaluation -->
+</UserData>
+```
 
 ### Post-install automation
 
-In `FirstLogonCommands` we configure everything we need once the install finishes:
+In `FirstLogonCommands` we configure everything we need once the install finishes. Only three of the file's commands are shown here; that is why the `Order` values (2, 4, 7) are not consecutive:
 
 ```xml
 <FirstLogonCommands>
@@ -165,7 +181,9 @@ This few-KB ISO gets mounted as `ide3` and Windows Setup finds it automatically.
 
 ## Ubuntu: Cloud Image + Cloud-Init
 
-Automating the Ubuntu server ISO with autoinstall is fragile — there are confirmation prompts that break automation. The cleaner solution: use the **cloud image** with **Proxmox cloud-init**:
+Automating the Ubuntu server ISO with autoinstall is fragile — there are confirmation prompts that break automation. The cleaner solution: use the **cloud image** with **Proxmox cloud-init**. A cloud image is an already installed disk, and cloud-init is the mechanism that sets its user, network and SSH keys on first boot.
+
+Before importing the disk, VM 107 has to exist: create it with `qm create` like the others, with the values from the table above.
 
 ```bash
 # Download cloud image (700 MB vs 2 GB ISO)
@@ -200,7 +218,7 @@ ssh ubuntu@VM_IP 'sudo apt install -y qemu-guest-agent && sudo systemctl enable 
 
 ## Kali: Preseed injected into the initrd
 
-Kali was the most complex to automate. Three problems:
+Kali was the most complex to automate. A preseed is a file with the answers to the Debian installer's questions (and Kali is a Debian); the initrd is the small system the installer loads into memory at boot. Three problems, plus a bonus fourth:
 
 1. **The official ISO uses `simple-cdd`** with profiles that override any external preseed
 2. **The preseed must be available before the installer asks for language** — mounting it as a CD isn't early enough
@@ -216,6 +234,8 @@ And as a bonus, without DHCP on VLAN 20, the installer fails at network configur
 ![Kali network autoconfiguration failed](/assets/img/posts/ad-dfir-lab/kali-network-failed.png){:loading="lazy"}
 
 ### The solution: inject preseed into the initrd
+
+`preseed-kali.cfg` is our answer file; its key lines are in the next section.
 
 ```bash
 # Extract ISO
@@ -289,6 +309,8 @@ iptables -t nat -A POSTROUTING -s 192.168.10.0/24 -o vmbr0 -j MASQUERADE
 iptables -t nat -A POSTROUTING -s 192.168.20.0/24 -o vmbr0 -j MASQUERADE
 ```
 
+Note: with this alone, the host still cannot reach the VMs. You also have to add the VLANs to the bridge's self-port (`bridge vlan add dev vmbr0 vid 10 self`, and the same with `vid 20`). It is explained further down, under "Watch out for VLANs and Hetzner"; do it right now.
+
 This is temporary — in Part 3, pfSense takes over routing and NAT.
 
 ## QEMU Guest Agent: the last hurdle (and why it needs manual intervention)
@@ -330,7 +352,7 @@ Manual procedure per VM:
 1. Open VNC console in Proxmox web UI
 2. Login as `vagrant`/`vagrant`
 3. Open PowerShell as administrator
-4. Run: `D:\virtio-win-guest-tools.exe`
+4. Run: `D:\virtio-win-guest-tools.exe` (the letter may be `E:` or `F:`; it is the CD drive labelled `virtio-win`)
 5. Click through the wizard: Next → Install → Finish
 6. `Restart-Computer -Force`
 
@@ -360,8 +382,22 @@ Without `bridge vlan add dev vmbr0 vid 10 self`, the host cannot communicate wit
 
 ## Result
 
-After ~20 minutes of unattended installation: 8 VMs installed without touching a single prompt:
-- **Windows**: with guest agent, WinRM, RDP, firewall disabled, `vagrant/vagrant` credentials
+After ~20 minutes of unattended installation:
+
+```
+VMID NAME                 STATUS     MEM(MB)    BOOTDISK(GB)
+ 101 DC01-kingslanding    running    4096       50.00
+ 102 DC02-winterfell      running    4096       50.00
+ 103 SRV02-castelblack    running    4096       50.00
+ 104 DC03-meereen         running    4096       50.00
+ 105 SRV03-braavos        running    4096       50.00
+ 106 WS01-highgarden      running    4096       50.00
+ 107 LNX01-oldtown        running    2048       20.00
+ 108 KALI-nightking       running    4096       30.00
+```
+
+8 VMs installed without touching a single installer prompt. The only manual part is the ~6 minutes of guest agent work on Windows we just saw:
+- **Windows**: with guest agent (after that manual step), WinRM, RDP, firewall disabled, `vagrant/vagrant` credentials
 - **Ubuntu**: with SSH, cloud-init, `ubuntu/ubuntu`
 - **Kali**: with `kali-linux-default`, SSH, `kali/kali`
 
@@ -407,7 +443,7 @@ done
 
 ## Final state
 
-After Phase 5, the lab looks like this:
+After the post-install configuration, the lab looks like this:
 
 | VMID | Hostname | IP | Role |
 |------|----------|-----|------|
@@ -426,6 +462,6 @@ Ready for the next step: configuring pfSense as a router between the two VLANs, 
 
 ---
 
-*Next: Part 3 — Beyond the Wall: pfSense, VLANs and Network Segmentation*
+*Next: [Part 3 — Beyond the Wall: pfSense, VLANs and Network Segmentation]({% post_url en/2026-04-12-ad-dfir-lab-part3-pfsense %})*
 
 *Previous: [Part 1 — From Bare Metal to Proxmox]({% post_url en/2026-04-12-ad-dfir-lab-part1-proxmox %})*

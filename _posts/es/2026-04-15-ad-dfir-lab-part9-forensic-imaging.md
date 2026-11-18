@@ -54,7 +54,7 @@ Claramente, no. Vamos al enfoque que sí funciona.
 
 ## El enfoque real: snapshots ZFS, clones, compresión en stream
 
-Dos primitivas de ZFS hacen el trabajo pesado.
+Dos primitivas de ZFS hacen el trabajo pesado. Dos términos antes de verlas: un **zvol** es un volumen de ZFS que se presenta como un dispositivo de bloques, es decir, como un disco; el disco de cada VM es un zvol. **Copy-on-write** significa que ZFS no sobrescribe bloques: al modificar uno escribe una copia nueva, y por eso un snapshot o un clone comparten con el original todo lo que no ha cambiado.
 
 **Primitiva 1 — los snapshots ZFS son vistas read-only punto-en-el-tiempo de un zvol.** Ya tenemos esto desde la Fase 10: `noisy-ad-current` es un snapshot del disco de cada VM capturado en un momento específico. La VM sigue escribiendo a su estado live después del snapshot, pero el snapshot en sí está congelado e inmutable. Esto es exactamente la propiedad de "consistencia" que la forense necesita — sin smearing, sin actualizaciones parciales. Tomar un filesystem en el momento de un snapshot ZFS es equivalente a una ["imagen pull-the-plug"](https://en.wikipedia.org/wiki/Pull_the_plug_procedure) de un host corriendo en ese momento, sin tirar del cable.
 
@@ -86,16 +86,16 @@ ssh root@hetzner "
 " > /mnt/forensic/vm-106-ws01.raw.zst
 ```
 
-Esa es toda la técnica en un comando. El resto del post explica por qué elegimos cada pieza.
+Esa es toda la técnica en un comando. (`hetzner` es un alias SSH del servidor; más abajo el mismo host aparece por su IP.) El resto del post explica por qué elegimos cada pieza.
 
 ## Por qué `raw + zstd` y no E01 / qcow2 / VMDK
 
 masstin — la herramienta que escribí para forense de movimiento lateral — maneja cuatro formatos de imagen nativamente. Lo comprobé con un caso real de 109 imágenes:
 
 ```
-=> Image 2/109: GUR00250622D.dd  (DD, 119.2 GB)        ← raw dd
+=> Image 2/109: SRV-FILE01.dd  (DD, 119.2 GB)        ← raw dd
 => Image 3/109: E01Capture.E01   (E01, 3.9 GB)         ← EnCase/libewf
-=> Image 4/109: STFDC01_2016.vmdk (VMDK, 100.0 GB)     ← VMware
+=> Image 4/109: DC01_2016.vmdk (VMDK, 100.0 GB)     ← VMware
 => Image 46/109: win10-2004.vmdk (VMDK, 60.0 GB)
 ```
 
@@ -136,6 +136,12 @@ lab-forensic-dump.sh local <vmid> <snapshot> <output> [--level N]
 ```
 
 El subcomando `dump` es el interesante porque es la pieza que corre dentro del túnel SSH. Está diseñado para tener cero footprint en el host Proxmox: el clone es ZFS-cheap, el pipe de dd nunca escribe a disco en Proxmox, y el clone se destruye vía `trap` de bash independientemente de cómo salga la función (éxito, error o signal interrupt).
+
+Tres piezas de bash y Linux que aparecen en el código:
+
+- `trap`: le dice a bash qué función ejecutar cuando el script termina o recibe una señal.
+- `PIPESTATUS`: un array de bash con el código de salida de cada comando del último pipe. Sin él solo sabrías si falló el último.
+- udev: el servicio de Linux que crea los ficheros de dispositivo en `/dev`. Tarda un instante en crear el del clone, y por eso el script espera.
 
 Aquí el core del script:
 
@@ -238,7 +244,7 @@ TOTAL                               320GB       60GB         ~42GB
 
 ## El benchmark real — las 7 VMs adquiridas en una sesión
 
-Corrí el pipeline completo end-to-end el 2026-04-15, streameando cada VM por SSH desde Hetzner (`203.0.113.229`, Alemania) a un disco forense de mi laptop en España. El loop:
+Corrí el pipeline completo end-to-end el 2026-04-15, streameando cada VM por SSH desde Hetzner (`203.0.113.229`, Alemania) a un disco forense de mi laptop en España. El loop (en Git Bash sobre Windows, `/i/forensic` es la unidad `I:`; cambia la ruta por la de tu disco):
 
 ```bash
 OUTDIR="/i/forensic/lab-$(date -u +%Y-%m-%d)"
@@ -265,6 +271,10 @@ Resultados:
 | **Total** | | **42 GB** | **52m 34s** | |
 
 SHA256 de cada fichero comprimido capturados en `hashes.sha256`, timestamps logueados a `benchmark.log`. Todo el asunto tardó 52 minutos y 34 segundos, end-to-end, con mi laptop sin hacer nada durante la espera.
+
+El loop de arriba está simplificado. El script de benchmark real además guarda el stderr de cada dump en `vm-N.stderr` y los tiempos en `benchmark.log`; por eso esos ficheros aparecen en el listado de más abajo.
+
+Ojo con lo que prueban esos hashes: se calculan sobre los ficheros ya recibidos. Sirven para detectar cualquier cambio posterior, pero no demuestran que la transferencia llegó íntegra. Para eso hay que calcular el hash también en origen y comparar los dos.
 
 Tres observaciones del run real.
 
@@ -344,7 +354,7 @@ masstin -a parse -d . -o masstin-output.csv --overwrite
 
 Eso produce un CSV unificado con todos los eventos de movimiento lateral que masstin puede extraer a través de las 7 imágenes: logons, sesiones SMB, trazas WinRM/WMI/PsExec, tickets Kerberos, writes a registry MountPoints2, triggers de scheduled task remotos, y el resto del toolkit. En nuestro caso: **256,237 eventos** de autenticación y movimiento lateral a través de 30+ cuentas de usuario en los 3 dominios.
 
-El output está diseñado para cargarse en Neo4j o Memgraph para caza basada en grafo. Aquí el resultado de cargar el timeline completo del lab en Memgraph — cada nodo es una máquina, cada arista una autenticación o conexión lateral:
+El output está diseñado para cargarse en Neo4j o Memgraph para caza basada en grafo, con las acciones `load-neo4j` y `load-memgraph` de masstin. El paso a paso está en el artículo de [visualización con Memgraph]({% post_url es/2026-04-07-memgraph-visualization %}). Aquí el resultado de cargar el timeline completo del lab en Memgraph — cada nodo es una máquina, cada arista una autenticación o conexión lateral:
 
 ![Grafo de movimiento lateral del lab completo en Memgraph — 256K eventos, 7 VMs, 3 dominios](/assets/img/posts/ad-dfir-lab/masstin-memgraph-full-lab.png){:loading="lazy"}
 

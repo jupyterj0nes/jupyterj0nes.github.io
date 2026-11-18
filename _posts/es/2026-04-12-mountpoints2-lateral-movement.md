@@ -24,6 +24,8 @@ Cada vez que un usuario de Windows se conecta a un share remoto (`\\SERVIDOR\SHA
 HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2
 ```
 
+`HKCU` es la parte del registro propia de cada usuario. En disco se guarda en un fichero, `Users\<usuario>\NTUSER.DAT`; a cada fichero del registro se le llama *hive*. En un sistema en vivo la clave se ve con `regedit`. En una imagen o un triage hay que abrir ese `NTUSER.DAT` con un visor de hives, como Registry Explorer de Eric Zimmerman.
+
 Cada subclave representa un volumen montado o un share de red. Los shares de red usan `#` en lugar de `\` en el nombre de la clave:
 
 | Subclave | Significa |
@@ -53,8 +55,8 @@ Cuando `parse` lee una imagen de disco, masstin automáticamente:
 
 1. **Encuentra todos los perfiles de usuario** en `Users\*\` en cada partición NTFS
 2. **Extrae NTUSER.DAT** de cada perfil (salta Default, Public, perfiles del sistema)
-3. **Parsea el hive del registro** usando el crate `notatin` con:
-   - Soporte de transaction logs (`.LOG1`, `.LOG2`) para hives sucios/no cerrados
+3. **Parsea el hive del registro** usando el crate `notatin` (una librería de Rust para leer hives) con:
+   - Soporte de transaction logs (`.LOG1`, `.LOG2`) para hives sucios/no cerrados. Qué son y por qué importan se explica más abajo, en «Hives sucios y transaction logs»
    - Recuperación de claves borradas para hives donde el atacante intentó limpiar
 4. **Navega a MountPoints2** y extrae todas las subclaves `##*` (shares de red)
 5. **Genera eventos CONNECT** con máquina origen, servidor destino, usuario y timestamp
@@ -99,7 +101,7 @@ El usuario `mpowers` se conectó a `\\74.118.139.11\M4Projects` desde dos máqui
 
 ## Hives sucios y transaction logs
 
-Las imágenes forenses frecuentemente contienen hives de registro sucios — el sistema no se apagó limpiamente (común en respuesta a incidentes: tirar del cable, adquisición forense en caliente, etc.). Los hives sucios tienen cambios no confirmados en los transaction logs (`.LOG1`, `.LOG2`).
+Las imágenes forenses frecuentemente contienen hives de registro sucios — el sistema no se apagó limpiamente (común en respuesta a incidentes: tirar del cable, adquisición forense en caliente, etc.). Windows no escribe cada cambio del registro directamente en el hive: primero lo apunta en unos ficheros auxiliares que están junto a él, los transaction logs (`.LOG1`, `.LOG2`), y lo pasa al hive después. Un hive sucio es uno al que le quedaron cambios pendientes en esos ficheros. Si se lee sin ellos, faltan los cambios más recientes.
 
 Masstin usa la librería `notatin` (de Stroz Friedberg) que:
 

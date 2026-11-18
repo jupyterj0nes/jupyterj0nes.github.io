@@ -22,6 +22,10 @@ masstin -a parse-image -d D: -o timeline.csv
 
 Le das la letra de la unidad y lee el volumen en bruto. No pasa por el sistema de ficheros de Windows, y por eso da igual que los logs estén abiertos y bloqueados por el servicio de eventos.
 
+`parse-image` es una de las partes de [`parse`](/es/tools/masstin-parse/): la que lee imágenes de disco y volúmenes montados. `masstin -a parse -d D:` hace lo mismo, porque `parse` reconoce la letra de unidad y lee el volumen de la misma forma. Aquí se nombra `parse-image` porque ya sabes qué le estás dando.
+
+Al terminar, masstin enseña el mismo desglose por origen que en `parse`: cuántos eventos salieron de cada log. Es la forma de saber que ha ido bien.
+
 ## Dos situaciones
 
 **El disco está en un bloqueador de escritura.** Lo has sacado de la máquina, lo conectas a tu equipo de análisis por un bloqueador y aparece como `E:`. En lugar de esperar a la imagen, o mientras la haces en otra ventana, lees los logs.
@@ -50,7 +54,7 @@ masstin -a parse-image --all-volumes -o timeline.csv
 
 **Hacen falta privilegios.** Leer un volumen en bruto requiere ejecutar como Administrador en Windows, o con `sudo` en Linux. Sin eso, el sistema no te deja abrir el dispositivo.
 
-**En vivo, modificas la máquina.** Poco, pero algo: ejecutar cualquier programa en un sistema encendido deja rastro (el propio prefetch de masstin, por ejemplo). Si el caso puede acabar en un juzgado, apúntalo en tus notas y, cuando puedas, haz también la imagen. masstin lee, no escribe en el volumen; el CSV de salida ponlo en otra unidad.
+**En vivo, modificas la máquina.** Poco, pero algo: ejecutar cualquier programa en un sistema encendido deja rastro (el propio prefetch de masstin, por ejemplo). Si el caso puede acabar en un juzgado, apúntalo en tus notas y, cuando puedas, haz también la imagen. masstin lee, no escribe en el volumen; el CSV de salida ponlo en otra unidad. Los ejemplos de arriba escriben `timeline.csv` en la carpeta en la que estás; en un sistema en vivo, dale a `-o` una ruta completa en otro disco, por ejemplo `-o F:\caso\timeline.csv` si `F:` es tu disco externo.
 
 **Una trampa de PowerShell.** En Windows PowerShell 5.1, el que trae Windows de fábrica, una ruta **con espacios** y terminada en `\` se come los argumentos que vienen detrás: `-d 'D:\mi caso' -o salida.csv` le llega al programa como una sola ruta rara. Pasa igual con comillas simples que con dobles. masstin lo detecta y avisa, pero lo más seguro es no poner la barra final. En PowerShell 7.3 o posterior ya no ocurre.
 

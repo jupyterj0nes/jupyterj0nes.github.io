@@ -16,13 +16,15 @@ comments: true
 
 Todo caso DFIR acaba tropezando con el mismo punto de fricción. La parte Windows es manejable — EVTX, UAL, prefetch, registro, todo formato bien definido. La parte Linux es un poco más sucia pero aún acotada — auth.log, secure, wtmp, audit. Y luego viene el resto: Palo Alto GlobalProtect, Cisco AnyConnect, Fortinet SSL-VPN, Checkpoint, OpenVPN, Squid, Cloudflare Access, ZScaler, cualquier firewall hardware, cualquier VPN cloud. Cada uno con su formato de log, sus convenciones, sus rarezas, y escribir un parser dedicado por fabricante es una batalla perdida.
 
-La respuesta de masstin son los custom parsers: `parse --rules` lee **cualquier log de texto** usando **ficheros YAML de reglas**. Un fichero por formato de fabricante. Una biblioteca de reglas pre-hechas que crece con el tiempo. Dentro de cada fichero, una lista de sub-parsers maneja los distintos tipos de línea que emite el mismo producto. La salida es la misma timeline CSV de 14 columnas que masstin usa en todas partes, así que un chunk EVTX carved de un desktop, un brute-force SSH en Linux y un login VPN de GlobalProtect aparecen lado a lado, listos para visualización en grafo y reconstrucción temporal de la ruta del atacante.
+La respuesta de masstin son los custom parsers: `parse --rules` lee **cualquier log de texto** usando **ficheros YAML de reglas**. Un fichero por formato de fabricante. Una biblioteca de reglas pre-hechas que crece con el tiempo. Dentro de cada fichero, una lista de sub-parsers maneja los distintos tipos de línea que emite el mismo producto. La salida es la misma timeline CSV que masstin usa en todas partes, así que un chunk EVTX carved de un desktop, un brute-force SSH en Linux y un login VPN de GlobalProtect aparecen lado a lado, listos para visualización en grafo y reconstrucción temporal de la ruta del atacante.
 
 Este post recorre el diseño, el esquema, y la primera regla que se publica con la biblioteca: un parser para Palo Alto GlobalProtect completamente investigado, construido a partir de la documentación oficial de Palo Alto Networks y validado contra líneas de log reales.
 
 ---
 
 ## Decisiones de diseño
+
+Esta sección cuenta por qué el esquema es como es, y es para quien vaya a escribir reglas. Si solo quieres leer tus logs con las reglas que ya vienen hechas, salta a [Uso](#uso). Los nombres que salen aquí son otras formas de describir logs: Sigma es un formato de reglas de detección escrito en YAML, Grok son los patrones que usa Logstash para trocear líneas de log, y Lua es un lenguaje de scripting.
 
 El esquema es deliberadamente **aburrido**: YAML plano, cuatro bloques por parser, sustitución de strings para el mapeo de salida. Explícitamente descartamos:
 
@@ -40,6 +42,12 @@ Lo que mantuvimos:
 ---
 
 ## El esquema de un vistazo
+
+Tres cosas para leer el ejemplo de abajo:
+
+- `fields_by_index` pone nombre a las columnas del CSV por su posición, empezando en 0: la de índice 6 pasa a llamarse `generated_time`.
+- `strip_before` quita el principio de un campo, hasta el texto que le indiques.
+- `${nombre}` se sustituye por el valor del campo que tiene ese nombre.
 
 ```yaml
 meta:
@@ -229,6 +237,8 @@ El modelo de contribución es el mismo que las reglas Sigma: recolectar líneas 
 
 ## Uso
 
+La carpeta `rules/` no va dentro del binario: está en el [repositorio de masstin](https://github.com/jupyterj0nes/masstin/tree/main/rules). Antes de lanzar estos comandos, clona el repositorio o descarga esa carpeta. A `--rules` le pasas la ruta de un fichero de regla o de la carpeta entera; en los ejemplos, `rules/` está en la carpeta desde la que ejecutas masstin.
+
 ```bash
 # Un fichero de regla único
 masstin -a parse --rules rules/vpn/palo-alto-globalprotect.yaml -f vpn.log -o timeline.csv
@@ -248,6 +258,8 @@ Apunta la salida a cualquier pipeline compatible con masstin (Neo4j, Memgraph, e
 ---
 
 ## Relacionado: filtrado de ruido para la timeline unificada
+
+Esta sección es un resumen de otro tema, que tiene su propio artículo: [filtrado de ruido](/es/tools/masstin-noise-filtering/). No hace falta para escribir ni usar reglas; si has venido por los parsers, puedes saltar a «Qué sigue».
 
 En cuanto empiezas a meter logs de VPN / firewall / proxy en la timeline de masstin junto con EVTX de Windows y auth.log de Linux, el output combinado crece rápido — y mucho de lo que crece es ruido. Logons de servicio desde `LOCAL SYSTEM`, intentos de RDP fallidos donde la IP de origen no se capturó, brute force desde jumpboxes ruidosos, autenticaciones de red de machine accounts (`HOST$`), y demás.
 

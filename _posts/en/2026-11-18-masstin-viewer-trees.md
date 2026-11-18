@@ -21,7 +21,7 @@ That is what the other two buttons in **Tools › Paths** are for.
 
 ## Everything that leaves an origin
 
-Type the origin, leave the destination as it is and press **Everything from the origin**.
+Type the origin and press **Everything from the origin**. The destination box is not used for this: empty or filled in, it makes no difference.
 
 [![The reach tree from LEO-DC01: three reachable machines, each hanging from the one that reached it, with account, time and hop number](/assets/images/viewer/p-tree.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/p-tree.webp)
 
@@ -49,11 +49,15 @@ On the map, the whole tree is marked with the same cyan-to-magenta gradient, and
 
 **Everything into the destination** is the same thing looking backwards. Put the compromised machine as the destination and the tree shows where it could have been reached from, hop by hop.
 
-Here the time kept is the *latest* possible one: the latest someone could have left each machine and still reached the destination. That is the one you use to rule things out. If a computer could only have started the chain before the 3rd and you know it was powered off on the 3rd, it is off the list.
+Here the time kept is the *latest* possible one: the latest someone could have left each machine and still reached the destination.
+
+A made-up example to see it: if the destination was logged on to from one machine at 10:00 and again at 18:00, the tree notes 18:00. Before that time you could still leave from there and get in; after it, no longer.
+
+That is the time you use to rule things out. If a computer could only have started the chain before the 3rd and you know it was powered off on the 3rd, it is off the list.
 
 ## No origin: following an account
 
-This is the mode that gives the most. Leave the origin box **empty**, type an account in **Account** and press Everything from the origin.
+This is the mode that gives the most. The **Account**, **From** and **To** boxes are in the same Paths window, inside what the **settings** button unfolds (the table of settings is in [Find path](/en/tools/masstin-viewer-find-path/)). Leave the origin box **empty**, type an account in **Account** and press Everything from the origin.
 
 The tree then starts at *every machine where that account begins to move*. You have just learned an account is compromised and you want to see everything it did, without knowing beforehand where it started. It comes out whole, with one root per starting point.
 

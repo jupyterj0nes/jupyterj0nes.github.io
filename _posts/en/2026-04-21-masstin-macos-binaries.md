@@ -23,6 +23,8 @@ Until now the `masstin-macos` asset on each release was a single Intel `x86_64` 
 
 Both are standalone. Download, make executable, run. No Homebrew. No `libewf`. No `libesedb`. Nothing.
 
+Not sure which Mac you have? Apple menu › "About This Mac". If it shows an Apple chip (M1, M2, M3, M4) it is Apple Silicon; if it shows an Intel processor, it is Intel. From the terminal, `uname -m` answers `arm64` or `x86_64`. The commands below are for Apple Silicon: on an Intel Mac, change `arm64` to `x86_64` in the file name.
+
 ```bash
 # Apple Silicon
 # replace v1.4.4 with the latest version on the releases page
@@ -34,6 +36,8 @@ chmod +x masstin-v1.4.4-macos-arm64
 ---
 
 ## Why "zero dependencies" is an actual guarantee, not a wish
+
+This section and the next one ("The CI change") are for people who build or maintain software. If you only want to use masstin on your Mac, keep the conclusion: the binary does not need you to install anything else. You can skip to "The Gatekeeper note".
 
 Masstin reads forensic formats that are traditionally C-backed: E01 (EnCase/libewf), ESE (UAL databases via libesedb), NTFS, VMDK, ext4. The usual way a Rust tool consumes those is to bind to the system-installed C library (`libewf.dylib`, `libesedb.dylib`) and expect the user to `brew install` them first. That model ruins "download and run" on macOS because every machine needs a setup step.
 
@@ -93,6 +97,8 @@ Good news for anyone using curl / wget: the quarantine attribute is only applied
 
 ## End-to-end verification on a real macOS arm64 runner
 
+Another section for the curious: it tells how the binary was checked. Three words to follow it: a *runner* is a machine GitHub lends for building and testing, `tmate` gives a remote terminal inside it, and *fixtures* are sample files a project uses in its tests.
+
 The usual way to convince yourself a binary actually works on a platform you don't own is to spin up a hosted runner and check. Because GitHub Actions gives free macOS minutes to public repositories, this is cheap. I set up a small manual-only workflow (`mac-debug.yml`) that builds masstin and opens an SSH-accessible shell via `mxschmitt/action-tmate@v3`, then dropped in the canonical test fixtures from `github.com/omerbenamram/evtx` — the repository of the `evtx` parser masstin builds on — and ran masstin on them.
 
 Input: 27 EVTX fixtures from `omerbenamram/evtx/samples/` (intentionally dirty chunks, broken string cache, post-security, big security, renamed Security files, RdpCoreTS, forwarded events).
@@ -123,7 +129,7 @@ Output on macOS arm64 (native build from `main`):
   Completed in: 1.48s
 ```
 
-11,819 events extracted in 1.48 seconds on a free GitHub runner, over EVTX deliberately designed to stress-test a parser. Same CSV schema as the Windows and Linux builds — a `timeline.csv` produced on macOS is bit-identical in structure to one produced on a DFIR workstation.
+11,819 events extracted in 1.48 seconds on a free GitHub runner, over EVTX deliberately designed to stress-test a parser. Same CSV schema as the Windows and Linux builds — a `timeline.csv` produced on macOS has the same columns, in the same order, as one produced on Windows or Linux.
 
 For symmetry, I re-ran the same dataset with the v0.14.0 release binary (Intel, run under Rosetta on the same arm64 runner):
 

@@ -28,6 +28,8 @@ GOAD tiene un launcher Python (`goad.py`) que orquesta todo: provisiona VMs con 
 
 Dos palabras de vocabulario primero. Un **forest** (bosque) es el contenedor de más alto nivel de una instalación de Active Directory; un **domain** vive dentro, y un forest puede tener varios en un árbol padre/hijo (aquí `north` es hijo de `sevenkingdoms`). Un **trust** es un enlace que permite a las cuentas de un dominio o forest autenticarse contra otro — nuestro lab tiene un trust bidireccional entre los dos forests, que es justo lo que hace posibles los ataques cross-forest. A lo largo de esta parte, los VM IDs `101`-`108` se refieren a los hosts de la tabla de VMs de la Part 2.
 
+Y dos más de la herramienta: **Ansible** configura máquinas en remoto a partir de ficheros YAML llamados **playbooks**, y el **inventory** es el fichero que le dice sobre qué máquinas actuar y cómo conectarse a ellas.
+
 Saltarse el launcher significa que instalamos sus dos dependencias a mano: clonar GOAD y poner Ansible en el host Proxmox.
 
 ```bash
@@ -137,6 +139,8 @@ srv03
 # ... y muchos más
 ```
 
+El bloque está cortado: el resto de grupos se copian tal cual del fichero de GOAD indicado arriba. Nuestro inventory se guarda en `/root/lab/goad/inventory`, que es la ruta que usaremos al lanzar los playbooks.
+
 ## El problema del DNS antes de tener DNS
 
 `build.yml` —el primer playbook— necesita instalar `NuGet` desde la PowerShell Gallery. Falla con:
@@ -186,7 +190,7 @@ Para la lab "GOAD" (la completa con dos forests + child + trust), el orden es:
 16. vulnerabilities.yml — configuración vulnerable final
 ```
 
-Cada uno se lanza con:
+Cada uno se lanza desde la carpeta de playbooks del repo de GOAD (`/root/GOAD/ansible`), pasándole nuestro inventory:
 ```bash
 ansible-playbook -i /root/lab/goad/inventory build.yml
 ```
@@ -202,9 +206,9 @@ for VMID in 100 101 102 103 104 105 106 107 108; do
 done
 ```
 
-ZFS snapshots son instantáneos y prácticamente gratis en espacio (hasta que cambia mucho el contenido). Si el siguiente playbook rompe algo, `qm rollback` y vuelves al estado anterior en segundos.
+ZFS snapshots son instantáneos y prácticamente gratis en espacio (hasta que cambia mucho el contenido). Si el siguiente playbook rompe algo, `qm rollback` y vuelves al estado anterior en segundos. La sintaxis es `qm rollback <VMID> <nombre-del-snapshot>`, una vez por VM.
 
-## Resultado tras los primeros 6 playbooks
+## Resultado tras los primeros 7 playbooks
 
 Después de `build.yml` → `ad-trusts.yml`:
 

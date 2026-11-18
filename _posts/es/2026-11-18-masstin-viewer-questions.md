@@ -28,9 +28,9 @@ Hay un puñado de preguntas que se le hacen a cualquier grafo de movimiento late
 
 **Fallos seguidos de un logon.** Las conexiones donde hubo intentos fallidos y después uno correcto. Es la firma de adivinar una contraseña y acertar.
 
-**Lo visto por primera vez más tarde.** Las máquinas y las cuentas que aparecen por primera vez al final de la timeline. Una cuenta que nadie había usado hasta el día del incidente es de lo primero que hay que explicar.
+**Lo visto por primera vez más tarde.** Las máquinas y las cuentas que aparecen por primera vez al final de la timeline. No hay un corte fijo de días ni de horas: la tabla ordena por el momento de la primera aparición y pone arriba lo más reciente. Una cuenta que nadie había usado hasta el día del incidente es de lo primero que hay que explicar.
 
-**Centralidad.** PageRank, intermediación (betweenness) y número de vecinos distintos de entrada y de salida. La intermediación es la interesante: señala las máquinas por las que *hay que pasar* para ir de una parte de la red a otra. Un atacante suele acabar encontrándolas.
+**Centralidad.** PageRank, intermediación (betweenness) y número de vecinos distintos de entrada y de salida. Son tres maneras de medir lo importante que es una máquina dentro del grafo. PageRank da más nota a la máquina a la que llegan más conexiones, y más todavía si llegan desde máquinas que también tienen nota alta. En las tres, un número más alto es una máquina más central; lo que se lee es el orden de la tabla, no la cifra. La intermediación es la interesante: señala las máquinas por las que *hay que pasar* para ir de una parte de la red a otra. Un atacante suele acabar encontrándolas.
 
 Un clic en cualquier máquina de las tablas abre su vecindario en el mapa.
 
@@ -40,7 +40,7 @@ Arriba de la ventana lo pone: *Over the 7163 rows the view holds*. Las respuesta
 
 La ventaja: acotas el periodo a la noche del incidente, abres Questions y las seis respuestas son de esa noche. Cambias el periodo a la semana anterior y comparas. Una cuenta usada desde un origen toda la semana y desde cuatro esa noche es un hallazgo que no sale de ninguna otra manera tan deprisa.
 
-La trampa: si tienes puesta la vista Findings, las preguntas se contestan solo sobre los hallazgos. Mira las fichas de filtros antes de sacar conclusiones.
+La trampa: si tienes puesta la vista Findings, las preguntas se contestan solo sobre los hallazgos, es decir, las conexiones que el [hunt](/es/tools/masstin-graph-hunt/) de masstin ha señalado como raras. Mira las fichas de filtros antes de sacar conclusiones.
 
 ## Lo que no hace
 

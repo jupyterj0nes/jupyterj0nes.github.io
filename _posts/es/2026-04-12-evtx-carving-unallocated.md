@@ -22,6 +22,8 @@ Cuando Windows borra un fichero, los datos no desaparecen del disco — el espac
 
 Este artículo es un análisis en profundidad de cómo funciona eso: cómo están organizados los ficheros EVTX, los tres niveles teóricos de carving EVTX, qué implementa masstin hoy, qué dejamos como future work, y los obstáculos sorprendentemente dolorosos que nos encontramos por el camino — incluyendo tres bugs nuevos que descubrimos y reportamos upstream en el crate `evtx`.
 
+Si solo quieres usarlo, no hace falta leerlo entero: ve directo a [Uso](#uso). Y la última tabla del artículo, «Cuándo hacer carving», te dice si te hace falta o si te basta con un `parse` normal.
+
 ---
 
 ## Estructura de los ficheros EVTX en disco
@@ -39,6 +41,8 @@ Cada chunk de 64 KB es autónomo y empieza con la firma mágica `ElfChnk\x00`. U
 - Su propia tabla de strings
 - Su propia tabla de templates (plantillas BinXML referenciadas por los records del interior)
 - Uno o más records de eventos
+
+Dos palabras que salen en todo el artículo. **BinXML** es el formato binario en el que EVTX guarda el XML de cada evento. Una **template** (plantilla) es el molde de un tipo de evento: el texto fijo, con huecos. Cada record guarda solo los valores que van en esos huecos, así que sin su plantilla esos valores no se pueden leer como un evento.
 
 Esta autonomía es lo que hace viable el carving EVTX. **Un solo chunk recuperado de espacio no asignado puede parsearse por su cuenta**, incluso sin el file header original, incluso sin los demás chunks, incluso si los sectores alrededor han sido reutilizados.
 
@@ -159,9 +163,11 @@ Esto es trabajo de diseño, no simple codificación — las preguntas principale
 
 ## Sobrevivir a un ecosistema hostil: endurecimiento contra bugs del parser upstream
 
+Esta sección es para quien desarrolla. Cuenta los fallos que encontramos en la biblioteca que masstin usa para leer EVTX (el crate `evtx`; «upstream» es el proyecto original de esa biblioteca) y cómo masstin se protege de ellos. Para usar el carving puedes saltar a [Uso](#uso).
+
 Aquí viene la parte que nos sorprendió. El crate `evtx` (omerbenamram/evtx, el parser EVTX de facto en Rust) es excelente para parsear logs bien formados de un sistema Windows vivo. Nunca fue diseñado para lidiar con **buffers corruptos arbitrarios de 64 KB que dicen ser chunks**, que es exactamente lo que produce el carving.
 
-Durante el desarrollo nos encontramos con tres clases distintas de bugs en el parser upstream:
+Durante el desarrollo nos encontramos con tres clases distintas de bugs en el parser upstream, y más tarde con una cuarta (el Bug 4, más abajo):
 
 ### Bug 1 — Bucle infinito en BinXML malformado
 
@@ -233,7 +239,7 @@ masstin -a parse -f roto.e01 --carve --skip-offsets 0x6478b6000 -o timeline.csv
 masstin -a parse -f imagen.e01 --carve --debug -o timeline.csv
 ```
 
-La salida es el mismo CSV de 14 columnas que `parse`, con `log_filename` mostrando el origen carved:
+La salida es el mismo CSV que escribe `parse`, con `log_filename` mostrando el origen carved:
 
 ```
 HRServer_Disk0.e01:carved:Security.evtx

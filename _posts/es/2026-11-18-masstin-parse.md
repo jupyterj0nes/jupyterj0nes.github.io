@@ -20,7 +20,7 @@ Ahora hay una sola orden:
 masstin -a parse -d /evidencia/caso -o timeline.csv
 ```
 
-`-d` es una carpeta, que se recorre entera. `-f` es un fichero, y solo se lee ese. Se pueden repetir y mezclar.
+`-d` es una carpeta, que se recorre entera. `-f` es un fichero, y solo se lee ese. Se pueden repetir y mezclar. `-d` acepta también una letra de unidad (`D:`), para leer [un disco montado](/es/tools/masstin-live-volumes/) sin hacer la imagen.
 
 <figure class="diagram"><img src="/assets/images/diagrams/one-timeline-es.svg" alt="Lo que hace masstin: muchas formas de apuntar un inicio de sesión, un solo fichero al final." loading="lazy"><figcaption>Lo que hace masstin: muchas formas de apuntar un inicio de sesión, un solo fichero al final.</figcaption></figure>
 
@@ -61,6 +61,13 @@ Reconoce: ficheros EVTX y ZIP de EVTX, bases de datos UAL, triages de KAPE, Velo
 => 2 UAL databases found
 ```
 
+Ese bloque junta varias cosas. Por partes:
+
+- **`=> Image 1/1`** y las dos líneas de debajo: la imagen de disco, las particiones que tiene y lo que saca de ella.
+- **`=> Linux evidence found`**: los dos triages de Linux.
+- **`=> Triage found: KAPE`**: un triage de KAPE, con el ZIP del que sale. Hay un bloque así por cada uno; los `...` son las líneas de los demás, recortadas aquí.
+- **Las dos últimas líneas**: el total de lo que va a leer.
+
 De la imagen de 50 GB saca los logs del sistema de ficheros, y también los de la copia de sombra que encuentra. Abre los ZIP, estén anidados o no. Y junta Windows y Linux en la misma timeline.
 
 Al terminar, el desglose por origen:
@@ -79,7 +86,7 @@ Al terminar, el desglose por origen:
 
 Este desglose es más útil de lo que parece. Te dice de qué máquina no has sacado nada (y entonces te falta evidencia o el log estaba vacío), y qué logs aportan: aquí se ve que el `Security.evtx` de la copia de sombra trae casi los mismos eventos que el actual. Los duplicados se quitan solos al final.
 
-El resultado de este caso: 30 731 filas en una timeline.
+El resultado de este caso: 30 731 filas en una timeline. La timeline es un fichero CSV con una fila por evento: cuándo, a qué máquina, desde dónde y con qué cuenta. Sus columnas están explicadas en [el formato CSV](/es/tools/masstin-csv-format/).
 
 ## Lo que no adivina
 
@@ -91,7 +98,7 @@ Hay dos cosas que `parse` no puede saber por sí mismo, y son opciones:
 masstin -a parse -d /evidencia/caso -f fortigate-vpn.log --rules rules/vpn -o timeline.csv
 ```
 
-Los ficheros dados con `-f` que no reconoce se leen con esas [reglas YAML](/es/tools/masstin-custom-parsers/), y sus filas entran en la misma timeline.
+Los ficheros dados con `-f` que no reconoce se leen con esas [reglas YAML](/es/tools/masstin-custom-parsers/), y sus filas entran en la misma timeline. `rules/` es la biblioteca de reglas que viene en el repositorio de masstin, y `rules/vpn` su carpeta de reglas de VPN. `--rules` acepta una carpeta o un solo fichero YAML.
 
 **`--carve`**, para recuperar eventos de logs borrados o sobrescritos:
 
@@ -119,9 +126,9 @@ Si no encuentra nada que conozca, se para y lo dice. Si lo que encuentra no da n
 
 ## ¿Y los analizadores de antes?
 
-Siguen ahí: `parse-windows`, `parse-image`, `parse-linux`, `parse-mac`, `parse-massive`. `parse` está hecho de ellos. Sirven para quien ya sabe qué es la evidencia y no quiere la mirada previa, como un script que siempre recibe lo mismo.
+Siguen ahí: `parse-windows`, `parse-image`, `parse-linux`, `parse-mac`, `parse-massive`. También `parser-elastic` (los JSON de Winlogbeat; se llama así, con la r), `parse-custom` (las reglas de `--rules`) y `carve-image` (el carving de `--carve`). `parse` está hecho de ellos. Sirven para quien ya sabe qué es la evidencia y no quiere la mirada previa, como un script que siempre recibe lo mismo.
 
-Una diferencia a tener en cuenta: `carve-image` por su cuenta da todos los eventos tallados, también los que ya están en los logs vivos. `parse --carve` se queda solo con lo recuperado.
+Una diferencia a tener en cuenta: `carve-image`, la acción que solo hace carving sobre imágenes de disco, por su cuenta da todos los eventos tallados, también los que ya están en los logs vivos. `parse --carve` se queda solo con lo recuperado.
 
 ## Desde la ventana
 

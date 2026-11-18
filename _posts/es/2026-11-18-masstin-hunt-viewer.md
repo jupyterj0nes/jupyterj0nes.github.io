@@ -78,7 +78,9 @@ La tabla lista las conexiones más raras, y con leer las seis primeras ya tienes
 02:52  DEV-SRV01    → LEO-DC01     Administrator@DEV
 ```
 
-Los 75 eventos de la primera línea son los de la cuenta `deploy`: 73 intentos fallidos, la entrada y la salida. Esa misma dirección probó además otros nombres de usuario, hasta 184 fallos en total.
+La primera línea es la fuerza bruta, no solo la entrada: empieza a las 01:13 y el login que funciona llega a la 01:39. Sus 75 eventos son los de la cuenta `deploy`: 73 intentos fallidos, la entrada y la salida. Esa misma dirección probó además otros nombres de usuario, hasta 184 fallos en total.
+
+Las cuentas salen aquí como las enseña el visor (`svc-sql@DEV`). En el informe y en la tabla de hallazgos las verás en mayúsculas y con guion bajo (`SVC_SQL@DEV`). Es la misma cuenta.
 
 Una dirección de fuera machaca el servidor Linux, entra, y trece minutos después de entrar ese servidor Linux está usando una cuenta de servicio de SQL contra un controlador de dominio. Es el guion, en el orden del guion, y nadie se lo ha contado.
 
@@ -98,7 +100,11 @@ Lo que distingue este hunt de una lista de alertas es que cada hallazgo se expli
 
 [![El inspector con un hallazgo: LEO-LNX01 a DEV-SRV01 como svc-sql@DEV, significant, puntuación 41, una entre 13 000, y debajo la explicación completa](/assets/images/hunt/h-why.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/hunt/h-why.webp)
 
-`LEO-LNX01 → DEV-SRV01` como `svc-sql@DEV`. Un solo evento, a las 01:52:05. **Significant, score 41, one in 13,000.** Y debajo, las razones:
+`LEO-LNX01 → DEV-SRV01` como `svc-sql@DEV`. Un solo evento, a las 01:52:05. **Significant, score 41, one in 13,000.**
+
+La puntuación (*score*) va de 0 a 100 y mide la rareza: 13 es una entre veinte, 30 una entre mil, 60 una entre un millón. Un 41 es «una entre 13 000», redondeado; la consola da la cifra exacta, una entre 13 590. Está explicado en [leer el resultado](/es/tools/masstin-hunt-report/).
+
+Y debajo, las razones:
 
 - El origen no se había visto nunca como origen.
 - Ese día llegó a 3 destinos por primera vez.
@@ -110,7 +116,7 @@ El último punto es el que vale. No dice «esta conexión es rara». Dice «algu
 
 ## Y ahora, el camino
 
-Con los hallazgos delante, lo siguiente es preguntar cómo se llega de un extremo al otro. [Find path](/es/tools/masstin-viewer-find-path/), de la dirección externa al controlador del dominio del socio:
+Con los hallazgos delante, lo siguiente es preguntar cómo se llega de un extremo al otro. [Find path](/es/tools/masstin-viewer-find-path/), de la dirección externa al controlador del dominio del socio. Se abre en **Tools › Paths**: escribes el origen y el destino y pulsas **Find paths**.
 
 [![El camino marcado sobre los hallazgos: de 203.0.113.45 a LEO-LNX01, DEV-SRV01, PTR-SRV01 y PTR-DC01, con el número de salto y la hora en cada máquina](/assets/images/hunt/h-path-map.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/hunt/h-path-map.webp)
 
@@ -129,7 +135,7 @@ El visor no lo pisa sin preguntar. Un diálogo te dice con qué parámetros se p
 
 ## Lo que hay que saber antes de fiarse
 
-- **Necesita pasado.** Con un solo día de referencia se ejecuta, pero no puede dar nada por significativo. Con una semana funciona, y con un mes mejor.
+- **Necesita pasado.** Con menos de dos días antes de la fecha de inicio no se ejecuta: termina con un error. Con una semana funciona, y con un mes mejor.
 - **Encuentra lo nuevo, no lo malo.** Un administrador que estrena servidor sale en la lista, y está bien que salga. Tú decides. En este escenario hay uno: `adm.nora` entrando desde el servidor de salto a una máquina del socio a la que nunca había ido. Sale como significativo y la clase que le pone el hunt es «credencial habitual en una conexión nueva», que es justo lo que es.
 - **No ve lo que hizo dentro.** masstin ve logons, no procesos. Para eso está el resto de la evidencia.
 

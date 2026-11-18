@@ -20,7 +20,7 @@ After GOAD's 16 playbooks we have **46 users** spread across three domains. They
 
 ### sevenkingdoms.local (forest root — Lannisters, Baratheons, and advisors)
 
-| User | Group | Attack role |
+| User | Group | Role in the story |
 |------|-------|-------------|
 | `tywin.lannister` | Lannister | Lannister patriarch |
 | `jaime.lannister` | Lannister | Kingsguard |
@@ -83,6 +83,14 @@ After GOAD's 16 playbooks we have **46 users** spread across three domains. They
 
 ## Catalog of vulnerabilities
 
+Three notes for reading the commands in this section:
+
+- `Password` is a placeholder: replace it with the user's real password.
+- `users.txt` is a list of user names, one per line. The ones in the tables above will do.
+- `hashes.txt` is the file where you save the hashes printed by the previous command.
+
+Which Windows events must be enabled to see these attacks in the logs afterwards is covered in [Part 6]({% post_url en/2026-04-13-ad-dfir-lab-part6-audit %}).
+
 ### 1. Kerberos: AS-REP Roasting
 
 Users with `DoesNotRequirePreAuth=True` allow an unauthenticated attacker to request an AS-REP ticket containing material encrypted with the user's NTLM hash. That material is crackable offline with hashcat.
@@ -117,6 +125,8 @@ hashcat -m 13100 hashes.txt rockyou.txt
 
 ### 3. Delegation
 
+Delegation lets a service act on behalf of a user towards another service. Kerberos implements it with two extensions: with **S4U2Self** the service obtains a ticket to itself in the name of any user, and with **S4U2Proxy** it exchanges that for a ticket to the service it is allowed to delegate to.
+
 **Unconstrained delegation**: `WINTERFELL$` (the DC02 computer account) has `TrustedForDelegation=True`. Any service ticket sent to this DC is storable and reusable.
 
 **Constrained delegation**:
@@ -124,6 +134,8 @@ hashcat -m 13100 hashes.txt rockyou.txt
 - `CASTELBLACK$` → `HTTP/winterfell` (the castelblack computer can impersonate toward the DC's HTTP)
 
 ### 4. Abusable ACLs (GenericAll / WriteDacl / DCSync paths)
+
+An ACL is the permission list of an AD object. `GenericAll` is full control over the object. `WriteDacl` lets you change that list, and so grant yourself any permission.
 
 GOAD creates several ACL abuse chains. To verify with BloodHound:
 
@@ -148,7 +160,7 @@ GOAD installs Active Directory Certificate Services on DC01 and SRV03, and adds 
 | **ESC9** | No Security Extension — cert doesn't include the user's SID, allows spoofing |
 | **ESC13** | Issuance Policies linked to AD groups |
 
-**Enumeration with Certipy**:
+**Enumeration with Certipy** (on current Kali the executable is called `certipy-ad`; we see it in Part 7):
 ```bash
 certipy find -u brandon.stark@north.sevenkingdoms.local -p Password \
     -dc-ip 192.168.10.12 -vulnerable -stdout
@@ -157,6 +169,8 @@ certipy find -u brandon.stark@north.sevenkingdoms.local -p Password \
 ### 6. MSSQL linked servers (cross-forest)
 
 `SRV02` (castelblack, forest 1) has a **linked server** to `BRAAVOS` (forest 2). Allows pivoting via MSSQL from one forest to the other without needing an explicit computer-level trust.
+
+`xp_cmdshell` is a SQL Server procedure that runs operating system commands; it ships disabled, which is why the chain enables it first.
 
 **Attack chain**:
 ```sql
@@ -195,7 +209,7 @@ We manually added (since GOAD doesn't include it) a "Corporate Local Admins" GPO
 
 ### 9. Scheduled tasks with cached credentials (LSA Secrets)
 
-Two scheduled tasks on winterfell store credentials in LSA Secrets, extractable with mimikatz (`privilege::debug; lsadump::secrets`):
+Two scheduled tasks on winterfell store credentials in LSA Secrets, extractable with mimikatz (`privilege::debug` and then `lsadump::secrets`, as two separate commands):
 
 | Task | User | Password |
 |------|------|----------|
@@ -209,6 +223,8 @@ Bidirectional trust between `sevenkingdoms.local` ↔ `essos.local`. Allows:
 - Cross-realm Kerberos service ticket
 - SID History injection (if you get admin on one side)
 
+SID History is an attribute that keeps the old identifiers of an account migrated from another domain. If the SID of a privileged group is injected into it, the account inherits that group's permissions.
+
 ### 11. IIS + WebDAV + ASP upload
 
 `SRV02` has IIS installed with a vulnerable website that allows ASP file upload. Useful for web shell testing.
@@ -219,7 +235,7 @@ The `StarkWallpaper` GPO exists on `north.sevenkingdoms.local` and **`samwell.ta
 
 ## Accounts with known passwords
 
-To ease teaching attacks, GOAD sets predictable passwords. The listed users have passwords that appear in `rockyou.txt` or are obvious derivatives:
+To ease teaching attacks, GOAD sets predictable passwords. The listed users have passwords that appear in `rockyou.txt` or are obvious derivatives. The last three rows, the domain admins, are the exception: they do not follow that pattern and are listed as a lab reference:
 
 | User | Known password |
 |------|----------------|

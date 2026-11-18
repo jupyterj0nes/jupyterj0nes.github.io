@@ -18,6 +18,8 @@ That is what the pane on the left is for. The funnel on the toolbar hides it whe
 
 ## Three views
 
+The first view depends on the hunt, masstin's analysis that learns what is normal in the timeline and points at the odd connections ([what the hunt is](/en/tools/masstin-graph-hunt/)). It gives every connection a state and a score: `significant` is what clears its bar and `candidate` what falls short but deserves a look ([what they mean](/en/tools/hunt-score-across-tools/)).
+
 - **Findings.** Only the connections the hunt marked `significant` or `candidate`. If you have run the hunt, you start here.
 - **Neighbourhood.** The machines within *n* hops of the one you name. Type a name in the quick search at the top, press Enter and you are in. A double click on any machine does the same.
 - **Everything.** All of it, and let the other filters decide.
@@ -37,7 +39,7 @@ The three search fields understand the same things:
 
 [![The graph filtered on the account ryan*: two machines and four connections are left, and the filter shows as a chip above the map](/assets/images/viewer/f-user.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/f-user.webp)
 
-Here I typed `ryan*` in the account field. Of 78 connections, 4 are left, between two machines, adding up to 4,330 rows. Two are successful logons and two are connections without a logon. Look at the captions: three say `ryan.devlead@DEV` and one plain `ryan.devlead`, from rows that carry no domain. To the viewer those are two different accounts.
+Here I typed `ryan*` in the account field. Of 78 connections, 4 are left, between two machines, adding up to 4,330 rows. A connection on the map is not a row: it is one line that gathers every row of the timeline with the same origin, destination, account and result (further down, under "How rows are grouped"). Two are successful logons and two are connections without a logon. Look at the captions: three say `ryan.devlead@DEV` and one plain `ryan.devlead`, from rows that carry no domain. To the viewer those are two different accounts.
 
 That is deliberate. `Administrator@PARTNER`, `Administrator@DEV` and a server's local Administrator are three accounts and come out as three lines. Filter on `adm*` and you get them all; put an `@` in the pattern and you are talking about the whole name.
 
@@ -55,7 +57,7 @@ In the lab, failures alone are 5 rows out of 28,672. On a real network this filt
 
 ## Hunt
 
-If the timeline carries the hunt, there is a **score ≥** slider and the state pills. The score measures how rare a connection is: 13 is one in twenty, 30 one in a thousand, 60 one in a million.
+If the timeline carries the hunt, there is a **score ≥** slider and the state pills. The score goes from 0 to 100 and measures how rare a connection is compared with what is normal in that timeline. At 13, only one in twenty normal connections looks that rare; at 30, one in a thousand; at 60, one in a million. The higher you push the slider, the fewer connections are left and the rarer they are.
 
 ## How rows are grouped
 

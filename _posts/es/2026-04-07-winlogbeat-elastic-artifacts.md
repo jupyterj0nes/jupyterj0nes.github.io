@@ -97,6 +97,8 @@ Masstin reconoce automáticamente los archivos JSON de Winlogbeat y extrae los c
 masstin -a parse -d /ruta/con/winlogbeat/ -o timeline.csv
 ```
 
+El nombre de los ficheros da igual. Masstin recorre la carpeta, abre los que terminan en `.json`, `.ndjson` o `.jsonl` y mira su contenido: si dentro hay eventos de Windows con los campos de Winlogbeat (`winlog.event_id`, `winlog.channel`, `winlog.event_data.*`), los lee.
+
 Masstin mapea los campos ECS/Winlogbeat a su formato normalizado interno, por lo que los eventos de Winlogbeat aparecen en la timeline con la misma estructura que los parseados directamente desde EVTX.
 
 > **Ventaja práctica:** Cuando no tienes acceso a los EVTX originales (rotados, eliminados o inaccesibles), los datos reenviados por Winlogbeat a Elasticsearch pueden ser tu única fuente de eventos. Masstin te permite trabajar con ellos directamente.
@@ -112,13 +114,15 @@ Masstin mapea los campos ECS/Winlogbeat a su formato normalizado interno, por lo
 | EVTX parcialmente rotados | Combinar EVTX disponibles + export de Winlogbeat para completar gaps |
 | Investigación retroactiva | Los datos de Winlogbeat en el SIEM pueden cubrir meses de retención |
 
+Este artículo no cubre cómo sacar los documentos de Elasticsearch: eso se hace con las herramientas de exportación del propio Elastic. Lo que masstin necesita del resultado es un fichero con un documento JSON por línea (NDJSON) en el que cada documento conserve su bloque `winlog`.
+
 ---
 
 ## Tabla resumen
 
 | Fuente | Formato | Qué aporta | Limitaciones |
 |--------|---------|-----------|-------------|
-| EVTX nativo | Binario (.evtx) | Datos completos, todos los campos | Requiere acceso a la máquina, rotación de logs |
+| EVTX nativo | Binario (.evtx) | Datos completos, todos los campos | Requiere tener los ficheros `.evtx` (de la máquina, de un triage o de una imagen); la rotación de logs borra los eventos antiguos |
 | Winlogbeat | JSON (NDJSON) | Retención extendida en SIEM | Puede faltar contexto si no se reenvían todos los campos |
 
 ---

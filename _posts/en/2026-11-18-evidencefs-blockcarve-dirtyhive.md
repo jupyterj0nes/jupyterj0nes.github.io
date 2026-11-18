@@ -14,9 +14,19 @@ comments: true
 ---
 Every tool on this page accepts the same things: an E01 image, a VMDK, a triage in a zip, a folder. And they all recover deleted things the same way. That work has been moved out of the tools into three libraries, to do it only once.
 
-The three are not at the same point. **blockcarve** is already under the four main tools. **evidencefs** and **dirtyhive** grew out of masstin's and faramir's code. Today evidencefs is under etcdump, and both are under the tools in preparation; the four main ones still keep their own readers, which is where the libraries came from.
+The three are not at the same point:
 
-They are public and can be used on their own. This article is for anyone who wants to know what is underneath, or who writes their own tools in Rust and does not want to write an E01 reader again.
+| Library | What it does | Who uses it today |
+|---|---|---|
+| **blockcarve** | Recovers deleted structures | The four main tools |
+| **evidencefs** | Opens the evidence | etcdump and the tools in preparation |
+| **dirtyhive** | Reads the registry | The tools in preparation |
+
+evidencefs and dirtyhive grew out of masstin's and faramir's code. The four main tools still keep their own readers, which is where the libraries came from.
+
+They are public and can be used on their own. This article is for anyone who wants to know what is underneath, or who writes their own tools in Rust and does not want to write an E01 reader again. If you are starting out and only want to use the tools, you can skip it: you do not need it to follow the others.
+
+A note for those who will write code: the snippets below are fragments, without their `use` lines. The complete examples are in each library's README. And each has its own `OpenOptions` type: the one in evidencefs and the one in dirtyhive are not the same.
 
 ## evidencefs: one way to open evidence
 
@@ -63,15 +73,15 @@ When a file is deleted and the file system forgets it, the bytes stay on the dis
 
 blockcarve reads in 4 MB blocks, looks for candidates at sector alignment and, before accepting one, makes it prove it is what it claims to be:
 
-- A **registry hive** is followed bin by bin from its header and its root key is checked.
-- An **event log chunk** has to pass its CRC32 checksums.
-- An **`$MFT` record** has to have its geometry and its fixups in order.
+- A **registry hive** is followed bin by bin from its header and its root key is checked. Bins are the blocks a hive is divided into inside.
+- An **event log chunk** has to pass its CRC32 checksums. A CRC32 checksum is a number computed from the data: if the data is not the original, it does not match.
+- An **`$MFT` record** has to have its geometry and its fixups in order. Fixups are control bytes NTFS puts at the end of every sector of the record.
 
 A signature that turns up by chance in the middle of a video file passes none of those tests.
 
 It also knows about damaged disks. A broken E01 segment can leave a decompressor spinning forever, so every read runs with a time budget: if it is exceeded, that window is skipped, noted, and the scan goes on. A read failure costs a piece, never the run.
 
-It is what sits behind `--carve` in masstin (event logs), faramir (hives), allymacb (`$MFT` records and indexes) and caarea (all of those plus Prefetch). They all accept a structure for the same reasons.
+It is what sits behind `--carve` in masstin (event logs), faramir (hives), allymacb (`$MFT` records and indexes) and caarea (all of those, Prefetch and a few more structures; the full list is in [the carving article](/en/tools/carving-across-tools/)). They all accept a structure for the same reasons.
 
 The two registry pieces they all share live in it too: the walk of a hive's free cells, which is where deleted keys come from, and the replay of the transaction logs.
 
@@ -86,9 +96,9 @@ dirtyhive does four things, in order:
 3. **Replays them in memory**, validating every entry. A truncated log is applied as far as it is sound; one full of garbage cannot bring the program down.
 4. **Walks the free cells** and returns the deleted keys and values, with their path rebuilt.
 
-The engine that replays the logs is blockcarve's, and it is checked against the hives Windows 10 and Windows 7 recovered themselves in `yarp`'s public test corpus: the result matches.
+The engine that replays the logs is blockcarve's. Finding it in a carving library may be a surprise: it is there because, as said above, blockcarve holds the two registry pieces all the tools already shared. dirtyhive reuses them instead of writing them again. That engine is checked against the hives Windows 10 and Windows 7 recovered themselves in `yarp`'s public test corpus: the result matches.
 
-In our lab's case, on a server's image, that same engine is what you see at work: caarea replayed the logs of `SECURITY`, of Amcache and of two `NTUSER.DAT` files before reading them, and faramir pulled 711 deleted keys out of `SOFTWARE` alone. dirtyhive is that way of reading a hive, taken out of faramir and put into a library for the new tools.
+In our lab's case, on a server's image, that same engine is what you see at work: caarea replayed the logs of `SECURITY`, of Amcache and of two `NTUSER.DAT` files before reading them, and faramir pulled 711 deleted keys out of `SOFTWARE` alone. dirtyhive is that way of reading a hive, taken out of faramir and put into a library for the new tools. In the snippet, `path` is the path to the hive file:
 
 ```rust
 let opts = OpenOptions::new().search_root("D:/evidence/host01");

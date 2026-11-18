@@ -45,11 +45,17 @@ Seis mil entradas no es que haya seis mil cosas raras. Es que un Windows recién
 
 Por eso lo que importa no es la lista, sino las tres primeras cifras.
 
+El resto de esa salida, para que no asuste:
+
+- **`89 row(s) tested`:** las filas que pasaron por el test estadístico. Las demás ya tenían quien hablara por ellas: una regla, o una referencia limpia.
+- **`alpha 0.05`:** el listón de ese test. Lo explica [la escala del hunt](/es/tools/hunt-score-across-tools/).
+- **`444 warning(s)`:** no son hallazgos. Son avisos de lectura: algo de la evidencia se procesó a medias, por ejemplo un hive sucio sin sus logs. La ejecución sigue y lo cuenta.
+
 ## Lo que encuentra
 
 De las 6 162, quedan como habituales 6 051. Son lo que trae un sistema limpio o lo que está igual en varias máquinas. Las que hay que mirar son las otras.
 
-Esto es lo que saca arriba del todo en `dev-srv01`:
+Esto es lo que saca arriba del todo en `dev-srv01`. El *score* va de 0 a 100 y mide lo rara que es la fila; cómo se lee está en [la escala del hunt](/es/tools/hunt-score-across-tools/):
 
 | Técnica | Qué se ejecuta | Score | Por qué |
 |---|---|---|---|
@@ -75,6 +81,8 @@ linux:sudoers:nopasswd   Sudoers [line 55]: %Leadership ALL=(ALL) NOPASSWD:ALL  
 
 Un grupo entero con sudo sin contraseña. Es configuración del laboratorio, no un ataque, pero es exactamente la línea que añade quien quiere volver como root.
 
+Si lees también el artículo de [etcdump](/es/tools/etcdump-linux-configuration/), verás esta misma línea con 35 puntos en vez de 29. No es un error: cada herramienta mide sus reglas contra su propia referencia limpia, y las dos no son igual de grandes.
+
 ## Dos motores, una columna
 
 Cada fila pasa por dos exámenes.
@@ -94,7 +102,7 @@ rule H3001 (high): Persistence from a scratch folder [T1547]; on 2 of 5 hosts
 
 Un atacante con algo de oficio borra su persistencia al irse. faramir busca también lo borrado, en tres sitios:
 
-- **Celdas libres del registro.** Cuando se borra una clave, sus datos siguen en el hive hasta que algo los pisa. En el `SOFTWARE` del servidor del laboratorio recuperó 711 claves borradas.
+- **Celdas libres del registro.** Cuando se borra una clave, sus datos siguen en el hive hasta que algo los pisa. En el `SOFTWARE` del servidor del laboratorio recuperó 711 claves borradas. No son 711 filas: a la timeline solo llegan las que están en un sitio de persistencia.
 - **Copias de sombra.** Lo que estaba en una instantánea y ya no está en el volumen vivo. En este caso, tres entradas.
 - **El diario de ext4.** En Linux, crontabs, unidades de systemd y claves SSH borradas, con su nombre, sus fechas y su contenido.
 
@@ -114,7 +122,7 @@ Lo que marca son pistas, no veredictos. En esta misma ejecución, entre las 36 f
 
 La cuenta honrada es esta: de 6 162 entradas te deja un centenar largo para mirar, y entre ellas están las que importan. Eso es leer cien filas en vez de seis mil. No es leer cero.
 
-Para bajar el ruido en una red concreta hay dos opciones: `--known-good`, con el CSV de una máquina limpia de esa organización, y `--baseline`, con la fecha hasta la que el sistema era de fiar.
+Para bajar el ruido en una red concreta hay dos opciones: `--known-good`, con el CSV de una máquina limpia de esa organización, y `--baseline`, con la fecha hasta la que el sistema era de fiar. La documentación de faramir pone este ejemplo con las dos: `faramir -f /cases/WS01.E01 -o ws01.csv --baseline "2026-10-01 08:00" --known-good /baselines/ws-gold.csv`.
 
 ## Con el resto del caso
 

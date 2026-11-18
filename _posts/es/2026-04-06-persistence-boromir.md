@@ -36,6 +36,8 @@ Si no identificas todos los mecanismos de persistencia, el atacante volverá des
 
 ## Los 24 mecanismos de persistencia
 
+La columna «Técnica MITRE» usa los códigos de MITRE ATT&CK, un catálogo público de técnicas de ataque. Cada técnica tiene un código (por ejemplo, T1547.001) con el que puedes buscarla y leer cómo funciona.
+
 ### Registro de Windows
 
 | Mecanismo | Técnica MITRE | Descripción |
@@ -64,11 +66,13 @@ Si no identificas todos los mecanismos de persistencia, el atacante volverá des
 | WerFaultHangs | — | Abuso del manejador de errores de Windows |
 | Logon Scripts | T1037.001 | Scripts ejecutados al iniciar sesión |
 
-Y muchos más hasta completar las **24 técnicas**.
+Estas tablas recogen 13 de las **24 técnicas**. La lista completa está en el repositorio de la herramienta.
 
 ## Cómo funciona
 
-Boromir escanea el sistema (o una imagen forense) buscando todos los mecanismos de persistencia conocidos:
+Este artículo es una presentación de la herramienta, no una guía de uso. Para instalarla y ver sus requisitos y opciones, ve al README del repositorio.
+
+Boromir escanea el sistema (o una imagen forense) buscando todos los mecanismos de persistencia conocidos. Una imagen forense montada es la copia de un disco abierta como si fuera una unidad más, de modo que sus ficheros se ven como carpetas normales:
 
 ```bash
 python boromir.py --target /evidence/mounted_image/ --output results.csv --timezone "Europe/Madrid"

@@ -26,6 +26,8 @@ A seed can be a machine name, an address or an account, and you can give several
 
 The data is the generated scenario from [the hunt from the viewer](/en/tools/masstin-hunt-viewer/): made up, with a scripted intrusion. The seed is the outside address that brute-forced SSH.
 
+The command has no `-o`. Without it the findings table is not written: you get the report of `--report`, which `--seed` needs, and the timeline is annotated with the hunt's columns, as always.
+
 ## What comes back
 
 ```
@@ -45,13 +47,20 @@ And the report opens with the chain:
 
 Six hops over six machines, from a single IP address.
 
+Two columns that do not explain themselves:
+
+- **Depth** is how many hops from the seed that login is. The seed's own is 1.
+- **Follows** says which hop it hangs from: the one by which the machine it leaves from was entered.
+
+That is why hop 6 has depth 2 although it is the last in time. It leaves from `LEO-LNX01`, the machine entered in hop 1, like hops 2 and 3. The number in the first column goes by time, not by depth.
+
 ## How it follows the trail
 
 The rule is conservative on purpose, and it is worth understanding.
 
 **It starts with the seed's logins.** Here, `203.0.113.45` entering `LEO-LNX01` as `deploy`.
 
-**From each machine it enters, it follows only while that session is open.** From its logon to its logoff, or to the end of the day if the logoff was not recorded. A login leaving `LEO-LNX01` three days later is not part of the chain.
+**From each machine it enters, it follows only while that session is open.** From its logon to its logoff, or to the end of the day if the logoff was not recorded. In that second case the chain may pick up more than it should; I come back to it at the end. A login leaving `LEO-LNX01` three days later is not part of the chain.
 
 **And it does not follow just any login.** Only those that are new connections or that use an account the chain had already used. The everyday traffic of a server that was there before the attack is not pinned on the attacker.
 
@@ -90,7 +99,7 @@ Twenty-four minutes of brute force, and then five attempts in twenty seconds fro
 
 **What was open on the seed when it began to act.** In case the seed is not the beginning but a step in the middle.
 
-**Two Cypher queries.** One draws exactly those hops. The other returns everything that happened between the chain's machines in that period, to check it. If you do not use a graph database, the same can be seen in the [viewer](/en/tools/masstin-viewer-find-path/).
+**Two Cypher queries.** Cypher is the query language of graph databases such as Neo4j and Memgraph, which store machines as nodes and connections as relationships between them. One draws exactly those hops. The other returns everything that happened between the chain's machines in that period, to check it. If you do not use a graph database, the same can be seen in the [viewer](/en/tools/masstin-viewer-find-path/).
 
 ## Seeds that already existed
 
@@ -98,7 +107,7 @@ A detail that avoids many false positives. If the seed is a machine that was alr
 
 If the seed had never been seen, as here, it starts with everything it did.
 
-And to narrow it further: `--seed-from` and `--seed-to` bound which logins can start the chain.
+And to narrow it further: `--seed-from` and `--seed-to` bound which logins can start the chain. Both take a date and time in UTC, written as `"YYYY-MM-DD HH:MM:SS"`. Left out, they stand for the start and the end of the investigated period.
 
 ## From the viewer
 

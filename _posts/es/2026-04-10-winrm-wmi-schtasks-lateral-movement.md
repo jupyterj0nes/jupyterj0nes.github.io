@@ -22,6 +22,8 @@ La mayoría de la detección de movimiento lateral se centra en Security.evtx �
 
 Masstin parsea las tres automáticamente desde imágenes forenses. Sin configuración extra, sin extracción manual.
 
+En cada sección hay una tabla que dice en qué columna del CSV de masstin acaba cada dato. Masstin escribe una fila por evento: `src_computer` y `src_ip` son la máquina de origen, `dst_computer` la de destino y `detail` un texto con el contexto. El resto de columnas está en [el formato CSV](/es/tools/masstin-csv-format/).
+
 ## WinRM/Operational — Event ID 6
 
 Cuando un atacante usa PowerShell Remoting (`Enter-PSSession`, `Invoke-Command`), el **sistema origen** registra el Event ID 6 en `Microsoft-Windows-WinRM/Operational`. Este evento contiene el campo `connection` con el hostname o IP de destino:
@@ -96,7 +98,7 @@ El campo Author guarda quién registró la tarea, normalmente como `MÁQUINA\usu
 
 **Filtrado, y sus límites:** masstin saca el nombre de la máquina de sus propios EVTX y lo compara con el del Author. Solo señala las tareas en las que no coinciden. Es una **pista, no una prueba**: también lo cumplen una tarea creada localmente con una cuenta de dominio (el prefijo es el dominio, no la máquina) y una máquina a la que se le cambió el nombre después de crear la tarea. Antes de afirmar que una tarea vino de fuera, comprueba que el nombre del Author es de verdad otra máquina de la red.
 
-**Por qué importa:** Las Scheduled Tasks son un mecanismo común de persistencia y movimiento lateral. Incluso cuando los atacantes eliminan la tarea después de la ejecución (limpiando Event IDs 4698/4699), el fichero XML puede seguir existiendo en disco — o ser recuperable desde snapshots VSS.
+**Por qué importa:** Las Scheduled Tasks son un mecanismo común de persistencia y movimiento lateral. Incluso cuando los atacantes eliminan la tarea después de la ejecución (limpiando Event IDs 4698/4699, los eventos de Security.evtx que apuntan la creación y el borrado de una tarea), el fichero XML puede seguir existiendo en disco — o ser recuperable desde snapshots VSS, las copias de un momento anterior del disco que guarda Windows.
 
 ## Cómo masstin maneja estos artefactos
 
@@ -105,6 +107,8 @@ Los tres tipos de artefactos se extraen automáticamente cuando `parse` lee una 
 ```bash
 masstin -a parse -d /evidence/ -o timeline.csv
 ```
+
+`/evidence/` es la carpeta donde están las imágenes: masstin la recorre y lee cada imagen de disco que encuentra. Los EVTX de WinRM y WMI se leen igual si están sueltos o dentro de un triage.
 
 Para cada imagen forense:
 

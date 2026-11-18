@@ -15,7 +15,13 @@ comments: true
 
 Abres la timeline, miras el grafo y ves `DEV-SRV01` por un lado y `10.10.0.38` por otro. Son la misma máquina. El grafo no lo sabe.
 
-Pasa siempre, y no es un defecto de la herramienta sino de los logs. Un 4624 de tipo 3 por Kerberos trae la IP de origen y deja el nombre vacío. Un 4624 por NTLM trae el nombre que el cliente dijo tener. Un 1149 de RDP trae la IP. El mismo equipo, visto desde tres eventos, tiene tres identidades.
+Pasa siempre, y no es un defecto de la herramienta sino de los logs. Cada evento de Windows apunta el origen a su manera:
+
+- Un 4624 de tipo 3 por Kerberos trae la IP de origen y deja el nombre vacío. El 4624 es el evento de un logon correcto, el tipo 3 es un logon de red (entrar desde otra máquina, sin escritorio) y Kerberos es el protocolo de autenticación normal en un dominio.
+- Un 4624 por NTLM, el protocolo de autenticación más antiguo, trae el nombre que el cliente dijo tener.
+- Un 1149 de RDP, el evento que deja una conexión de escritorio remoto al llegar, trae la IP.
+
+El mismo equipo, visto desde tres eventos, tiene tres identidades.
 
 Mientras sean nodos distintos, todo lo que cuelga de ahí sale mal: el grafo tiene el doble de máquinas de las que hay, y [los caminos](/es/tools/masstin-viewer-find-path/) se cortan cada vez que un salto entra por nombre y sale por IP.
 
@@ -39,11 +45,13 @@ Arriba eliges cuánto estás dispuesto a dar por bueno:
 
 | Nivel | Qué acepta como prueba |
 |---|---|
-| **Strict** | Lo que la máquina dice de sí misma (la configuración de red en su hive SYSTEM) o lo que dice de ella su controlador de dominio (Group Policy 5308). |
+| **Strict** | Lo que la máquina dice de sí misma (la configuración de red en su hive SYSTEM) o lo que dice de su controlador de dominio (Group Policy 5308: el evento en el que una máquina apunta el nombre y la dirección del controlador de dominio que ha encontrado). |
 | **Standard** | Además, una cuenta de máquina (`NOMBRE$`) que se autentica desde esa dirección. |
 | **Broad** | Además, un nombre que dio el propio cliente, y una prueba estadística: los mismos logins aparecen bajo el nombre y bajo la IP muchas más veces de lo que daría el azar. |
 
 En el laboratorio, *Strict* no resuelve ninguna dirección, porque la timeline está hecha solo con event logs y no trae los hives. *Standard* resuelve seis, las de todas las máquinas del dominio. Suele ser el nivel bueno.
+
+*Broad* es el que hay que mirar con más cuidado. El nombre lo declara el propio cliente y se puede falsear, y la prueba estadística es un indicio, no un registro que alguien dejó escrito. Si lo usas, repasa la evidencia fila a fila antes de unir.
 
 Con **Merge the N of this level** se unen todas las de ese nivel de una vez. O vas fila por fila con su botón.
 

@@ -22,6 +22,10 @@ masstin -a parse-image -d D: -o timeline.csv
 
 Give it the drive letter and it reads the raw volume. It does not go through Windows' file system, which is why it does not matter that the logs are open and locked by the event service.
 
+`parse-image` is one of the parts of [`parse`](/en/tools/masstin-parse/): the one that reads disk images and mounted volumes. `masstin -a parse -d D:` does the same, because `parse` recognises the drive letter and reads the volume the same way. `parse-image` is named here because you already know what you are giving it.
+
+At the end, masstin shows the same breakdown by source as `parse`: how many events came out of each log. That is how you know it went well.
+
 ## Two situations
 
 **The disk is on a write blocker.** You took it out of the machine, you connect it to your analysis box through a blocker and it shows up as `E:`. Instead of waiting for the image, or while you make it in another window, you read the logs.
@@ -50,7 +54,7 @@ masstin -a parse-image --all-volumes -o timeline.csv
 
 **It needs privileges.** Reading a raw volume requires running as Administrator on Windows, or with `sudo` on Linux. Without that, the system will not let you open the device.
 
-**Live, you change the machine.** Not much, but something: running any program on a live system leaves a trace (masstin's own prefetch, for one). If the case may end up in court, write it down in your notes and, when you can, make the image as well. masstin reads; it does not write to the volume. Put the output CSV on another drive.
+**Live, you change the machine.** Not much, but something: running any program on a live system leaves a trace (masstin's own prefetch, for one). If the case may end up in court, write it down in your notes and, when you can, make the image as well. masstin reads; it does not write to the volume. Put the output CSV on another drive. The examples above write `timeline.csv` in the folder you are in; on a live system, give `-o` a full path on another disk, for example `-o F:\case\timeline.csv` if `F:` is your external disk.
 
 **A PowerShell trap.** In Windows PowerShell 5.1, the one Windows ships with, a path **with spaces** that ends in `\` swallows the arguments after it: `-d 'D:\my case' -o out.csv` reaches the program as one odd path. It happens with single and with double quotes alike. masstin detects it and warns you, but the safest thing is to leave the trailing backslash out. In PowerShell 7.3 or later it no longer happens.
 

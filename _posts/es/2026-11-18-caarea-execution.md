@@ -37,9 +37,20 @@ Más de sesenta fuentes:
 - **NTFS:** del `$MFT` y del diario USN, los ejecutables y scripts que se escribieron fuera de las carpetas del sistema.
 - **Linux:** `pacct`, `auditd`, el journal de systemd, `auth.log`, historiales de shell, gestores de paquetes, cron, contenedores.
 
+Si alguno de esos nombres no te suena, en una línea:
+
+- **4688:** el evento que el log de seguridad apunta cada vez que se crea un proceso, si la auditoría está activada.
+- **Sysmon:** una herramienta gratuita de Microsoft que apunta en su propio log las creaciones de proceso y otra actividad.
+- **Prefetch:** ficheros que Windows escribe para arrancar antes los programas. Guardan el nombre del programa, cuántas veces se ejecutó y las últimas veces.
+- **ShimCache:** una lista del registro, pensada para la compatibilidad de aplicaciones, con ejecutables que el sistema ha visto.
+- **Amcache:** un hive (`Amcache.hve`) con los programas y ficheros ejecutables que han pasado por la máquina, con su ruta y su hash.
+- **SRUM:** una base de datos con lo que consume cada aplicación (red, CPU) hora a hora.
+- **UserAssist:** una clave del registro de cada usuario con los programas que abrió desde el escritorio.
+- **BAM:** una clave del registro con la última vez que cada usuario ejecutó cada programa.
+
 Y los contenedores de todo eso: imágenes E01, raw, VMDK y VHD/VHDX, con sus copias de sombra; triages de KAPE, Velociraptor, UAC, Cortex XDR y CyLR; carpetas sueltas.
 
-Le di el caso entero de nuestro laboratorio: una imagen de 50 GB, cuatro triages de Windows, una carpeta de logs y dos triages de Linux.
+Le di el caso entero de nuestro laboratorio: una imagen de 50 GB, cuatro triages de Windows, una carpeta de logs y dos triages de Linux. Esa ejecución no es la orden de arriba, que lee una sola imagen: se hace con `-d` y la carpeta del caso, en vez de `-f` y un fichero. Así termina:
 
 ```
 Extracted a total of 49587 execution events.
@@ -48,9 +59,11 @@ Hunt: 1742 findings saved to: caso.hunt.csv (1722 timeline rows judged: 85 signi
 
 49 587 filas en dos minutos. Lo que más pesa: 9 049 del log de tareas programadas, 6 317 del diario USN, 3 412 creaciones de proceso, 2 545 de Amcache.
 
+En la línea del hunt, `significant` y `candidate` no suman todas las filas juzgadas. Las que faltan son las `habitual`: lo que también ejecuta una máquina limpia de referencia. Qué significa cada estado está en [la escala del hunt](/es/tools/hunt-score-across-tools/).
+
 ## Una ejecución contada por seis fuentes
 
-Lo que hace útil juntarlo todo se ve con un ejemplo. En el servidor del laboratorio, el 10 de noviembre a las 08:32:43, pasa esto. Cada línea viene de una fuente distinta:
+Lo que hace útil juntarlo todo se ve con un ejemplo. En el servidor del laboratorio, el 10 de noviembre a las 08:32:43, pasa esto. Cada línea viene de una fuente distinta (aquí hay cinco; la sexta llega en el bloque siguiente):
 
 ```
 08:32:43.677  ntfs:mft:created   C:\Users\Public\update.bat   File created: size 76; content: @echo off ...
@@ -83,7 +96,7 @@ Con `--hunt`, caarea reconstruye antes de nada el árbol de procesos de cada má
 lineage: sshd.exe > sshd.exe > sshd.exe > cmd.exe > powershell.exe > mimikatz.exe
 ```
 
-De un vistazo: ese binario no lo lanzó nadie sentado delante de la máquina, llegó por una sesión SSH. (En el laboratorio ese `mimikatz.exe` es una copia renombrada de `whoami.exe`. caarea no lo sabe, y hace bien en no fiarse del nombre ni para bien ni para mal: lo marca por la carpeta desde la que se ejecuta, no por cómo se llama.)
+De un vistazo: ese binario no lo lanzó nadie sentado delante de la máquina, llegó por una sesión SSH. (Este ejemplo es de otro binario del laboratorio, no del `invoice.pdf.exe` que sale más abajo. En el laboratorio ese `mimikatz.exe` es una copia renombrada de `whoami.exe`. caarea no lo sabe, y hace bien en no fiarse del nombre ni para bien ni para mal: lo marca por la carpeta desde la que se ejecuta, no por cómo se llama.)
 
 Un detalle: un padre es el último arranque de ese PID antes del hijo. Si el proceso creador ya había terminado, caarea lo dice en vez de adivinar. Un reinicio cierra todos los PID, para que un servicio no herede como padre a lo que tuvo ese número antes de reiniciar.
 
@@ -141,7 +154,7 @@ Para una imagen grande con una hora sospechosa conocida:
 caarea -d triage -o salida.csv --toi 2026-11-10T08:30:00Z --toi-window 6
 ```
 
-Seis horas antes y seis después. Las filas de fuera siguen alimentando el árbol de procesos; solo dejan de escribirse.
+`--toi` viene de *time of interest*: el momento que te interesa, que hace de centro de la ventana. `--toi-window` son las horas a cada lado: aquí, seis horas antes y seis después. Las filas de fuera siguen alimentando el árbol de procesos; solo dejan de escribirse.
 
 En Linux, los logs que solo llevan hora local se corrigen a UTC con la zona horaria de la propia máquina, que caarea busca en la evidencia.
 

@@ -51,13 +51,17 @@ Parses Squid proxy events to correlate network activity with host artifacts.
 
 ## Workflow
 
+Sabonis has no installer: you clone the repository and run it with Python. It needs the libraries it imports, among them `pandas`, `py2neo` and `scapy`.
+
 ### 1. Pre-processing
 
-EVTX files must first be converted using `pivotfoot.sh`:
+Sabonis does not read EVTX files directly. They must first be converted to XML with `pivotfoot.sh`. It is a bash script, so on Windows you need WSL or Git Bash. It uses `evtx_dump`, which ships in the repository's `bin/` folder.
 
 ```bash
 ./pivotfoot.sh /evidence/evtx/
 ```
+
+The script's own help asks for two folders: the one with the EVTX files and the destination one, where it leaves one `.xml` file per log it recognises.
 
 ### 2. Parsing and CSV generation
 
@@ -83,6 +87,8 @@ python sabonis.py parse evtx --directory /evidence/ -o output.csv \
 ```bash
 python sabonis.py load2neo -f lateral_movement.csv --database localhost:7687 --user neo4j
 ```
+
+You need a Neo4j instance running and reachable at that address first. The user's password does not go in the command: sabonis asks for it on the console.
 
 ## Key options
 

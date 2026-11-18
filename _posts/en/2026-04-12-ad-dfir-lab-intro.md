@@ -16,6 +16,8 @@ comments: true
 
 If you work in incident response or digital forensics, you know that 90% of the attacks you investigate happen in Active Directory environments. Kerberoasting, lateral movement with PsExec, DCSync, ADCS abuse — you see them constantly in real cases. But where do you practice?
 
+In case some of those names are new to you: **Kerberoasting** is requesting Kerberos service tickets to crack the service account's password offline. **PsExec** is a tool that runs commands on another Windows machine over the network. **DCSync** is posing as a domain controller so that another one hands you the password hashes. **ADCS** is Active Directory's certificate service, which when misconfigured lets you obtain certificates in the name of other users. We will meet them one by one along the series.
+
 Certifications give you limited lab scenarios. Online platforms have shared environments and restrictions. What you need is **your own lab**, with your own domain, your own users, your own network noise — and the ability to attack it, export forensic images, and analyze them exactly as you would in a real case.
 
 ## What we're building
@@ -40,20 +42,28 @@ VLAN 20 — Attack Network (192.168.20.0/24)
 pfSense firewall between VLANs — Kali must pivot, just like a real engagement.
 ```
 
-Two forests with bidirectional trust. Three domains. Nine virtual machines. ~46 users across the three domains — the set GOAD populates (no BadBlood bulk generation was run). Pre-built vulnerabilities including AS-REP Roasting, Kerberoasting, delegation, ADCS ESC1-ESC13 (in essos.local), ACL abuse and much more.
+Two forests with bidirectional trust. Three domains. Nine virtual machines: the eight in the list plus pfSense, the firewall. ~46 users across the three domains — the set GOAD populates (no BadBlood bulk generation was run). Pre-built vulnerabilities including AS-REP Roasting, Kerberoasting, delegation, ADCS ESC1-ESC13 (in essos.local), ACL abuse and much more.
 
 ## The full DFIR workflow
 
 What makes this lab special isn't just the vulnerable environment — it's the complete investigation cycle:
 
-1. **Generate baseline noise** — 24 hours of realistic corporate activity before any attack
+1. **Generate baseline noise** — two years of simulated corporate activity before any attack (Part 8)
 2. **Snapshot** the clean state
 3. **Run an attack scenario** from Kali (automated or manual)
-4. **Export forensic images** (VMDK, raw) of compromised machines
+4. **Export forensic images** (raw compressed with zstd, Part 9) of compromised machines
 5. **Analyze with your tools** — masstin, Volatility, plaso, whatever you prefer
 6. **Revert** to clean state and repeat with a different scenario
 
 Each attack scenario generates specific artifacts you can hunt for: events 4624, 4769, 4662, Sysmon event 1 with full command lines, PowerShell script blocks in 4104...
+
+What each one records:
+
+- **4624** (Security): a successful logon.
+- **4769** (Security): a Kerberos service ticket was requested.
+- **4662** (Security): an operation was performed on an Active Directory object.
+- **Sysmon 1**: a process was created, with its command line.
+- **4104** (PowerShell): the text of the script that ran.
 
 ## The series
 

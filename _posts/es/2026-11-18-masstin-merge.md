@@ -24,6 +24,8 @@ El resultado está ordenado por instante y sin duplicados. Si el mismo evento es
 
 masstin ha ido añadiendo columnas con los años: empezó con 12, pasó a 14 y hoy escribe 19. `merge` lee las tres disposiciones y escribe siempre las 19. Una timeline de hace dos años se mezcla con una de hoy sin convertir nada.
 
+De las 19, las 14 primeras describen el evento (cuándo, desde dónde, a dónde, con qué cuenta) y las cinco últimas son para el análisis. Están todas, una por una, en [el formato CSV](/es/tools/masstin-csv-format/).
+
 Las columnas del final (`hunt`, `hunt_score`, `hunt_why`, `verdict`, `notes`) viajan con su fila. Y si el mismo evento viene una vez con ellas y otra sin ellas, se conservan.
 
 ## El problema que resuelve --carry-marks
@@ -38,13 +40,13 @@ Entonces llega más evidencia, o sale una versión de masstin que lee un evento 
 masstin -a merge -f nueva1.csv -f nueva2.csv -o caso-v2.csv --carry-marks caso-v1.csv
 ```
 
-`--carry-marks` copia los veredictos y las notas de la timeline anterior a las filas que corresponden en la nueva. La consola dice cuántas:
+`--carry-marks` copia los veredictos y las notas de la timeline anterior a las filas que corresponden en la nueva. Una fila corresponde cuando sus 14 columnas de evento son iguales, es decir, cuando es el mismo evento. La consola dice cuántas:
 
 ```
 Merge: 23 row(s) took their verdict / notes from the earlier timeline (23 marked rows there)
 ```
 
-Veintitrés filas marcadas en la vieja y veintitrés recuperadas en la nueva. Ese «23 de 23» es lo que hay que mirar. Si dijera «19 de 23», cuatro marcas no han encontrado su fila, casi siempre porque esa evidencia no está en el análisis nuevo.
+Hay que comparar dos números de esa línea. El primero (`23 row(s) took...`) son las filas de la nueva que han recibido su marca. El del paréntesis (`23 marked rows there`) son las filas marcadas que había en la vieja. Aquí son iguales: veintitrés marcadas y veintitrés recuperadas. Si el primero fuera 19 y el segundo 23, cuatro marcas no han encontrado su fila, casi siempre porque esa evidencia no está en el análisis nuevo.
 
 En el ejemplo, la timeline anterior es la del laboratorio con una conexión marcada como sospechosa desde el [visor](/es/tools/masstin-viewer-marks-case/). La nueva es la misma evidencia más las filas de otra tarde. Las marcas pasan, y las filas nuevas llegan sin marca, como debe ser.
 
@@ -77,6 +79,12 @@ Cada fila que no llega al resultado tiene un motivo y un contador. *Malformed* e
 
 `merge` acepta `--start-time` y `--end-time`. Sirve para sacar de una timeline de seis meses solo las dos semanas del incidente, para compartirla o para trabajar con algo más ligero.
 
+Las dos se escriben como `"AAAA-MM-DD HH:MM:SS"`, entre comillas y en UTC. También vale una fecha sola: en `--start-time` cuenta desde su primer segundo y en `--end-time` hasta el último, así que el día entra entero.
+
 ## El fichero que acompaña
 
-Al escribir la timeline, masstin deja a su lado un `<nombre>.masstin` con lo que sabe de ella: de qué evidencia salió y de quién es cada dirección. Al mezclar, esa información se conserva. Es el mismo fichero que el visor usa [como fichero de caso](/es/tools/masstin-viewer-marks-case/).
+Al escribir la timeline, masstin deja a su lado un `<nombre>.masstin` con lo que sabe de ella: de qué evidencia salió y de quién es cada dirección. Al mezclar, esa información se conserva.
+
+No hay que pasárselo a ninguna orden: masstin lo busca al lado de la timeline, con su mismo nombre. Lo único que tienes que hacer es no separarlos. Si copias o mueves el CSV, llévate también su `.masstin`.
+
+Es el mismo fichero que el visor usa [como fichero de caso](/es/tools/masstin-viewer-marks-case/).

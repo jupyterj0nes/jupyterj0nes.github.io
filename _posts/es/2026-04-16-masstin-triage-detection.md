@@ -32,6 +32,8 @@ Lo mismo pasaba con la fase de descubrimiento: masstin decía `100 compressed pa
 
 Este post documenta el fix de v0.12: detección de triages durante el recorrido de directorios, y agrupación por fuente en el desglose final.
 
+Para usarlo no tienes que activar nada: la detección corre sola cada vez que lanzas `parse` sobre una carpeta. El comando está al final, en la sección «Pruébalo». Lo de en medio explica cómo reconoce masstin cada tipo de paquete y cómo leer el resumen que imprime. Un *triage* (o triaje) es el paquete, normalmente un ZIP, en el que una herramienta de recogida guarda los artefactos forenses de una máquina.
+
 ## Tres herramientas de triaje, tres firmas
 
 La mayoría de equipos DFIR convergen en un conjunto pequeño de colectores de triaje. Hablando con analistas y mirando datos de casos reales, las tres que aparecen una y otra vez son:
@@ -45,6 +47,8 @@ Cada uno produce archivos ZIP con un layout interno reconocible. La detección e
 ### Cortex XDR — el fácil
 
 El offline collector de Cortex XDR escribe un fichero llamado `cortex-xdr-payload.log` en su salida. Este nombre de fichero es **único del colector XDR** — ninguna otra herramienta DFIR lo usa, ningún proceso de triaje normal lo produce. Una sola coincidencia es concluyente.
+
+En llano: masstin mira si dentro del ZIP hay un fichero con ese nombre. El pseudocódigo de abajo dice lo mismo, y no hace falta saber Rust para seguir:
 
 ```rust
 // pseudocódigo del detector real
@@ -98,6 +102,8 @@ Desde v1.1.0 [UAC (Unix-like Artifacts Collector)](https://github.com/tclahr/uac
 
 ## Agrupación por fuente en el desglose
 
+Lo que te importa como analista: en el resumen final, cada grupo de eventos lleva delante una etiqueta que dice de dónde salió. `[IMAGE]` es una imagen de disco, `[TRIAGE: ...]` un paquete de triaje reconocido, `[ARCHIVE]` un ZIP cualquiera y `[FOLDER]` una carpeta con ficheros sueltos. Los nombres con forma `EvtxLocation::...` que salen más abajo son piezas del código de masstin; puedes pasar por encima de ellos.
+
 La detección corre una vez por ZIP en tiempo de descubrimiento y el resultado se guarda en un `HashMap<zip_path, TriageInfo>`. Después, cuando cada EVTX individual se parsea y cuenta, masstin computa una **source label** para él:
 
 ```
@@ -145,6 +151,8 @@ El desglose de fase 2 entonces agrupa por source label y renderiza cada grupo co
 Cada evento está contabilizado. El analista puede leer este desglose y responder inmediatamente a preguntas como *"¿cuántos eventos WinRM vinieron de la partición live del DC vs de un shadow copy vs del triage de Cortex XDR?"* sin tener que hacer grep al CSV.
 
 ## Por qué tags ASCII en lugar de emoji
+
+Esta sección y la siguiente son notas de cambios: cuentan decisiones y arreglos de la salida por consola. Si solo quieres usar la detección, salta a «Qué significa esto para `parse`».
 
 Consideré usar emoji para los marcadores de fuente (💿 imagen, 🎯 triage, 📦 archivo, 📁 carpeta) — quedan muy bien en terminales modernos. Pero los escenarios de despliegue realistas para masstin incluyen:
 

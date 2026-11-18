@@ -14,7 +14,7 @@ comments: true
 
 ## El fallo silencioso
 
-Un compañero me señaló `I:\forensic\act3\archive\`. Dos ficheros zip:
+Un compañero me señaló `D:\evidence\archive\`. Dos ficheros zip:
 
 ```
 Security-2026-04-17-02-09-25.zip
@@ -26,7 +26,7 @@ Los dos de ~80 KB, cada uno conteniendo un único EVTX con el mismo nombre dentr
 Apuntas masstin:
 
 ```bash
-masstin -a parse -d I:/forensic/act3/archive/ -o timeline.csv
+masstin -a parse -d D:/evidence/archive/ -o timeline.csv
 ```
 
 Salida:
@@ -59,7 +59,9 @@ El parser EVTX de masstin hacía dos cosas sobre cada fichero que encontraba:
 1. **Walker**: recorrer cada directorio, abrir cada `.zip`, listar cada `.evtx` dentro. Funciona de forma transparente con ZIPs anidados (triage packages, output de collectors, lo que sea). Esta parte estaba bien — la línea `2 EVTX artifacts found` es el walker reportando éxito.
 2. **Dispatcher**: mirar el nombre del fichero, enrutar al parser correcto por match exacto de string.
 
-El dispatcher era así:
+En llano: masstin decidía cómo leer cada EVTX por el nombre del fichero. Si el nombre no era exactamente uno de los que conocía, lo descartaba sin avisar.
+
+El dispatcher era así (no hace falta saber Rust: cada línea dice «si el fichero se llama así, léelo con este parser»):
 
 ```rust
 match file_name.as_str() {
@@ -93,6 +95,8 @@ Un EVTX no es solo un blob. Cada record de un EVTX lleva un bloque XML `System` 
 
 El campo `Provider.Name` es **canónico e inmutable**. Microsoft lo genera a partir del manifest del propio canal. Un `Security-2026-04-17-02-09-25.evtx` archivado por la política de retención sigue llevando `Microsoft-Windows-Security-Auditing` dentro. Un operador que renombre el fichero a `Cliente-ABC_Security.evtx` no puede cambiarlo. Extraído por Velociraptor, KAPE o un script de triage forense — sigue siendo el mismo provider.
 
+En llano: ahora masstin abre el fichero, mira qué provider escribió sus eventos y elige el parser por eso, se llame como se llame el fichero.
+
 Así que el dispatcher deja de preocuparse por el nombre de fichero. Lee el segundo record, extrae `Provider.Name`, y enruta:
 
 ```rust
@@ -109,12 +113,12 @@ match provider.as_str() {
 }
 ```
 
-La función `parse_unknown()` existía en el código desde hace un tiempo, puerta atrás de un atómico `MASSIVE_MODE` para que solo la usara el modo que recorre una carpeta de evidencia entera. El razonamiento era precaución: mantener el camino normal de los EVTX estricto y predecible, dejar el fallback agresivo detrás del flag *"off-the-leash"*. En la práctica eso significaba que una carpeta de EVTX perdía en silencio sus logs archivados, mientras que los mismos ficheros dentro de una carpeta de evidencia completa sí se recogían — una distinción que ningún usuario podía razonablemente adivinar sin leer el código fuente.
+Un apunte de historia interna, que puedes saltarte: el arreglo ya estaba escrito, pero solo se usaba en un modo. La función `parse_unknown()` existía en el código desde hace un tiempo, puerta atrás de un atómico `MASSIVE_MODE` para que solo la usara el modo que recorre una carpeta de evidencia entera. El razonamiento era precaución: mantener el camino normal de los EVTX estricto y predecible, dejar el fallback agresivo detrás del flag *"off-the-leash"*. En la práctica eso significaba que una carpeta de EVTX perdía en silencio sus logs archivados, mientras que los mismos ficheros dentro de una carpeta de evidencia completa sí se recogían — una distinción que ningún usuario podía razonablemente adivinar sin leer el código fuente.
 
 Volviendo a correr el mismo caso ahora, comando sin cambios:
 
 ```bash
-masstin -a parse -d I:/forensic/act3/archive/ -o timeline.csv
+masstin -a parse -d D:/evidence/archive/ -o timeline.csv
 ```
 
 ```
@@ -138,6 +142,8 @@ Los mismos bytes en disco, el mismo comando, 245 eventos recuperados en vez de 0
 ---
 
 ## ¿Cuánto importa esto en la práctica? Probémoslo contra upstream
+
+Tres palabras antes de seguir: un *crate* es una biblioteca de Rust, *upstream* es el proyecto original de esa biblioteca, y los *fixtures* son los ficheros de ejemplo que un proyecto usa en sus pruebas.
 
 La mejor validación para un parser es correrlo contra los fixtures de test que *los propios autores del parser subyacente* usan. Masstin depende del crate `evtx` de [omerbenamram](https://github.com/omerbenamram/evtx), y ese crate incluye un directorio `samples/` con ficheros EVTX reales e intencionalmente malformados para su propio test suite. Muchos tienen nombres no canónicos — `security_big_sample.evtx`, `2-system-Security-dirty.evtx`, `post-Security.evtx`, `Security_short_selected.evtx`, `Security_with_size_t.evtx`, `security_bad_string_cache.evtx`, etc. Exactamente la clase de nombres que el dispatcher antiguo descartaba.
 
@@ -206,7 +212,7 @@ masstin -a parse -d /evidencia/C/Windows/System32/winevt/Logs \
 3. Toda la evidencia pasa por el mismo dispatch EVTX: `masstin -a parse` lee ficheros, carpetas con zips recursivos, imágenes forenses de disco (`winevt/Logs` del NTFS + VSS) y paquetes de triage de una pasada.
 4. El test canónico para la robustez de cualquier parser EVTX es una corrida contra `github.com/omerbenamram/evtx/samples/`. Vale la pena tenerlo en el bolsillo.
 
-Si estás investigando un caso ahora mismo y a masstin le pareció que no veía nada, relánzalo contra `main` — los bytes en disco son los mismos, la timeline probablemente no.
+Si estás investigando un caso ahora mismo y a masstin le pareció que no veía nada, relánzalo con una versión 1.0.0 o posterior (`masstin --version` te dice cuál tienes) — los bytes en disco son los mismos, la timeline probablemente no.
 
 ---
 

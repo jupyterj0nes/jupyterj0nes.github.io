@@ -49,6 +49,8 @@ When the `$MFT` record is reused, or the event log is cleared, no structure is l
 
 caarea also reads the `pagefile.sys`, `swapfile.sys` and `hiberfil.sys` of each partition, and accepts a memory dump or a loose file of free space.
 
+In case they are new to you: `pagefile.sys` and `swapfile.sys` are the files where Windows keeps on disk the memory that does not fit in RAM. `hiberfil.sys` is the copy of memory it makes when hibernating. And a memory dump is a copy of a running machine's RAM, saved to a file. All of them can hold pieces of things that are no longer on the disk.
+
 ## How rubbish is kept out
 
 The problem with carving is not finding candidates. It is that a four-byte signature turns up by chance thousands of times on a disk. So each structure has to prove it is one:
@@ -60,6 +62,15 @@ The problem with carving is not finding candidates. It is that a four-byte signa
 | `$MFT` record | Header geometry and the update sequence: the last two bytes of every sector must match a number the record keeps. Random data does not pass |
 | Index entry | The above, plus plausible length, name characters and times |
 | `pacct` or `utmp` record | Version, printable text, a time within reasonable limits |
+
+Some terms from the table:
+
+- **Bins:** the blocks a hive is divided into inside.
+- **CRC32:** a checksum, a number computed from the data. If the data is not the original, it does not match.
+- **`pacct`:** the file where Linux records every process that ends, if process accounting is on.
+- **`utmp`:** the format in which Linux records logins and logouts.
+
+These checks filter out nearly everything, but not everything. The less shape a structure has, the easier it is for random data to meet it: further down there is a real example with `utmp`.
 
 And one rule common to all four: **only what carries its own timestamp inside is recovered.** A piece of a file without a time cannot be placed on a timeline, and no tool makes one up.
 
@@ -75,7 +86,7 @@ What is recovered is compared with what is live, and what is identical is droppe
 - A record whose number **has since been reused** for another file.
 - A record from a **volume that no longer exists**.
 
-The comparison is by identity (what it is), never by position on the disk.
+The comparison is by identity (what it is), never by position on the disk. An example: a copy of an `$MFT` record that turns up inside the pagefile is somewhere else on the disk, but describes the same file with the same times. It is identical to the live one, and it is dropped.
 
 The first case has a consequence you do not see coming. If the old state of a file has a **later** time than the current state, someone moved its times back. That is allymacb's `backdated` rule, and it can only be checked with carving. An older version cannot be newer.
 
@@ -144,7 +155,7 @@ Not always. Level one already gives most of what was recently deleted, and it is
 
 `--carve` is for three situations:
 
-- **The logs were cleared.** A 1102 in the security log, or a log that starts right after the incident.
+- **The logs were cleared.** A 1102 in the security log (the event Windows records when someone clears that log), or a log that starts right after the incident.
 - **The volume was formatted or reinstalled.** The new `$MFT` knows nothing of the previous one. The old records are still in free space.
 - **You need to know what was there before.** Earlier states of files that still exist.
 

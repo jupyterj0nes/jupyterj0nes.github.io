@@ -20,6 +20,22 @@ The general shape is always the same:
 masstin -a ACTION [-d FOLDER]... [-f FILE]... [-o OUTPUT] [options]
 ```
 
+Four typical commands, to have somewhere to start:
+
+```bash
+# read a folder of evidence and write the timeline
+masstin -a parse -d /evidence/case -o timeline.csv
+
+# take the noise out of a timeline already made
+masstin -a merge -f case.csv --ignore-local -o case-filtered.csv
+
+# look for what is new on the network from a date on
+masstin -a graph-hunt-csv -f timeline.csv --investigation-from "2026-03-15 00:00:00" --report hunt.md -o hunt.csv
+
+# open the timeline in the window
+masstin -a view -f timeline.csv
+```
+
 `masstin --help` gives this same list from the terminal, and it is the reference that counts if this page falls behind.
 
 ## What nearly all of them share
@@ -82,7 +98,7 @@ They apply to `merge`, the Cortex actions, the graph loaders and the viewer.
 
 ## Cortex XDR
 
-Explained in [the Cortex article](/en/artifacts/cortex-xdr-artifacts/).
+Explained in [the Cortex article](/en/artifacts/cortex-xdr-artifacts/). Two words used here: a *tenant* is one organisation's instance of Cortex XDR, and the API key is the credential a program, here masstin, queries it with.
 
 | Action | What for |
 |---|---|
@@ -127,6 +143,14 @@ Explained in [graph-hunt](/en/tools/masstin-graph-hunt/) and in [reading the res
 | `--merge-hosts-skip` | Addresses to leave as they are |
 | `--carry-marks FILE.csv` | Bring verdicts and notes from an earlier timeline |
 
+The options apply to the three hunt actions, except the ones that read or write the timeline, which belong to `graph-hunt-csv` only: `--no-annotate`, `--if-hunted`, `--merge-hosts`, `--merge-hosts-skip` and `--carry-marks`.
+
+Three things in this section that have no article of their own:
+
+- **`host-map`** is used as `masstin -a host-map -f timeline.csv`. It shows one line per address: which machine it is, on what evidence, and how many rows have it as their origin. With `-o` it writes that table as CSV. It changes nothing in the timeline.
+- **`--merge-hosts`** decides how much of that evidence is taken without asking. `strict`: only what a machine says of itself or of its domain controller. `standard`: also the machine account (`NAME$`) authenticated from the address. `broad`: also the name the client gave in the event. Look at the `host-map` table first.
+- **`--only-detectors`** and **`--skip-detectors`** take a comma-separated list of signals: `novel-edge`, `community-bridge`, `origin-fanout`, `cred-rotation`, `pagerank-spike`, `betweenness-spike`, `failed-sweep`, `preauth-sweep`, `probe-then-success`, `rare-logon-type`, `causal-path`, `credential-switch`. The two cannot be used together.
+
 ## Viewing
 
 Explained in [the viewer](/en/tools/masstin-viewer/).
@@ -144,11 +168,13 @@ Explained in [the viewer](/en/tools/masstin-viewer/).
 | `--events-file FILE` | One `--event` per line |
 | `--renderer` | Choose [what draws](/en/tools/masstin-viewer-remote-desktop/): `glow` or `software` |
 
+An example of `--event`: `--event "2026-11-03 11:12:56,alice,WS01,SRV01"`. The time is in UTC. An empty field is not asked about: `--event ",alice,,SRV01"` is every login of `alice` on `SRV01`.
+
 `masstin` with no arguments opens the welcome screen.
 
 ## Graph databases
 
-Explained in [Neo4j](/en/tools/neo4j-cypher-visualization/) and [Memgraph](/en/tools/memgraph-visualization/).
+Explained in [Neo4j](/en/tools/neo4j-cypher-visualization/) and [Memgraph](/en/tools/memgraph-visualization/). Both are graph databases: they store machines as nodes and connections as relationships between them. You do not need them to use masstin; they are for whoever wants to explore the timeline with queries.
 
 | Action | What for |
 |---|---|

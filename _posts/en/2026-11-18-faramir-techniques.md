@@ -14,6 +14,11 @@ comments: true
 ---
 This page is for looking things up. It lists the places where [faramir](/en/tools/faramir-persistence/) looks for persistence, grouped by the idea behind each, with its ATT&CK technique.
 
+Two notes for reading the tables:
+
+- **ATT&CK** is MITRE's public catalogue of attack techniques. Each technique has an identifier, such as T1547.001, which you can look up at [attack.mitre.org](https://attack.mitre.org/) to see what it consists of.
+- What is in `code type` is the name of the registry key or value (or of the file) that is checked. You do not need to know the full path: every row of the timeline says, in its last event column, which file and which key it was read from. The tables with no "Where" column are the ones that already name the place in the first.
+
 First, a figure to get your bearings. In our lab's case (seven machines) 6,162 entries of 41 different kinds came out. This is how the most numerous are spread:
 
 | Kind | Entries |
@@ -116,7 +121,7 @@ The classic case is a `Debugger` on `sethc.exe`: five presses of Shift at the lo
 
 ## Linux
 
-On an image with ext4, a mounted root or a UAC triage.
+On an image with ext4 or XFS, a mounted root or a UAC triage.
 
 | Area | What it checks |
 |---|---|
@@ -151,7 +156,7 @@ faramir -f disk.E01 -o tasks.csv get-scheduled-tasks
 faramir -d triage/ -o linux.csv get-linux-persistence
 ```
 
-With no action, it runs them all. `faramir --help` gives the full list.
+With no action, it runs them all. Every action starts with `get-` and is named after what it checks: `get-run`, `get-windows-services`, `get-com-hijacking`. `faramir --help` gives the full list, and the table that pairs each technique with its action is in the README on GitHub.
 
 ## What it does not check
 

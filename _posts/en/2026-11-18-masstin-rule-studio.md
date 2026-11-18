@@ -41,15 +41,17 @@ There are two ways to go: start from the library rule that reads the most, or fr
 
 A rule has one or more **line types**. This log has three: tunnel up, tunnel down and failed login. Each is recognised by something (an `action="tunnel-up"`) and gives a different event type.
 
-To make a line type, select a piece of text in a line and turn it into the condition. The studio marks at once which lines meet it, one colour per type.
+**Step 2, which lines.** To make a line type, select a piece of text in a line and turn it into the condition. The studio marks at once which lines meet it, one colour per type.
 
-**Fields** shows how the selected line is cut: each field with its name and value. For a log whose lines all have the same shape (JSON, CSV, key=value) there is a shortcut, **One line type for every line**, which makes a single type with every field already named.
+**Step 3, which fields.** **Fields** shows how the selected line is cut: each field with its name and value. For a log whose lines all have the same shape (JSON, CSV, key=value) there is a shortcut, **One line type for every line**, which makes a single type with every field already named.
 
 ## Step 4: which field goes in which column
 
 [![The Columns step: the top bar now says 100 %, with the lines split among three types; on the right the origin, account and destination drawing for the selected line, and at the bottom the timeline rows that come out](/assets/images/viewer/st-columns.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/st-columns.webp)
 
 This is the step that matters. The timeline has fixed columns, and for each one you say what fills it: a field (`${remip}`), a fixed text, or both (`${date} ${time}`).
+
+The columns are those of any masstin timeline, explained in [the CSV format](/en/tools/masstin-csv-format/). The ones you nearly always have to fill are the time (`time_created`), the origin (`src_ip` or `src_computer`), the destination (`dst_computer`), the account (`target_user_name`) and the event type (`event_type`).
 
 The good part is the drawing in the middle. For the selected line, it shows how the connection comes out: `198.51.100.210` → `FGT-LEO` as `mark.ops`, `SUCCESSFUL_LOGON`, `VPN`, at 07:53:26. If you put origin and destination the wrong way round, you see it there, without reading the YAML.
 
@@ -73,7 +75,7 @@ The library rule expects a `sentbyte` field this log does not carry. It breaks n
 
 The **YAML** tab shows the rule as written. **Save as…** saves it, and **Use it in the ingest** takes it straight to the [ingest wizard](/en/tools/masstin-viewer-ingest/).
 
-From the terminal it is the same:
+From the terminal it is the same. `--rules` takes a folder of rules or a single YAML file. In the example it is `rules/`, masstin's library, because here the rule that reads the log is already in it. To use a rule you have just saved with **Save as…**, give `--rules` the path of that file, or save it in the rules folder you pass.
 
 ```bash
 masstin -a parse -f FGT-LEO.log --rules rules/ -o vpn.csv

@@ -18,6 +18,8 @@ El panel de la izquierda es para eso. Se esconde con el embudo de la barra cuand
 
 ## Tres vistas
 
+La primera vista depende del hunt, el análisis de masstin que aprende qué es normal en la timeline y señala las conexiones raras ([qué es el hunt](/es/tools/masstin-graph-hunt/)). A cada conexión le pone un estado y una puntuación: `significant` es lo que pasa su listón y `candidate` lo que no llega pero merece un vistazo ([qué significan](/es/tools/hunt-score-across-tools/)).
+
 - **Findings.** Solo las conexiones que el hunt marcó como `significant` o `candidate`. Si has pasado el hunt, se empieza por aquí.
 - **Neighbourhood.** Las máquinas a *n* saltos de la que nombres. Escribes un nombre en la búsqueda rápida de arriba, pulsas Enter y ya estás dentro. Doble clic en cualquier máquina hace lo mismo.
 - **Everything.** Todo, y que decidan los demás filtros.
@@ -37,7 +39,7 @@ Los tres campos de búsqueda entienden lo mismo:
 
 [![El grafo filtrado por la cuenta ryan*: quedan dos máquinas y cuatro conexiones, y el filtro aparece como una ficha encima del mapa](/assets/images/viewer/f-user.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/f-user.webp)
 
-Aquí he escrito `ryan*` en la cuenta. De 78 conexiones quedan 4, entre dos máquinas, que suman 4 330 filas. Dos son logons correctos y dos son conexiones sin logon. Fíjate en los rótulos: tres dicen `ryan.devlead@DEV` y uno `ryan.devlead` a secas, de filas que no traen dominio. Para el visor son dos cuentas distintas.
+Aquí he escrito `ryan*` en la cuenta. De 78 conexiones quedan 4, entre dos máquinas, que suman 4 330 filas. Una conexión del mapa no es una fila: es una línea que junta todas las filas de la timeline con el mismo origen, destino, cuenta y resultado (más abajo, en «Cómo se agrupan las filas»). Dos son logons correctos y dos son conexiones sin logon. Fíjate en los rótulos: tres dicen `ryan.devlead@DEV` y uno `ryan.devlead` a secas, de filas que no traen dominio. Para el visor son dos cuentas distintas.
 
 Es deliberado. `Administrator@PARTNER`, `Administrator@DEV` y el Administrator local de un servidor son tres cuentas y salen como tres líneas. Si filtras por `adm*` las coges todas; si pones una `@` en el patrón, hablas del nombre completo.
 
@@ -55,7 +57,7 @@ En el laboratorio, solo los fallos son 5 filas de 28 672. En una red real, este 
 
 ## Hunt
 
-Si la timeline lleva el hunt, hay un deslizador **score ≥** y las pastillas de estado. La puntuación mide lo rara que es una conexión: 13 es una entre veinte, 30 una entre mil, 60 una entre un millón.
+Si la timeline lleva el hunt, hay un deslizador **score ≥** y las pastillas de estado. La puntuación va de 0 a 100 y mide lo rara que es una conexión comparada con lo normal en esa timeline. Con 13, solo una de cada veinte conexiones normales se ve así de rara; con 30, una de cada mil; con 60, una de cada millón. Cuanto más subes el deslizador, menos conexiones quedan y más raras son.
 
 ## Cómo se agrupan las filas
 

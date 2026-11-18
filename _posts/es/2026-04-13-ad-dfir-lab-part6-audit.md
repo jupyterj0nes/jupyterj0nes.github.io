@@ -16,7 +16,7 @@ comments: true
 
 ## Por qué auditar antes de atacar
 
-Un lab DFIR sin auditoría es como investigar un crimen sin cámaras de seguridad. Los ataques ocurren, pero cuando llegas a investigar **no queda nada**. Por eso Phase 8 va antes de Phase 9 (attacks): primero instrumentamos, después atacamos, y entonces los artefactos están ahí para analizarlos.
+Un lab DFIR sin auditoría es como investigar un crimen sin cámaras de seguridad. Los ataques ocurren, pero cuando llegas a investigar **no queda nada**. Por eso esta parte va antes de los ataques (Part 10): primero instrumentamos, después atacamos, y entonces los artefactos están ahí para analizarlos.
 
 Lo que vamos a capturar:
 
@@ -43,7 +43,7 @@ wget https://raw.githubusercontent.com/olafhartong/sysmon-modular/master/sysmonc
 # 2704 líneas de reglas con mapping a MITRE ATT&CK
 ```
 
-Y el playbook Ansible instala Sysmon en las 6 Windows VMs:
+Y el playbook Ansible instala Sysmon en las 6 Windows VMs. Las dos últimas tareas usan `sysmon_svc`: es una variable que rellena una tarea anterior del playbook, que aquí no se muestra, al comprobar si el servicio de Sysmon ya existe:
 
 ```yaml
 - name: Copy Sysmon.zip to Windows VM
@@ -85,6 +85,8 @@ La lógica está bien pensada: si es una instalación nueva, usa `-i`; si ya est
 | 13 | RegistryValueSet | Modificación del registro (persistencia) |
 | 22 | DnsQuery | Resolución DNS — gold para detectar C2 |
 
+Dos términos de la tabla: `lsass.exe` es el proceso de Windows que guarda en memoria las credenciales de las sesiones abiertas, y por eso es el objetivo de mimikatz. C2 (*command and control*) es el servidor desde el que el atacante da órdenes a los equipos comprometidos.
+
 Después de los ataques, tendremos miles de estos eventos en `Microsoft-Windows-Sysmon/Operational` (en disco, el fichero `Microsoft-Windows-Sysmon%4Operational.evtx`).
 
 ## Windows Advanced Audit Policy
@@ -105,7 +107,9 @@ Sysmon es genial pero no capta todo. El **Security.evtx** es donde viven los eve
     auditpol /set /subcategory:"Directory Service Replication" /success:enable /failure:enable
 ```
 
-Categorías activadas (Success + Failure):
+El bloque muestra dos de las ocho categorías. Las demás se activan igual: una línea `auditpol /set /subcategory:"..."` por cada subcategoría.
+
+Categorías activadas (Success + Failure). En la tabla, TGT es el ticket inicial que Kerberos entrega al usuario cuando se autentica, y TGS es el ticket que se pide después para acceder a un servicio concreto:
 
 | Categoría | Eventos importantes |
 |-----------|---------------------|
@@ -205,11 +209,11 @@ Con 310 GB libres en ZFS, el ratio de seguridad es ~28x. Cómodo.
 - ansible.windows.win_shell: wevtutil sl Microsoft-Windows-PowerShell/Operational /ms:268435456
 ```
 
-**Gotcha**: los tamaños iniciales que puse (1GB cada uno) eran excesivos para un lab en servidor compartido. La primera iteración llegaba a ~24 GB de logs potenciales. Revisando los ratios de disco antes de lanzar los ataques me di cuenta y bajé los valores. **Siempre calcula el peor caso antes de activar auditoría completa en un entorno con disco limitado.**
+**Gotcha**: los tamaños iniciales que puse (1GB cada uno) eran excesivos para un lab en un único servidor con disco limitado. La primera iteración llegaba a ~24 GB de logs potenciales. Revisando los ratios de disco antes de lanzar los ataques me di cuenta y bajé los valores. **Siempre calcula el peor caso antes de activar auditoría completa en un entorno con disco limitado.**
 
 ## Linux: auditd con reglas DFIR
 
-Para Ubuntu (LNX01), usamos `auditd` con reglas enfocadas a DFIR, no cumplimiento:
+Para Ubuntu (LNX01), usamos `auditd` con reglas enfocadas a DFIR, no cumplimiento. `auditd` es el servicio de auditoría del kernel de Linux: registra las llamadas al sistema y los accesos a ficheros que le indiques con reglas. En Ubuntu las reglas se guardan en un fichero `.rules` dentro de `/etc/audit/rules.d/` y se cargan al reiniciar el servicio. El bloque muestra una parte de las 50:
 
 ```
 ## ======= AUTHENTICATION =======
@@ -304,7 +308,9 @@ ssh ubuntu@192.168.10.32 'sudo auditctl -l | wc -l'
 # 50
 ```
 
-Las 7 máquinas del dominio están instrumentadas. Cuando lancemos los ataques en Phase 9, cada técnica dejará huellas en los EVTX/logs que podremos analizar después con herramientas como [masstin](https://github.com/jupyterj0nes/masstin).
+Las 7 máquinas del dominio están instrumentadas. Cuando lancemos los ataques en la Part 10, cada técnica dejará huellas en los EVTX/logs que podremos analizar después con herramientas como [masstin](https://github.com/jupyterj0nes/masstin).
+
+Antes de seguir, toma un snapshot de todas las VMs en este estado y llámalo `audit-configured`, con `qm snapshot` como en la Part 4. La Part 7 vuelve a él.
 
 ---
 

@@ -35,7 +35,7 @@ Hay una palabra que no aparece a propósito: *sospechoso*. Eso lo decide una per
 
 `hunt_score` va de 0 a 100 y mide **lo rara que es la fila**, no lo segura que está la herramienta.
 
-La cuenta es `−10 · log10(p)`, donde `p` es la proporción de filas normales que se ven al menos así de raras. Dicho sin fórmula, cada diez puntos son un orden de magnitud:
+La idea es sencilla: cada diez puntos, la fila es diez veces más rara. Para quien quiera la cuenta, es `−10 · log10(p)`, donde `p` es la proporción de filas normales que se ven al menos así de raras. Si la fórmula no te dice nada, quédate con la tabla:
 
 | Puntos | Se lee como |
 |---|---|
@@ -62,7 +62,7 @@ El autor de una regla dice solo su **nivel** (alto, medio o bajo), que decide el
 
 Esa última línea es la que más cambia las cosas. La regla clásica del timestomping, `$SI` anterior a `$FN`, salta en un fichero de cada cuatro de un Windows moderno limpio. En [allymacb](/es/tools/allymacb-timestomping-rules/) se queda en 6 puntos, por debajo del mínimo, así que no puntúa.
 
-Y explica una rareza de la tabla de arriba: el techo de una regla sola depende de lo grande que sea la referencia limpia. Por eso una regla que nunca falla vale 33 en faramir (2 003 filas de referencia), 39 en caarea (8 671), 40 en etcdump (10 017) y 56 en allymacb (431 153). No es que allymacb esté más seguro. Es que tiene más ficheros limpios con los que comparar que faramir entradas de persistencia.
+Y explica una rareza: el techo de una regla sola depende de lo grande que sea la referencia limpia. Por eso una regla que nunca falla vale 33 en faramir (2 003 filas de referencia), 39 en caarea (8 671), 40 en etcdump (10 017) y 56 en allymacb (431 153). No es que allymacb esté más seguro. Es que tiene más ficheros limpios con los que comparar que faramir entradas de persistencia.
 
 ## Quién avala
 
@@ -85,9 +85,9 @@ masstin no tiene reglas: solo compara. faramir y allymacb tienen las dos cosas, 
 
 1. Se separa lo que se investiga de lo que sirve de referencia. En masstin, los días de antes de la fecha de inicio. En faramir, las demás máquinas o lo anterior a `--baseline`. En allymacb, lo que el volumen hizo antes.
 2. Para cada fila investigada se cuenta cuántas de referencia son al menos igual de raras. De ahí sale `p`.
-3. Como se miran miles de filas a la vez, alguna saldrá rara por azar. Se corrige (Benjamini-Hochberg), y `--alpha` es la proporción de falsos hallazgos que aceptas entre los significativos. Por defecto, 0,05.
+3. Como se miran miles de filas a la vez, alguna saldrá rara por azar. Se corrige con Benjamini-Hochberg, un método estadístico estándar para ese problema: cuantas más filas se miran a la vez, más rara tiene que ser una para contar. `--alpha` es la proporción de falsos hallazgos que aceptas entre los significativos. Por defecto, 0,05: como mucho, uno de cada veinte.
 
-De ese diseño sale el límite más importante, y es el mismo en las tres: **sin referencia no hay estadística**. Con `N` filas o días de referencia, nada puede ser más raro que uno entre `N + 1`. El laboratorio tiene un solo día de actividad antes del incidente, y por eso su hunt estadístico da poco y con ruido, mientras que las reglas, que no necesitan pasado, aciertan.
+De ese diseño sale el límite más importante, y es el mismo en las tres que tienen test estadístico (masstin, faramir y allymacb): **sin referencia no hay estadística**. Con `N` filas o días de referencia, nada puede ser más raro que uno entre `N + 1`. El laboratorio tiene un solo día de actividad antes del incidente, y por eso su hunt estadístico da poco y con ruido, mientras que las reglas, que no necesitan pasado, aciertan.
 
 El detalle de cómo lo hace masstin está en [graph-hunt](/es/tools/masstin-graph-hunt/).
 

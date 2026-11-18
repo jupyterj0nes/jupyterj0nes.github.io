@@ -42,6 +42,11 @@ Filter summary:
 
 Two thirds go. And the summary says why each thing went, which is what lets you trust it.
 
+Two things about that command, so they do not throw you:
+
+- It uses `merge`, not `parse`, because the timeline is already made. `merge` can also filter a CSV that already exists. I explain it further down, in "Filtering without parsing again".
+- The single quotes around `'*$'` are for the terminal, not for masstin. Without them, the shell may change the `*` or the `$` before handing them to the program.
+
 ## --ignore-local
 
 It removes rows that **have no useful origin**. A row with no origin is not lateral movement, because there is no "from where".
@@ -50,7 +55,7 @@ The categories in the summary are the reasons:
 
 | Reason | What it is |
 |---|---|
-| `both_noise` | Neither the source address nor the source name says anything |
+| `both_noise` | Neither the source address nor the source name says anything: they are empty, a dash (`-`) or a placeholder such as `MSTSC` or `default_value` |
 | `self_reference` | The origin is the destination machine itself |
 | `loopback_ip` | The origin is `127.0.0.1` or `::1` |
 | `service_logon` | A service logon, with no origin |
@@ -59,9 +64,13 @@ The categories in the summary are the reasons:
 
 **A guarantee that matters.** A row with a valid public IP address as its origin **is never filtered**, whatever the computer name says. Windows often fails to resolve the name of whoever connects from outside, and those rows are exactly the brute force and the external access.
 
+The general rule is that the address wins. If the source IP is a real address (not loopback, not link-local), the row stays even when the name is a placeholder: a row with `MSTSC` as the name and a real IP is kept, and the same row with `-` instead of the IP is filtered.
+
 ## --exclude-users, --exclude-hosts, --exclude-ips
 
 For what you know is noise on *that* network.
+
+What follows are not complete commands. They are the options on their own, to add at the end of a `parse` or a `merge` like the one at the top.
 
 ```bash
 # service accounts and machine accounts

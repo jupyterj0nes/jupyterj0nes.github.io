@@ -28,9 +28,9 @@ Depende de lo que hayas pinchado.
 
 [![El inspector con una conexión seleccionada: origen y destino, cuenta, número de eventos, primera y última vez, tipo de logon, las marcas y la lista de filas](/assets/images/viewer/m-marked.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/m-marked.webp)
 
-Arriba, quién y qué: `DEV-SRV01 → DEV-DC01` como `ryan.devlead@DEV`, 23 eventos entre el 3 y el 10 de noviembre, logon tipo 3, evento 4624. Debajo, lo que dice el hunt (aquí nada, porque esta timeline no lo lleva). Después las marcas, de las que hablo en [su artículo](/es/tools/masstin-viewer-marks-case/). Y al final las filas que hay detrás, las 300 primeras, con su hora y su evento.
+Arriba, quién y qué: `DEV-SRV01 → DEV-DC01` como `ryan.devlead@DEV`, 23 eventos entre el 3 y el 10 de noviembre, logon tipo 3, evento 4624. El 4624 es el evento que Windows escribe cuando un logon sale bien, y el tipo 3 es un logon de red: la cuenta entra desde otra máquina para usar un recurso, sin abrir escritorio. Debajo, lo que dice el hunt (aquí nada, porque esta timeline no lo lleva). El [hunt](/es/tools/masstin-graph-hunt/) es el análisis de masstin que señala las conexiones raras; aquí verías su estado (`significant`, `candidate`…), su puntuación y el porqué ([qué significan](/es/tools/hunt-score-across-tools/)). Después las marcas, de las que hablo en [su artículo](/es/tools/masstin-viewer-marks-case/). Y al final las filas que hay detrás, las 300 primeras, con su hora y su evento.
 
-**See its rows in** lleva esas filas a tres sitios: al modo Timeline del propio visor, a agentc00pr o a otro programa (una copia en tu aplicación de CSV). Si marcas filas en la lista, los tres botones hablan solo de las marcadas.
+**See its rows in** lleva esas filas a tres sitios: al modo Timeline del propio visor, a agentc00pr o a otro programa (una copia en tu aplicación de CSV). agentc00pr es el banco de trabajo de casos de la misma familia de herramientas; si no lo usas, ese botón no te hace falta. Si marcas filas en la lista, los tres botones hablan solo de las marcadas.
 
 **Nada seleccionado.** Un resumen de la vista: cuántas máquinas, conexiones y filas, y cómo se reparten por estado del hunt y por veredicto.
 
@@ -44,7 +44,7 @@ Qué significa cada color, anillo, halo y grosor. Para cuando alguien mira tu pa
 
 ## La franja de tiempo
 
-Abajo del todo hay un histograma de **toda** la timeline: una barra cada tres píxeles, en escala logarítmica, en rojo donde cae una conexión `significant`. Encima, una banda brillante entre dos asas marca el periodo que estás viendo.
+Abajo del todo hay un histograma de **toda** la timeline: una barra cada tres píxeles, en escala logarítmica, en rojo donde cae una conexión `significant`, es decir, una que el hunt ha señalado como hallazgo. La escala logarítmica solo quiere decir que las barras altas se aplastan: así una hora con diez eventos se sigue viendo al lado de una con diez mil. Encima, una banda brillante entre dos asas marca el periodo que estás viendo.
 
 [![El visor con el periodo acotado a una hora: quedan tres máquinas y dos conexiones, la banda de la franja inferior es estrecha y el periodo aparece como ficha de filtro](/assets/images/viewer/t-window.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/t-window.webp)
 

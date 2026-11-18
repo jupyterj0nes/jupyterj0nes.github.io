@@ -16,6 +16,8 @@ comments: true
 
 ## El problema
 
+Una Volume Shadow Copy (VSS) es una instantánea que Windows guarda de un volumen en un momento dado. Es lo que hay detrás de los puntos de restauración y de las «versiones anteriores» de un fichero. Cada instantánea se llama también *snapshot* o *store*.
+
 Los atacantes borran los logs de eventos de Windows. Pero si existen Volume Shadow Copies en el disco, los logs antiguos siguen ahí — congelados en el tiempo. El reto: las herramientas existentes no permiten acceder fácilmente.
 
 | Herramienta | Limitación |
@@ -73,6 +75,8 @@ Ve a [**Releases**](https://github.com/jupyterj0nes/vshadow-rs/releases) y desca
 cargo install vshadow
 ```
 
+`cargo install` descarga el crate publicado en crates.io y lo compila en tu máquina, así que necesitas tener Rust instalado. El crate se llama `vshadow`; el programa que instala se llama `vshadow-rs`.
+
 ---
 
 ## Uso CLI
@@ -105,6 +109,8 @@ vshadow-rs list -f evidence.E01 --live -p "Windows/System32/winevt/Logs"
 vshadow-rs list -f evidence.E01 -s 0 -p "Windows/System32/winevt/Logs"
 ```
 
+`-s` es el índice del store VSS, empezando en 0. Ejecuta antes `info` para ver qué stores hay. `-s 0` es el primero.
+
 ### List-delta: encontrar qué cambió entre VSS y el volumen activo
 
 Esto es lo que hace único a vshadow-rs. Compara el filesystem del snapshot contra el volumen activo y muestra solo los ficheros que fueron **borrados** o **modificados**.
@@ -133,6 +139,8 @@ vshadow-rs extract -f evidence.E01 -s 0 -p "Windows/System32/winevt/Logs" -o ./r
 ### Timeline: generar timeline MACB del delta VSS
 
 Genera un CSV con timeline MACB (Modified, Accessed, Changed, Born) completa del delta — solo ficheros que existen en VSS pero no en el volumen activo, o que cambiaron.
+
+NTFS guarda dos juegos de cuatro fechas por fichero: el de `$STANDARD_INFORMATION` (SI), que es el que muestra Windows, y el de `$FILE_NAME` (FN). De ahí las 8 filas del formato expandido. En el formato MACB cada fichero ocupa una fila, marcada con las letras M, A, C y B: las iniciales de las cuatro fechas (Modified, Accessed, Changed, Born).
 
 ```bash
 # Formato expandido: 8 filas por fichero (timestamps SI + FN)
@@ -209,6 +217,8 @@ masstin -a parse -d ./recuperados/ -o lateral.csv
 
 ## Cómo funciona VSS
 
+Esta sección y la siguiente («Uso como biblioteca») son para quien quiera conocer el formato por dentro o programar con la librería. Si solo vas a usar la herramienta, puedes saltar a «Integración con masstin».
+
 Volume Shadow Copy utiliza un mecanismo de copy-on-write a nivel de bloques (16 KiB):
 
 1. **Creación de snapshot**: el catálogo registra los metadatos (GUID, timestamp)
@@ -249,7 +259,7 @@ Esto extrae EVTX tanto del volumen activo como de todos los snapshots VSS, gener
 
 ## Trabajo futuro
 
-- **Soporte VMDK / VHD / VHDX**: leer VSS desde imágenes de disco de máquinas virtuales directamente
+- **Soporte VMDK / VHD / VHDX**: leer VSS desde imágenes de disco de máquinas virtuales directamente. Esto se refiere a la herramienta `vshadow-rs`: masstin ya abre imágenes VMDK, VHD y VHDX y recupera sus shadow copies
 - **Delta multi-store**: comparar entre múltiples snapshots VSS para construir un historial completo de cambios
 - **Recuperación de ficheros borrados**: detectar y recuperar ficheros eliminados entre snapshots usando análisis de MFT
 - **Integración con Plaso/log2timeline**: exportar timelines en formatos compatibles con toolchains DFIR existentes

@@ -78,7 +78,9 @@ The table lists the rarest connections, and reading the first six gives you the 
 02:52  DEV-SRV01    → LEO-DC01     Administrator@DEV
 ```
 
-The 75 events on the first line are those of the `deploy` account: 73 failed attempts, the logon and the logoff. That same address also tried other user names, up to 184 failures in all.
+The first line is the brute force, not just the entry: it starts at 01:13 and the login that works comes at 01:39. Its 75 events are those of the `deploy` account: 73 failed attempts, the logon and the logoff. That same address also tried other user names, up to 184 failures in all.
+
+Accounts are written here as the viewer shows them (`svc-sql@DEV`). In the report and in the findings table you will see them in upper case with underscores (`SVC_SQL@DEV`). It is the same account.
 
 An outside address hammers the Linux server, gets in, and thirteen minutes after getting in that Linux server is using a SQL service account against a domain controller. It is the script, in the script's order, and nobody told it.
 
@@ -98,7 +100,11 @@ What sets this hunt apart from a list of alerts is that every finding explains i
 
 [![The inspector on a finding: LEO-LNX01 to DEV-SRV01 as svc-sql@DEV, significant, score 41, one in 13,000, and below it the full explanation](/assets/images/hunt/h-why.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/hunt/h-why.webp)
 
-`LEO-LNX01 → DEV-SRV01` as `svc-sql@DEV`. A single event, at 01:52:05. **Significant, score 41, one in 13,000.** And below, the reasons:
+`LEO-LNX01 → DEV-SRV01` as `svc-sql@DEV`. A single event, at 01:52:05. **Significant, score 41, one in 13,000.**
+
+The score goes from 0 to 100 and measures rarity: 13 is one in twenty, 30 one in a thousand, 60 one in a million. A 41 is "one in 13,000", rounded; the console gives the exact figure, one in 13,590. It is explained in [reading the result](/en/tools/masstin-hunt-report/).
+
+And below, the reasons:
 
 - The origin had never been seen as an origin.
 - That day it reached 3 destinations for the first time.
@@ -110,7 +116,7 @@ The last one is the one that counts. It does not say "this connection is rare". 
 
 ## And now, the path
 
-With the findings in front of you, the next thing is to ask how you get from one end to the other. [Find path](/en/tools/masstin-viewer-find-path/), from the outside address to the partner domain's controller:
+With the findings in front of you, the next thing is to ask how you get from one end to the other. [Find path](/en/tools/masstin-viewer-find-path/), from the outside address to the partner domain's controller. It opens under **Tools › Paths**: type the origin and the destination and press **Find paths**.
 
 [![The path marked over the findings: from 203.0.113.45 to LEO-LNX01, DEV-SRV01, PTR-SRV01 and PTR-DC01, with the hop number and time on each machine](/assets/images/hunt/h-path-map.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/hunt/h-path-map.webp)
 
@@ -129,7 +135,7 @@ The viewer does not write over it without asking. A dialog tells you what the ea
 
 ## What to know before trusting it
 
-- **It needs a past.** With a single reference day it runs, but it cannot call anything significant. With a week it works, and with a month it works better.
+- **It needs a past.** With fewer than two days before the start date it does not run: it ends with an error. With a week it works, and with a month it works better.
 - **It finds what is new, not what is bad.** An administrator trying out a new server is on the list, and rightly so. You decide. This scenario has one: `adm.nora` logging on from the jump server to a partner machine that account had never reached. It comes out significant, and the class the hunt gives it is "habitual credential on a new connection", which is exactly what it is.
 - **It does not see what was done inside.** masstin sees logons, not processes. That is what the rest of the evidence is for.
 

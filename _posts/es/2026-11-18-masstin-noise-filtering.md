@@ -42,6 +42,11 @@ Filter summary:
 
 Se van dos tercios. Y el resumen dice por qué se fue cada cosa, que es lo que permite fiarse.
 
+Dos cosas de esa orden, para que no despisten:
+
+- Usa `merge`, y no `parse`, porque la timeline ya está hecha. `merge` también sabe filtrar un CSV que ya existe. Lo explico más abajo, en «Filtrar sin volver a analizar».
+- Las comillas simples de `'*$'` son para la terminal, no para masstin. Sin ellas, la shell puede tocar el `*` o el `$` antes de pasárselos al programa.
+
 ## --ignore-local
 
 Quita las filas que **no tienen un origen útil**. Una fila sin origen no es movimiento lateral, porque no hay «desde dónde».
@@ -50,7 +55,7 @@ Las categorías del resumen son los motivos:
 
 | Motivo | Qué es |
 |---|---|
-| `both_noise` | Ni la dirección ni el nombre de origen dicen nada |
+| `both_noise` | Ni la dirección ni el nombre de origen dicen nada: están vacíos, son un guion (`-`) o un relleno como `MSTSC` o `default_value` |
 | `self_reference` | El origen es la propia máquina de destino |
 | `loopback_ip` | El origen es `127.0.0.1` o `::1` |
 | `service_logon` | Un logon de servicio, sin origen |
@@ -59,9 +64,13 @@ Las categorías del resumen son los motivos:
 
 **Una garantía que importa.** Una fila con una dirección IP pública válida como origen **no se filtra nunca**, diga lo que diga el nombre del equipo. Windows muchas veces no resuelve el nombre de quien se conecta desde fuera, y justo esas filas son la fuerza bruta y el acceso externo.
 
+La regla general es que la dirección manda. Si la IP de origen es una dirección real (no es de loopback ni de enlace local), la fila se queda aunque el nombre sea un relleno: una fila con `MSTSC` como nombre y una IP real se conserva, y la misma fila con `-` en lugar de la IP se filtra.
+
 ## --exclude-users, --exclude-hosts, --exclude-ips
 
 Para lo que sabes que es ruido en *esa* red.
+
+Lo de abajo no son órdenes completas. Son las opciones sueltas, para añadir al final de un `parse` o de un `merge` como el del principio.
 
 ```bash
 # cuentas de servicio y cuentas de máquina

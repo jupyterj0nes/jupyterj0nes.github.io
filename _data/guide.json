@@ -411,7 +411,7 @@
     "Find the three logs: `Microsoft-Windows-SMBServer/Security`, `Microsoft-Windows-SMBClient/Security` and `Microsoft-Windows-SMBClient/Connectivity`.",
     "On the destination machine, look in SMBServer/Security for events 1009 (anonymous access denied) and 551 (authentication failure).",
     "On the source machine, look in SMBClient/Security for 31001 and note the server, share and account.",
-    "Review events 30803 to 30808 in SMBClient/Connectivity.",
+    "Check events 30803 to 30808 in SMBClient/Connectivity: they are connections that failed, dropped or recovered, and each names the server (and the share, in 30807 and 30808).",
     "Cross this with Security.evtx (4624 type 3, 4625, 4648) and with 7045 in System.evtx.",
     "Compare what you see with the scenarios in the article: PsExec and share enumeration.",
     "Run `masstin -a parse -d /evidence/logs/ -o timeline.csv` to see it all together."
@@ -456,7 +456,7 @@
     "Localiza los tres logs: `Microsoft-Windows-SMBServer/Security`, `Microsoft-Windows-SMBClient/Security` y `Microsoft-Windows-SMBClient/Connectivity`.",
     "En la máquina destino, busca en SMBServer/Security los eventos 1009 (acceso anónimo denegado) y 551 (fallo de autenticación).",
     "En la máquina origen, busca en SMBClient/Security el 31001 y apunta servidor, share y cuenta.",
-    "Revisa en SMBClient/Connectivity los eventos 30803 a 30808.",
+    "Revisa en SMBClient/Connectivity los eventos 30803 a 30808: son conexiones que fallaron, se cortaron o se recuperaron, y cada una nombra el servidor (y el recurso, en 30807 y 30808).",
     "Cruza lo anterior con Security.evtx (4624 tipo 3, 4625, 4648) y con el 7045 de System.evtx.",
     "Compara lo que ves con los escenarios del artículo: PsExec y enumeración de shares.",
     "Ejecuta `masstin -a parse -d /evidence/logs/ -o timeline.csv` para verlo todo junto."
@@ -504,7 +504,7 @@
     "Look for event 21 (session logon) and note the user, SessionID and source IP.",
     "Follow the session with 22 (shell start), 24 (disconnect) and 25 (reconnect). Compare the IP of the 21 with that of the 25.",
     "Look at 1149 in RemoteConnectionManager and 131 in RdpCoreTS for the connections received.",
-    "On the source machine, look for 1024 in `Microsoft-Windows-TerminalServices-RDPClient/Operational` to see which servers it connected to.",
+    "On the source machine, look for 1024 and 1102 in `Microsoft-Windows-TerminalServices-RDPClient/Operational` to see which servers it connected to.",
     "Put the events in order as in 'Reconstrucción de una sesión RDP completa', together with 4624 type 10 from Security.evtx.",
     "Run `masstin -a parse -d /evidence/logs/ -o timeline.csv` to see it in a single timeline."
    ],
@@ -553,7 +553,7 @@
     "Busca el evento 21 (sesión iniciada) y apunta usuario, SessionID e IP de origen.",
     "Sigue la sesión con el 22 (shell iniciado), el 24 (desconexión) y el 25 (reconexión). Compara la IP del 21 con la del 25.",
     "Mira el 1149 en RemoteConnectionManager y el 131 en RdpCoreTS para las conexiones recibidas.",
-    "En la máquina origen, busca el 1024 en `Microsoft-Windows-TerminalServices-RDPClient/Operational` para ver a qué servidores se conectó.",
+    "En la máquina origen, busca el 1024 y el 1102 en `Microsoft-Windows-TerminalServices-RDPClient/Operational` para ver a qué servidores se conectó.",
     "Ordena los eventos como en «Reconstrucción de una sesión RDP completa», junto con el 4624 tipo 10 de Security.evtx.",
     "Ejecuta `masstin -a parse -d /evidence/logs/ -o timeline.csv` para verlo en una sola timeline."
    ],
@@ -3222,7 +3222,7 @@
  "tool-masstin-csv-format": {
   "en": {
    "learn": [
-    "Read the 14 columns of the CSV masstin produces",
+    "Read the 19 columns of the CSV masstin produces: the 14 of the event and the 5 of the analysis",
     "Interpret the four `event_type` categories",
     "Know which `event_type` each Event ID maps to",
     "Use `logon_id` and `detail` to pair sessions and understand failures"
@@ -3233,7 +3233,7 @@
     "A program to open CSV files, such as a spreadsheet"
    ],
    "steps": [
-    "Open the CSV and find the 14 columns, from `time_created` to `log_filename`.",
+    "Open the CSV and find the 14 event columns, from `time_created` to `log_filename`, and the 5 at the end (`hunt`, `hunt_score`, `hunt_why`, `verdict`, `notes`).",
     "Look at `event_type` first: `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF` or `CONNECT`.",
     "Use `event_id` and the tables in the article to know which original event each row is.",
     "Read `src_computer` and `src_ip` (source), `dst_computer` (destination) and `target_user_name` (account).",
@@ -3270,7 +3270,7 @@
   },
   "es": {
    "learn": [
-    "Leer las 14 columnas del CSV que genera masstin",
+    "Leer las 19 columnas del CSV que genera masstin: las 14 del evento y las 5 del análisis",
     "Interpretar las cuatro categorías de `event_type`",
     "Saber a qué `event_type` corresponde cada Event ID",
     "Usar `logon_id` y `detail` para emparejar sesiones y entender fallos"
@@ -3281,7 +3281,7 @@
     "Un programa para abrir CSV, como una hoja de cálculo"
    ],
    "steps": [
-    "Abre el CSV y localiza las 14 columnas, de `time_created` a `log_filename`.",
+    "Abre el CSV y localiza las 14 columnas del evento, de `time_created` a `log_filename`, y las 5 del final (`hunt`, `hunt_score`, `hunt_why`, `verdict`, `notes`).",
     "Mira primero `event_type`: `SUCCESSFUL_LOGON`, `FAILED_LOGON`, `LOGOFF` o `CONNECT`.",
     "Usa `event_id` y las tablas del artículo para saber qué evento original es cada fila.",
     "Lee `src_computer` y `src_ip` (origen), `dst_computer` (destino) y `target_user_name` (cuenta).",
@@ -4027,11 +4027,11 @@
    ],
    "steps": [
     "Check which processor your Mac has and pick `masstin-macos-arm64` (Apple Silicon) or `masstin-macos-x86_64` (Intel).",
-    "Download the binary: `curl -LO https://github.com/jupyterj0nes/masstin/releases/latest/download/masstin-<tag>-macos-arm64`.",
-    "Make it executable: `chmod +x masstin-<tag>-macos-arm64`.",
-    "If you downloaded it with a browser, remove the quarantine mark: `xattr -d com.apple.quarantine masstin-<tag>-macos-<arch>`.",
-    "Check that it starts: `./masstin-<tag>-macos-<arch> --version`.",
-    "Parse a folder of logs: `./masstin-<tag>-macos-arm64 -a parse -d /evidence/logs -o timeline.csv`."
+    "Download the binary: `curl -LO https://github.com/jupyterj0nes/masstin/releases/download/v1.4.4/masstin-v1.4.4-macos-arm64`.",
+    "Make it executable: `chmod +x masstin-v1.4.4-macos-arm64`.",
+    "If you downloaded it with a browser, remove the quarantine mark: `xattr -d com.apple.quarantine masstin-v1.4.4-macos-arm64`.",
+    "Check that it starts: `./masstin-v1.4.4-macos-arm64 --version`.",
+    "Parse a folder of logs: `./masstin-v1.4.4-macos-arm64 -a parse -d /evidence/logs -o timeline.csv`."
    ],
    "terms": [
     [
@@ -4075,11 +4075,11 @@
    ],
    "steps": [
     "Mira qué procesador tiene tu Mac y elige `masstin-macos-arm64` (Apple Silicon) o `masstin-macos-x86_64` (Intel).",
-    "Descarga el binario: `curl -LO https://github.com/jupyterj0nes/masstin/releases/latest/download/masstin-<tag>-macos-arm64`.",
-    "Hazlo ejecutable: `chmod +x masstin-<tag>-macos-arm64`.",
-    "Si lo bajaste con el navegador, quita la marca de cuarentena: `xattr -d com.apple.quarantine masstin-<tag>-macos-<arch>`.",
-    "Comprueba que arranca: `./masstin-<tag>-macos-<arch> --version`.",
-    "Analiza una carpeta de logs: `./masstin-<tag>-macos-arm64 -a parse -d /evidencia/logs -o timeline.csv`."
+    "Descarga el binario: `curl -LO https://github.com/jupyterj0nes/masstin/releases/download/v1.4.4/masstin-v1.4.4-macos-arm64`.",
+    "Hazlo ejecutable: `chmod +x masstin-v1.4.4-macos-arm64`.",
+    "Si lo bajaste con el navegador, quita la marca de cuarentena: `xattr -d com.apple.quarantine masstin-v1.4.4-macos-arm64`.",
+    "Comprueba que arranca: `./masstin-v1.4.4-macos-arm64 --version`.",
+    "Analiza una carpeta de logs: `./masstin-v1.4.4-macos-arm64 -a parse -d /evidencia/logs -o timeline.csv`."
    ],
    "terms": [
     [

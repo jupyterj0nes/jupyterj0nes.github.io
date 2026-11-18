@@ -49,6 +49,8 @@ Cuando el registro del `$MFT` se reutiliza, o el log de eventos se vacía, ya no
 
 caarea, además, lee `pagefile.sys`, `swapfile.sys` e `hiberfil.sys` de cada partición, y acepta un volcado de memoria o un fichero de espacio libre suelto.
 
+Por si no los conoces: `pagefile.sys` y `swapfile.sys` son los ficheros donde Windows guarda en disco la memoria que no le cabe en la RAM. `hiberfil.sys` es la copia de la memoria que hace al hibernar. Y un volcado de memoria es una copia de la RAM de una máquina encendida, guardada en un fichero. En todos pueden quedar trozos de cosas que ya no están en el disco.
+
 ## Cómo se evita devolver basura
 
 El problema del carving no es encontrar candidatos. Es que una firma de cuatro bytes aparece por casualidad miles de veces en un disco. Por eso cada estructura tiene que demostrar que lo es:
@@ -60,6 +62,15 @@ El problema del carving no es encontrar candidatos. Es que una firma de cuatro b
 | Registro del `$MFT` | Geometría de la cabecera y la secuencia de corrección: los dos últimos bytes de cada sector tienen que coincidir con un número que guarda el registro. Los datos al azar no pasan |
 | Entrada de índice | Lo anterior, y además longitud, caracteres del nombre y fechas plausibles |
 | Registro `pacct` o `utmp` | Versión, texto imprimible, fecha entre límites razonables |
+
+Algunos términos de la tabla:
+
+- **Bins:** los bloques en que se divide un hive por dentro.
+- **CRC32:** una suma de comprobación, un número calculado a partir de los datos. Si los datos no son los originales, no coincide.
+- **`pacct`:** el fichero donde Linux apunta cada proceso que termina, si la contabilidad de procesos está activada.
+- **`utmp`:** el formato en que Linux apunta los inicios y cierres de sesión.
+
+Estas comprobaciones filtran casi todo, pero no todo. Cuanta menos forma tiene una estructura, más fácil es que unos datos al azar la cumplan: más abajo hay un ejemplo real con `utmp`.
 
 Y una regla común a las cuatro: **solo se recupera lo que lleva su propia fecha dentro.** Un trozo de fichero sin fecha no se puede colocar en una timeline, y ninguna herramienta se inventa una.
 
@@ -75,7 +86,7 @@ Lo recuperado se compara con lo vivo, y lo que es idéntico se descarta. De un r
 - Un registro cuyo número **ya se reutilizó** para otro fichero.
 - Un registro de un **volumen que ya no existe**.
 
-La comparación es por identidad (qué es), nunca por posición en el disco.
+La comparación es por identidad (qué es), nunca por posición en el disco. Un ejemplo: una copia de un registro del `$MFT` que aparece dentro del fichero de paginación está en otro sitio del disco, pero describe el mismo fichero con las mismas fechas. Es idéntica a la viva, y se descarta.
 
 El primer caso tiene una consecuencia que no se ve venir. Si el estado antiguo de un fichero tiene una fecha **posterior** a la del estado actual, alguien movió sus fechas hacia atrás. Es la regla `backdated` de allymacb, y solo se puede comprobar con carving. Una versión vieja no puede ser más nueva.
 
@@ -144,7 +155,7 @@ No siempre. El nivel uno ya da la mayor parte de lo borrado reciente, y va inclu
 
 `--carve` es para tres situaciones:
 
-- **Se vaciaron los logs.** Un 1102 en el log de seguridad, o un log que empieza justo después del incidente.
+- **Se vaciaron los logs.** Un 1102 en el log de seguridad (el evento que Windows apunta cuando alguien vacía ese log), o un log que empieza justo después del incidente.
 - **El volumen se formateó o se reinstaló.** El `$MFT` nuevo no sabe nada del anterior. Los registros viejos siguen en el espacio libre.
 - **Hay que saber qué había antes.** Estados anteriores de ficheros que siguen existiendo.
 

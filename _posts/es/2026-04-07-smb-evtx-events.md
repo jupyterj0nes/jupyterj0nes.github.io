@@ -31,6 +31,8 @@ A diferencia de los eventos de logon en Security.evtx, los logs específicos de 
 
 **Log:** `Microsoft-Windows-SMBServer/Security`
 
+**Fichero:** `Microsoft-Windows-SMBServer%4Security.evtx`, en `C:\Windows\System32\winevt\Logs\`. En el nombre del fichero, la `/` del canal se escribe `%4`.
+
 Estos eventos se generan en la **máquina destino** (el servidor SMB que recibe las conexiones).
 
 ### Event ID 1009 — Acceso anónimo denegado

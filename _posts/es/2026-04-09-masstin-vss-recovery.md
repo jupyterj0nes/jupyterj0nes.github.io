@@ -23,6 +23,11 @@ Un incidente de ransomware golpea tu red. Recibes una carpeta llena de imágenes
 
 Todos los resultados se fusionan en un **único CSV cronológico** — logons RDP de Windows y sesiones SSH de Linux lado a lado.
 
+Dos términos antes de seguir:
+
+- **Snapshot VSS** (Volume Shadow Copy): una copia que Windows guarda del estado de un volumen en un momento dado, para puntos de restauración y copias de seguridad. Lo que se borró después de hacerse el snapshot sigue dentro de él. Por eso de ahí se recuperan logs que el atacante borró.
+- **Volumen activo** (*live*): el disco tal como estaba cuando se hizo la imagen, sin mirar los snapshots.
+
 ```bash
 # Una imagen — SO auto-detectado
 masstin -a parse -f HRServer_Disk0.e01 -o timeline.csv
@@ -36,7 +41,7 @@ masstin -a parse -d /evidence/all_machines/ -o full_timeline.csv
 
 Para cada imagen, masstin:
 
-1. **Abre la imagen forense** (E01, dd/raw o VMDK)
+1. **Abre la imagen forense** (E01, dd/raw, VMDK o VHD/VHDX)
 2. **Encuentra todas las particiones** automáticamente (GPT y MBR)
 3. **Identifica el SO** por partición (firma NTFS o superbloque ext4)
 4. **Extrae artefactos Windows** de NTFS: EVTX + UAL del volumen activo
@@ -49,7 +54,7 @@ Para cada imagen, masstin:
 
 ## Ejemplo
 
-Procesando una imagen E01 de 50 GB de un Windows Server donde el atacante había borrado los logs de eventos:
+Procesando una imagen E01 de 50 GB de un Windows Server donde el atacante había borrado los logs de eventos. La tabla cuenta dos cosas distintas: las filas «EVTX» y «Total» cuentan **ficheros** de log, y las filas «Eventos» cuentan los **registros** que había dentro de esos ficheros.
 
 | Métrica | Resultado |
 |---------|-----------|
@@ -102,7 +107,7 @@ O simplemente apunta a una carpeta de evidencia:
 masstin -a parse -d /evidence/ -o timeline.csv
 ```
 
-Masstin encuentra recursivamente todas las imágenes E01, VMDK y dd/raw en la carpeta, auto-detecta el SO de cada una, y produce un único CSV unificado.
+Masstin encuentra recursivamente todas las imágenes E01, VMDK, VHD/VHDX y dd/raw en la carpeta, auto-detecta el SO de cada una, y produce un único CSV unificado.
 
 ## Detalle de logons fallidos
 
@@ -129,6 +134,8 @@ Esto evita el escenario confuso donde miles de EVTX se extraen con tamaños corr
 
 ## Soporte de formatos VMDK
 
+Sección de referencia. Un VMDK es el disco de una máquina virtual de VMware, y hay varias formas de guardarlo. No tienes que saber cuál es la tuya: a masstin le das el `.vmdk` y lo reconoce. Vuelve aquí solo si una imagen no se abre.
+
 El parser VMDK propio de masstin maneja todos los formatos comunes encontrados en evidencia forense:
 
 | Formato | Origen | Funcionamiento |
@@ -141,6 +148,8 @@ El parser VMDK propio de masstin maneja todos los formatos comunes encontrados e
 **Subidas SFTP incompletas:** Cuando falta el fichero de datos de un VMDK flat (ej: `server-flat.vmdk`), masstin prueba automáticamente la extensión `.filepart` (`server-flat.vmdk.filepart`) — común cuando las transferencias SFTP se interrumpieron durante la recolección de evidencia.
 
 ## Soporte LVM2
+
+LVM es la capa con la que muchos Linux reparten el disco en volúmenes lógicos, en lugar de usar las particiones directamente. masstin lo resuelve solo, sin que hagas nada. El detalle, por si lo necesitas:
 
 Para imágenes forenses Linux que utilizan Logical Volume Management (LVM2), masstin detecta particiones LVM (GUID de tipo GPT o tipo MBR `0x8E`), lee los metadatos LVM, y extrae los ficheros de log de cada volumen lógico. Esto cubre servidores Linux empresariales que comúnmente usan LVM para la gestión de discos.
 
@@ -164,7 +173,9 @@ Al procesar múltiples imágenes, el resumen agrupa los artefactos por nombre de
 
 ## Cómo funciona
 
-Masstin utiliza parsers en Rust puro para todo — sin herramientas externas, sin montar, sin FUSE:
+Esta sección es para quien quiera saber qué pasa por dentro. Para usar masstin no hace falta: puedes saltártela.
+
+Masstin lo hace todo dentro de su propio binario — sin herramientas externas, sin montar, sin FUSE:
 
 1. **Acceso a imagen**: E01 vía crate `ewf`, VMDK vía parser propio (sparse, split, flat, streamOptimized), dd/raw vía I/O directo
 2. **Detección de particiones**: tablas GPT y MBR parseadas para encontrar todas las particiones, incluyendo LVM2
@@ -174,10 +185,12 @@ Masstin utiliza parsers en Rust puro para todo — sin herramientas externas, si
    - EVTX de `Windows\System32\winevt\Logs\`
    - Bases de datos UAL de `Windows\System32\LogFiles\Sum\`
    - XML de Scheduled Tasks de `Windows\System32\Tasks\`
+   - NTUSER.DAT de cada perfil de usuario, para [MountPoints2](/es/artifacts/mountpoints2-lateral-movement/)
    - Detección VSS en offset `0x1E00`, mapeo de block descriptors, reconstrucción de snapshot vía [vshadow-rs](https://github.com/jupyterj0nes/vshadow-rs)
 6. **Extracción Linux** (particiones ext4):
    - auth.log, secure, messages, audit.log de `/var/log/`
    - wtmp, btmp, utmp, lastlog, hostname
+   - Logs binarios de systemd-journald de `/var/log/journal/`
    - Inferencia de año desde `dpkg.log`, hostname desde `/etc/hostname`
 7. **Parsing dual**: artefactos Windows → `parse_events`, artefactos Linux → `parse_linux`
 8. **Fusión y deduplicación**: ambas timelines fusionadas cronológicamente, duplicados eliminados

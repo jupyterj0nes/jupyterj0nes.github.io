@@ -97,6 +97,8 @@ Masstin automatically recognizes Winlogbeat JSON files and extracts the fields r
 masstin -a parse -d /path/to/winlogbeat/ -o timeline.csv
 ```
 
+The file names do not matter. Masstin walks the folder, opens the files ending in `.json`, `.ndjson` or `.jsonl` and looks at their content: if they hold Windows events with the Winlogbeat fields (`winlog.event_id`, `winlog.channel`, `winlog.event_data.*`), it reads them.
+
 Masstin maps ECS/Winlogbeat fields to its internal normalized format, so Winlogbeat events appear in the timeline with the same structure as those parsed directly from EVTX.
 
 > **Practical advantage:** When you don't have access to the original EVTX files (rotated, deleted, or inaccessible), Winlogbeat data forwarded to Elasticsearch may be your only source of events. Masstin lets you work with them directly.
@@ -112,13 +114,15 @@ Masstin maps ECS/Winlogbeat fields to its internal normalized format, so Winlogb
 | Partially rotated EVTX | Combine available EVTX + Winlogbeat export to fill gaps |
 | Retroactive investigation | Winlogbeat data in the SIEM may cover months of retention |
 
+This article does not cover how to get the documents out of Elasticsearch: that is done with Elastic's own export tooling. What masstin needs from the result is a file with one JSON document per line (NDJSON) in which every document keeps its `winlog` block.
+
 ---
 
 ## Summary Table
 
 | Source | Format | What It Provides | Limitations |
 |--------|--------|-----------------|-------------|
-| Native EVTX | Binary (.evtx) | Complete data, all fields | Requires machine access, log rotation |
+| Native EVTX | Binary (.evtx) | Complete data, all fields | Requires having the `.evtx` files (from the machine, a triage or an image); log rotation deletes old events |
 | Winlogbeat | JSON (NDJSON) | Extended retention in SIEM | May lack context if not all fields are forwarded |
 
 ---

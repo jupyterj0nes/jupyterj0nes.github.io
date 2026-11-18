@@ -14,6 +14,11 @@ comments: true
 ---
 Esta página es para consultar. Lista los sitios en los que [faramir](/es/tools/faramir-persistence/) busca persistencia, agrupados por la idea que hay detrás de cada uno, con su técnica de ATT&CK.
 
+Dos notas para leer las tablas:
+
+- **ATT&CK** es el catálogo público de MITRE de técnicas de ataque. Cada técnica tiene un identificador, como T1547.001, que puedes buscar en [attack.mitre.org](https://attack.mitre.org/) para ver en qué consiste.
+- Lo que va en `letra de código` es el nombre de la clave o del valor del registro (o del fichero) que se revisa. No hace falta saberse la ruta completa: cada fila de la timeline dice, en su última columna de evento, de qué fichero y de qué clave se leyó. Las tablas que no tienen columna «Dónde» son las que ya nombran el sitio en la primera.
+
 Antes, una cifra para situarse. En el caso de nuestro laboratorio (siete máquinas) salieron 6 162 entradas de 41 tipos distintos. Así se reparten las más numerosas:
 
 | Tipo | Entradas |
@@ -116,7 +121,7 @@ El caso clásico es un `Debugger` sobre `sethc.exe`: cinco pulsaciones de Mayús
 
 ## Linux
 
-Sobre una imagen con ext4, una raíz montada o un triage de UAC.
+Sobre una imagen con ext4 o XFS, una raíz montada o un triage de UAC.
 
 | Área | Qué revisa |
 |---|---|
@@ -151,7 +156,7 @@ faramir -f disco.E01 -o tareas.csv get-scheduled-tasks
 faramir -d triage/ -o linux.csv get-linux-persistence
 ```
 
-Sin acción, las ejecuta todas. La lista completa la da `faramir --help`.
+Sin acción, las ejecuta todas. Todas las acciones empiezan por `get-` y se llaman como lo que revisan: `get-run`, `get-windows-services`, `get-com-hijacking`. La lista completa la da `faramir --help`, y la tabla que empareja cada técnica con su acción está en el README de GitHub.
 
 ## Lo que no revisa
 

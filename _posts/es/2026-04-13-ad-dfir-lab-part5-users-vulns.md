@@ -20,7 +20,7 @@ Tras los 16 playbooks de GOAD tenemos **46 usuarios** repartidos en tres dominio
 
 ### sevenkingdoms.local (forest root — Lannisters, Baratheons y consejeros)
 
-| Usuario | Grupo | Rol en ataques |
+| Usuario | Grupo | Rol en la historia |
 |---------|-------|----------------|
 | `tywin.lannister` | Lannister | Patriarca de los Lannister |
 | `jaime.lannister` | Lannister | Kingsguard |
@@ -83,6 +83,14 @@ Tras los 16 playbooks de GOAD tenemos **46 usuarios** repartidos en tres dominio
 
 ## Vulnerabilidades catalogadas
 
+Tres avisos para leer los comandos de esta sección:
+
+- `Password` es un marcador: sustitúyelo por la contraseña real del usuario.
+- `users.txt` es una lista de nombres de usuario, uno por línea. Te sirven los de las tablas de arriba.
+- `hashes.txt` es el fichero donde guardas los hashes que imprime el comando anterior.
+
+Qué eventos de Windows hay que tener activados para ver después estos ataques en los logs lo tratamos en la [Part 6]({% post_url es/2026-04-13-ad-dfir-lab-part6-audit %}).
+
 ### 1. Kerberos: AS-REP Roasting
 
 Usuarios con `DoesNotRequirePreAuth=True` permiten a un atacante no autenticado solicitar un AS-REP ticket que contiene material cifrado con el hash NTLM del usuario. Ese material es crackeable offline con hashcat.
@@ -117,6 +125,8 @@ hashcat -m 13100 hashes.txt rockyou.txt
 
 ### 3. Delegación
 
+La delegación permite a un servicio actuar en nombre de un usuario ante otro servicio. Kerberos la implementa con dos extensiones: con **S4U2Self** el servicio obtiene un ticket para sí mismo a nombre de cualquier usuario, y con **S4U2Proxy** lo canjea por un ticket hacia el servicio al que tiene permitido delegar.
+
 **Unconstrained delegation**: `WINTERFELL$` (la propia cuenta de computer del DC02) tiene `TrustedForDelegation=True`. Cualquier ticket de servicio enviado a este DC es almacenable y reutilizable.
 
 **Constrained delegation**:
@@ -124,6 +134,8 @@ hashcat -m 13100 hashes.txt rockyou.txt
 - `CASTELBLACK$` → `HTTP/winterfell` (el computer castelblack puede impersonar hacia HTTP del DC)
 
 ### 4. ACLs abusables (GenericAll / WriteDacl / DCSync paths)
+
+Una ACL es la lista de permisos de un objeto de AD. `GenericAll` es control total sobre el objeto. `WriteDacl` permite cambiar esa lista, y por tanto darte a ti mismo cualquier permiso.
 
 GOAD crea varias cadenas de abuso de ACLs. Para verificarlas con BloodHound:
 
@@ -148,7 +160,7 @@ GOAD instala Active Directory Certificate Services en DC01 y SRV03, y añade **t
 | **ESC9** | No Security Extension — el cert no incluye el SID del usuario, permite spoofing |
 | **ESC13** | Issuance Policies vinculadas a grupos AD |
 
-**Enumeración con Certipy**:
+**Enumeración con Certipy** (en la Kali actual el ejecutable se llama `certipy-ad`; lo vemos en la Part 7):
 ```bash
 certipy find -u brandon.stark@north.sevenkingdoms.local -p Password \
     -dc-ip 192.168.10.12 -vulnerable -stdout
@@ -157,6 +169,8 @@ certipy find -u brandon.stark@north.sevenkingdoms.local -p Password \
 ### 6. MSSQL linked servers (cross-forest)
 
 `SRV02` (castelblack, forest 1) tiene un **linked server** hacia `BRAAVOS` (forest 2). Permite pivotar via MSSQL desde un forest al otro sin necesitar un trust explícito a nivel de computer.
+
+`xp_cmdshell` es un procedimiento de SQL Server que ejecuta comandos del sistema operativo; viene desactivado, y por eso la cadena lo habilita primero.
 
 **Cadena de ataque**:
 ```sql
@@ -195,7 +209,7 @@ Añadimos manualmente (ya que GOAD no lo incluye) una GPO "Corporate Local Admin
 
 ### 9. Scheduled tasks con credenciales cacheadas (LSA Secrets)
 
-Dos scheduled tasks en winterfell almacenan credenciales en LSA Secrets, extraíbles con mimikatz (`privilege::debug; lsadump::secrets`):
+Dos scheduled tasks en winterfell almacenan credenciales en LSA Secrets, extraíbles con mimikatz (`privilege::debug` y después `lsadump::secrets`, como dos comandos separados):
 
 | Task | Usuario | Password |
 |------|---------|----------|
@@ -209,6 +223,8 @@ Trust bidireccional entre `sevenkingdoms.local` ↔ `essos.local`. Permite:
 - Kerberos service ticket cross-realm
 - SID History injection (si se consigue admin de un lado)
 
+SID History es un atributo que conserva los identificadores antiguos de una cuenta migrada de otro dominio. Si se le inyecta el SID de un grupo privilegiado, la cuenta hereda sus permisos.
+
 ### 11. IIS + WebDAV + ASP upload
 
 `SRV02` tiene IIS instalado con un website vulnerable que permite upload de archivos ASP. Útil para pruebas de web shell.
@@ -219,7 +235,7 @@ La GPO `StarkWallpaper` existe en `north.sevenkingdoms.local` y **`samwell.tarly
 
 ## Cuentas con passwords conocidos
 
-Para facilitar los ataques didácticos, GOAD establece passwords predecibles. Los usuarios listados tienen passwords que aparecen en `rockyou.txt` o son derivados obvios:
+Para facilitar los ataques didácticos, GOAD establece passwords predecibles. Los usuarios listados tienen passwords que aparecen en `rockyou.txt` o son derivados obvios. Las tres últimas filas, las de los domain admin, son la excepción: no siguen ese patrón y se listan como referencia del lab:
 
 | Usuario | Password conocido |
 |---------|-------------------|

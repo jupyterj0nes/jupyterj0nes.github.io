@@ -16,7 +16,7 @@ comments: true
 
 ## The question that didn't have an obvious answer
 
-While planning Phase 10 (generating two years of synthetic historical activity), a practical question came up: *what happens in 6 months when the Windows evaluation periods expire?* The whole forest is built on eval ISOs. Server 2019 is good for 180 days. Win10 Enterprise for 90. And I plan to keep this lab alive for years.
+While planning Phase 10 (generating two years of synthetic historical activity; that is what Part 8 covers), a practical question came up: *what happens in 6 months when the Windows evaluation periods expire?* The whole forest is built on eval ISOs. Server 2019 is good for 180 days. Win10 Enterprise for 90. And I plan to keep this lab alive for years.
 
 The folk wisdom is: "just shut the VMs down when you're not using them, eval time is only consumed while they're running." I couldn't find a definitive answer one way or the other, so I ran the experiment.
 
@@ -50,6 +50,8 @@ The protocol:
 This finding completely changed my view of the lab's expected lifetime.
 
 ## Rearm limits and real lifetime
+
+A rearm is the command `slmgr /rearm`: it runs inside Windows as administrator and resets the evaluation counter. Each edition allows a limited number of rearms. You don't have to type it on every VM; the script in the next section runs it for you.
 
 ```
 Server 2019/2016   →  180 d initial + 6 × 180 d  ≈  3.4 years
@@ -106,7 +108,7 @@ Two design details worth mentioning:
 
 2. **Rearms-exhausted alert**. Independent of the days threshold, the first time a VM reaches `RemainingAppReArmCount == 0`, it fires a separate message. That's the signal to either schedule the VM for replacement or accept degraded eval mode.
 
-Cron entry:
+Cron entry. The line has a user field (`root`), so it goes in `/etc/crontab` or in a file inside `/etc/cron.d/`, not in `crontab -e`:
 
 ```cron
 0 9 * * * root /root/lab/scripts/lab-license-alert.sh >> /var/log/lab-license.log 2>&1
@@ -119,7 +121,7 @@ TELEGRAM_BOT_TOKEN="123456789:ABCdefGhIjKlMnOpQrStUvWxYz"
 TELEGRAM_CHAT_ID="123456789"
 ```
 
-And a bot created through `@BotFather` on Telegram. The curl call is plain JSON:
+And a bot created through `@BotFather` on Telegram. The curl call is a simple POST with form fields:
 
 ```bash
 curl -sS -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
@@ -147,7 +149,16 @@ What you will **not** be able to do is subscribe to *my* lab's bot to receive al
 
 ## WS01 replacement, prepared in advance
 
-When Win10 eventually runs out of rearms, we don't want to rebuild it by hand. `scripts/replace-ws01.sh` is a one-shot: you give it a fresh Win10 ISO filename, it destroys VM 106, recreates it with the same VMID/RAM/disk/VLAN, boots into an unattended install with the pre-built autounattend ISO, waits for the desktop, prompts once for the manual `virtio-win-guest-tools.exe` install through VNC (which still cannot be automated — see Part 2), and then sets hostname + static IP + DNS. The last two steps (`ansible-playbook 07.5-join-extras.yml --limit ws01` and the audit reapply) are manual because they use the same playbooks already documented in the earlier parts — no need to duplicate them.
+When Win10 eventually runs out of rearms, we don't want to rebuild it by hand. `scripts/replace-ws01.sh` is a one-shot: you give it a fresh Win10 ISO filename and it does this, in order:
+
+1. Destroys VM 106.
+2. Recreates it with the same VMID/RAM/disk/VLAN.
+3. Boots into an unattended install with the pre-built autounattend ISO.
+4. Waits for the desktop.
+5. Prompts once for the manual `virtio-win-guest-tools.exe` install through VNC (which still cannot be automated — see Part 2).
+6. Sets hostname + static IP + DNS.
+
+The last two steps (`ansible-playbook 07.5-join-extras.yml --limit ws01` and the audit reapply) are manual because they use the same playbooks already documented in the earlier parts — no need to duplicate them.
 
 The result is a ~25-minute "rebuild WS01" operation rather than an afternoon of clicking through Windows setup.
 

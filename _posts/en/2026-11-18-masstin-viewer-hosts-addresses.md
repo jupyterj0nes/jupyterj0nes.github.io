@@ -15,7 +15,13 @@ comments: true
 
 You open the timeline, look at the graph and see `DEV-SRV01` on one side and `10.10.0.38` on the other. They are the same machine. The graph does not know that.
 
-It always happens, and it is not a flaw of the tool but of the logs. A type 3 4624 over Kerberos carries the origin IP and leaves the name empty. A 4624 over NTLM carries the name the client claimed. An RDP 1149 carries the IP. The same computer, seen from three events, has three identities.
+It always happens, and it is not a flaw of the tool but of the logs. Each Windows event notes the origin in its own way:
+
+- A type 3 4624 over Kerberos carries the origin IP and leaves the name empty. The 4624 is the event of a successful logon, type 3 is a network logon (coming in from another machine, with no desktop) and Kerberos is the normal authentication protocol in a domain.
+- A 4624 over NTLM, the older authentication protocol, carries the name the client claimed.
+- An RDP 1149, the event a remote desktop connection leaves when it arrives, carries the IP.
+
+The same computer, seen from three events, has three identities.
 
 While they are separate nodes, everything that hangs from them comes out wrong: the graph has twice the machines there really are, and [paths](/en/tools/masstin-viewer-find-path/) break every time a hop comes in by name and leaves by IP.
 
@@ -39,11 +45,13 @@ At the top you choose how much you are willing to accept:
 
 | Level | What it takes as proof |
 |---|---|
-| **Strict** | What the machine says about itself (the network configuration in its SYSTEM hive) or what its domain controller says about it (Group Policy 5308). |
+| **Strict** | What the machine says about itself (the network configuration in its SYSTEM hive) or what it says about its domain controller (Group Policy 5308: the event in which a machine notes the name and the address of the domain controller it found). |
 | **Standard** | Also a machine account (`NAME$`) authenticating from that address. |
 | **Broad** | Also a name the client itself gave, and a statistical test: the same logins appear under the name and under the IP far more often than chance would give. |
 
 In the lab, *Strict* resolves no address, because the timeline was built from event logs alone and has no hives. *Standard* resolves six, those of every machine in the domain. It is usually the right level.
+
+*Broad* is the one to handle with most care. The name is declared by the client itself and can be forged, and the statistical test is an indication, not a record someone wrote down. If you use it, go through the evidence row by row before merging.
 
 **Merge the N of this level** joins all of that level at once. Or go row by row with each one's button.
 

@@ -20,13 +20,15 @@ On a Linux machine nearly everything that matters in a case is text: who can sud
 etcdump -f lnx01-triage.tgz -o lnx01-etc --summary
 ```
 
+`-f` is the evidence, `-o` the folder where it leaves the result, and `--summary` makes it print a summary like the one further down to the console when it finishes.
+
 ## What it reads
 
 A triage (UAC, or any folder holding an `etc/passwd`), a zip, a tar, or a disk image with ext4, XFS or LVM inside. If the input holds several Linux systems, it finds them all.
 
 It only walks the configuration folders, never the whole volume. That is why it takes seconds.
 
-I gave it the two Linux triages of our lab:
+I gave it the two Linux triages of our lab. To pass more than one file, repeat `-f`, once for each:
 
 ```
 leo-lnx01-triage.tgz: computer leo-lnx01, 1 Linux root(s) (tar)
@@ -52,7 +54,7 @@ There are twenty-three areas: accounts, sudo, SSH, keys, network, mounts, cron, 
 
 ## The text
 
-This is the part that gets used most. For each machine and each area there is a text file. This is the sudo one, whole:
+This is the part that gets used most. For each machine and each area there is a text file in the output folder, with the area at the end of its name: `..._sudo.txt`, `..._ssh.txt`. Beside them are `timeline.csv`, `files.txt` (one line per configuration file read) and `roots.txt`. This is the sudo one, whole:
 
 ```
 == etc/sudoers  (live, 1708 bytes, modified 2026-11-03T12:06:38.061340Z)
@@ -69,7 +71,7 @@ This is the part that gets used most. For each machine and each area there is a 
   [   4] ubuntu = ALL=(ALL) NOPASSWD:ALL    <<< habitual rule LNX-SUDO-NOPASSWD-ALL (medium)
 ```
 
-Each file with its modification time, each useful line with its number, no comments and no blank lines. And a `<<<` mark where a rule fired.
+Each file with its modification time, each useful line with its number, no comments and no blank lines. That number in brackets is the line of the original file (`[  55]` is line 55 of `sudoers`), not a score. And a `<<<` mark where a rule fired.
 
 The last two marks say different things, and that is the point. Both lines give full passwordless sudo. The `ubuntu` one is `habitual`: every Ubuntu cloud image ships with it. The `%Leadership` one is `candidate`: nothing ships with that. In the lab it is a weakness planted on purpose. In a real case it would be the first question for the administrator.
 
@@ -111,13 +113,13 @@ There are 51, and they look for what an attacker who wants to come back leaves b
 - APT hooks, unsigned sources, udev rules with `RUN+=`.
 - Shell history switched off, `PROMPT_COMMAND`, `sudo` aliases in a profile.
 
-`etcdump --list-rules` shows all of them with their definition, and `--rules` adds your own in YAML.
+`etcdump --list-rules` shows all of them with their definition. To add your own, write them in YAML in that same format and pass `--rules` followed by the file or the folder that holds them.
 
 As in the rest of the family, nobody decides a rule's score: it is how rare the rule turned out to be on a clean Linux. A rule that fires on a factory install is worth little, and the exact item that fired it there is `habitual` on any other machine.
 
 ## What came out, unvarnished
 
-Of 15,252 items, the rules marked 18 to read. There is no attack in the configuration of these two machines, so the interesting part is seeing what kind of things come up:
+Of 15,252 items, the rules marked 18 to read. There is no attack in the configuration of these two machines, so the interesting part is seeing what kind of things come up. The table does not list the 18 one by one: it groups them by kind, and some rows cover several items.
 
 | What | State | What it really is |
 |---|---|---|
@@ -147,6 +149,8 @@ That is the cron job someone creates, lets run once and deletes. A triage has no
 ```
 2026-11-03T12:06:38Z  leo-lnx01  etc:sudo  %Leadership  ALL=(ALL) NOPASSWD:ALL  candidate  35
 ```
+
+The 35 at the end is the score. The [faramir](/en/tools/faramir-persistence/) article gives this same line 29, and that is not a mistake: each tool measures its rules against its own clean reference.
 
 That time belongs to the whole file, not to the line. It says when `sudoers` was last touched, not when that rule was added. It is still useful: next to [masstin](/en/tools/masstin-parse/)'s logins it answers who was inside when it was modified.
 

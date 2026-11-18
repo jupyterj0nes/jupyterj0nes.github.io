@@ -23,6 +23,13 @@ Para eso una tabla no vale, y un grafo estático solo a medias. Lo que funciona 
 
 Esto son cuarenta segundos grabados desde el propio visor, sin editar. Es una tarde del laboratorio, 526 filas, con la cadena de saltos que usamos en el artículo de [Find path](/es/tools/masstin-viewer-find-path/).
 
+Hay cuatro nombres que se parecen y conviene separarlos antes de empezar:
+
+- **Present** reproduce la historia en la ventana, para contarla en directo.
+- **Story…** es el editor donde decides cómo se cuenta: el ritmo, las pausas, los rótulos. Está en el menú Tools, como *Story and recording…*.
+- **Cinematic** no es otro modo, es un aspecto: una casilla del editor que añade el reloj, el rótulo y las tarjetas a esa misma historia.
+- **Record…** es un botón del editor que escribe la historia en un fichero de vídeo.
+
 ## Present
 
 El botón **Present** de abajo a la derecha reproduce la vista como una historia, a ventana completa. Cada conexión se dibuja del origen al destino cuando le toca, la máquina a la que llega aparece en ese momento, un reloj enseña la hora y un rótulo dice qué ha pasado.
@@ -45,7 +52,7 @@ Lo demás, por si hay que afinar:
 
 - **Qué es un paso.** Una fila, o todas las filas a menos de *n* segundos de la primera. Un spray sobre veinte máquinas en tres segundos es un paso, no veinte.
 - **El ritmo.** Los mismos segundos para cada paso, o los huecos reales comprimidos. Con lo segundo, dos días entre dos saltos se notan sin tener que esperarlos.
-- **Pausas.** Una parada extra en las conexiones `significant`, y otra al final.
+- **Pausas.** Una parada extra en las conexiones `significant`, y otra al final. `significant` es el estado que el [hunt](/es/tools/masstin-graph-hunt/), el análisis de masstin, pone a las conexiones que pasan su listón de rareza ([los estados y la puntuación](/es/tools/hunt-score-across-tools/)).
 - **Tramos.** Partes de la timeline con su propia velocidad. La semana en la que no pasa nada, en dos segundos; la hora de la intrusión, paso a paso.
 - **Por paso.** Sus segundos, su rótulo, saltárselo o darle énfasis.
 
@@ -73,6 +80,8 @@ Lo del rótulo con tu nota es por lo que compensa [escribir notas](/es/tools/mas
 
 **Record…** escribe la historia en un fichero. Formato: **GIF**, **MP4** (necesita `ffmpeg` en el PATH; es H.264 y se reproduce en PowerPoint, Keynote y navegadores) o **imágenes PNG** sueltas. Tamaño: el de la ventana, 1280 × 720, 1600 × 900 o 1920 × 1080. Y antes de empezar, el diálogo te dice más o menos cuánto va a ocupar.
 
+`ffmpeg` es un programa gratuito de vídeo que se instala aparte; masstin no lo trae. «En el PATH» quiere decir que el sistema lo encuentra por su nombre: abre una terminal, escribe `ffmpeg -version` y, si contesta con su versión, está listo. Si no lo tienes, GIF y PNG funcionan igual.
+
 Los GIF están cuidados, que es raro. Cada imagen guarda solo los píxeles que han cambiado, así que una historia de setenta conexiones a 720p se queda en unos 4,7 MB. El mismo contenido en MP4, 1,8 MB.
 
 Esc para la grabación y conserva lo grabado.
@@ -88,5 +97,17 @@ La grabación también se puede lanzar sin tocar la ventana:
 ```bash
 MASSTIN_VIEW_AUTO="record=mp4:20:1,quit" masstin -a view -f timeline.csv
 ```
+
+Esa línea es para bash (Linux, macOS, Git Bash). En PowerShell, la variable se define antes:
+
+```powershell
+$env:MASSTIN_VIEW_AUTO = "record=mp4:20:1,quit"; masstin -a view -f timeline.csv
+```
+
+`MASSTIN_VIEW_AUTO` es una variable de entorno con una lista de acciones separadas por comas, que el visor ejecuta al abrirse. Aquí son dos: `record` y `quit`. Los tres campos de `record=mp4:20:1` son:
+
+- el **formato**: `gif`, `png` o `mp4`;
+- las **imágenes por segundo**: aquí, 20;
+- el **tamaño**: `0` es el de la ventana, `1` es 720p, `2` es 1080p y `3` es 1600 × 900.
 
 Abre, graba la historia a 720p y 20 imágenes por segundo, y cierra. El vídeo de arriba salió de una línea como esa.

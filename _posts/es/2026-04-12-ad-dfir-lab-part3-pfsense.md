@@ -36,6 +36,8 @@ La instalación dura unos 5 minutos via VNC. Te describo el proceso completo.
 
 ## Instalación paso a paso
 
+Antes de empezar, la VM 100 tiene que existir. Se crea con `qm create` como las de la Part 2 (1 GB de RAM y 8 GB de disco, según la tabla de allí), con la ISO de pfSense en `ide2` y dos tarjetas de red: `--net0` con `tag=10` y `--net1` con `tag=20`.
+
 ### 1. Aceptar copyright
 
 Boot desde la ISO de pfSense (`pfSense-CE-2.7.2-RELEASE-amd64.iso`):
@@ -46,7 +48,14 @@ Enter para Accept.
 
 ### 2. Particionado ZFS
 
-Pasamos por el menú de instalación: Install → default keymap → **Auto (ZFS)** → Install → Stripe → seleccionar disco:
+Pasamos por el menú de instalación, una pantalla tras otra:
+
+1. **Install**
+2. Keymap: dejar el de por defecto
+3. Particionado: **Auto (ZFS)**
+4. **Install**
+5. Tipo de pool: **Stripe** (un solo disco, sin redundancia)
+6. Seleccionar disco:
 
 ![pfSense ZFS disk selection](/assets/img/posts/ad-dfir-lab/pfsense-02-zfs-disk.png){:loading="lazy"}
 
@@ -72,6 +81,8 @@ qm start 100
 Sin esto, pfSense te pide reinstalar en cada boot. Es el mismo problema que vimos con Kali en la Part 2.
 
 ### 5. Configuración inicial de interfaces
+
+Ojo con los nombres, porque van al revés de lo que esperarías: aquí la **WAN** de pfSense es la red corporativa (VLAN 10) y la **LAN** es la red de ataque (VLAN 20). El motivo: pfSense deja salir de LAN a WAN y bloquea lo contrario. Queremos que Kali (LAN) pueda iniciar conexiones hacia el dominio (WAN), y no al revés.
 
 Tras el primer boot del sistema instalado, pfSense pregunta por la configuración de interfaces:
 
@@ -110,6 +121,8 @@ Opción **2** (Set interface IP) → **1** (WAN) → **n** (no DHCP):
 
 ### 8. Configurar IP estática LAN
 
+Antes de este paso, quita la IP `192.168.20.1` del host Proxmox, que la tenía desde la Part 2. Es el bloque `ip addr del` de la sección "Reconfigurar Kali para usar pfSense", más abajo. Si no, habrá dos equipos con la misma IP.
+
 Opción **2** otra vez → **2** (LAN) → **n**:
 - IP: `192.168.20.1`
 - Subnet: `24`
@@ -140,7 +153,7 @@ Hasta ahora Kali usaba el host Proxmox (192.168.20.1 antes) como gateway. Ahora 
 qm guest exec 108 -- bash -c "ip route show; ping -c 2 192.168.20.1"
 ```
 
-Y que el host Proxmox ya no tenga la IP `.20.1`:
+Y que el host Proxmox ya no tenga la IP `.20.1` (si no lo hiciste antes del paso 8, hazlo ahora):
 
 ```bash
 ip addr del 192.168.20.1/24 dev vmbr0.20
@@ -149,6 +162,8 @@ ip addr add 192.168.20.254/24 dev vmbr0.20
 ```
 
 ## Verificación
+
+En estos comandos, `PROXMOX` es la IP pública de tu servidor. `sshpass` es una utilidad que le pasa la contraseña a `ssh` para no teclearla; tiene que estar instalada en el host.
 
 ```bash
 # Kali → internet via pfSense
@@ -189,7 +204,7 @@ Hasta ahora todo el acceso al lab es via SSH al host Proxmox (`qm guest exec`, c
 
 WireGuard es una VPN pequeña y rápida: intercambias claves públicas entre dos peers y obtienes un túnel cifrado, así puedes llegar a las redes privadas del lab desde tu propia máquina como si estuvieras dentro. El plan original era WireGuard sobre pfSense, pero acabamos poniéndolo **directamente en el host Proxmox** porque:
 
-1. `wireguard-tools` ya está instalado desde Phase 2
+1. `wireguard-tools` ya está instalado desde la Part 1
 2. El host tiene la IP pública de Hetzner — pfSense no
 3. El host ya tiene rutas a `vmbr0.10` y `vmbr0.20`
 4. Setup en 5 minutos vs 30+ via la web UI de pfSense
@@ -239,6 +254,8 @@ PersistentKeepalive = 25
 
 `AllowedIPs` incluye **las dos VLANs del lab**, así puedes RDP a los Windows (192.168.10.x) y SSH a Kali (192.168.20.100) desde tu PC.
 
+La línea `DNS` apunta a DC01, que no será servidor DNS hasta la Part 4. Si con el túnel activo tu PC deja de resolver nombres, comenta esa línea hasta entonces.
+
 ### Gotcha: error 0x38 al activar el túnel en Windows
 
 La primera vez que activas el túnel en WireGuard for Windows puede fallar con:
@@ -279,6 +296,6 @@ Solo el host Proxmox (203.0.113.229) está expuesto, y solo via SSH key + Web UI
 
 ---
 
-*Siguiente: Part 4 — Crowning the Domain Controllers: AD, Forests and Trusts con GOAD*
+*Siguiente: [Part 4 — Crowning the Domain Controllers: AD, Forests and Trusts con GOAD]({% post_url es/2026-04-13-ad-dfir-lab-part4-goad %})*
 
 *Anterior: [Part 2 — The Seven Kingdoms: Deploying Windows VMs]({% post_url es/2026-04-12-ad-dfir-lab-part2-windows-vms %})*

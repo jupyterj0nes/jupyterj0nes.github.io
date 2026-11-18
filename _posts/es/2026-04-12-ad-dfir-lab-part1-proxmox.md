@@ -31,7 +31,7 @@ Para este laboratorio usamos un **Hetzner AX41-NVMe** del [Server Auction](https
 
 ## Antes de empezar
 
-Cada fase de abajo ejecuta un script del repo de esta serie, que vive en `/root/lab` en el servidor. Así que primero ponlo ahí — clónalo desde el rescue system, y otra vez en el sistema recién instalado tras la Part 1 (la Part 1 reinstala el SO, lo que borra el disco):
+Cada fase de abajo ejecuta un script del repo de esta serie, que vive en `/root/lab` en el servidor. Así que primero ponlo ahí — clónalo desde el rescue system, y otra vez en el sistema recién instalado tras el Paso 2 de este artículo (el Paso 2 reinstala el SO, lo que borra el disco):
 
 ```bash
 git clone https://github.com/jupyterj0nes/ad-dfir-lab /root/lab
@@ -45,6 +45,10 @@ cp /root/lab/config/lab.env.example /root/lab/config/lab.env
 ```
 
 Las IPs que verás abajo (`203.0.113.x`) son de ejemplo; las tuyas serán las reales de tu servidor.
+
+Los scripts están en `/root/lab/scripts` y se lanzan desde esa carpeta con `bash`, por ejemplo `bash 02-configure-proxmox.sh`. El `01` se ejecuta en el rescue system (Paso 2); el `02` y el `03`, en el sistema ya instalado (Pasos 3 y 4).
+
+Los bloques de comandos de cada paso son extractos de lo que hace el script, para que sepas qué pasa por debajo. No tienes que teclearlos a mano, y no son la secuencia completa.
 
 ## Paso 1: Rescue System
 
@@ -77,7 +81,7 @@ Hetzner proporciona `installimage`, una herramienta propia que instala el sistem
 
 ### Detección de discos
 
-Lo primero es detectar los discos NVMe correctamente. En el rescue system hay un loop device que puede confundir la detección:
+Lo primero es detectar los discos NVMe correctamente. En el rescue system hay un loop device (un fichero que el sistema presenta como si fuera un disco) que puede confundir la detección:
 
 ```bash
 DISKS=($(lsblk -dnpo NAME,TYPE | grep disk | grep -E "nvme|sd" | cut -d" " -f1 | head -2))
@@ -105,8 +109,8 @@ IMAGE /root/.oldroot/nfs/images/Debian-1213-bookworm-amd64-base.tar.gz
 ```
 
 Puntos clave:
-- **RAID1 por software** entre los dos NVMe — si falla un disco, no pierdes el lab
-- **LVM** con un volumen de 50 GB para root y 8 GB de swap
+- **RAID1 por software** entre los dos NVMe — si falla un disco, no pierdes el lab. RAID1 guarda los mismos datos en los dos discos; "por software" significa que lo gestiona Linux, sin controladora dedicada
+- **LVM** con un volumen de 50 GB para root y 8 GB de swap. LVM es una capa que reparte el disco en volúmenes lógicos que puedes crear y redimensionar sin reparticionar; el swap es espacio en disco que el sistema usa cuando se queda sin RAM
 - El resto del espacio en vg0 queda libre para ZFS (lo usaremos después)
 - **Debian 12 Bookworm** como base — es lo que Proxmox 8 requiere
 
@@ -122,6 +126,8 @@ Tras reiniciar, estamos en Debian 12 limpio. El script [`02-configure-proxmox.sh
 
 ### Repositorio y paquetes
 
+El bloque muestra solo los dos pasos principales. Si lo hicieras a mano, entre uno y otro hay que añadir la clave del repositorio de Proxmox y ejecutar `apt-get update`; sin eso, la instalación falla.
+
 ```bash
 # Añadir repo de Proxmox (community, sin suscripción)
 echo "deb [arch=amd64] http://download.proxmox.com/debian/pve bookworm pve-no-subscription" \
@@ -135,7 +141,7 @@ La instalación de Proxmox tarda unos 3 minutos e incluye el kernel propio de Pr
 
 ### Bridge VLAN-aware
 
-Una VLAN divide una red física en varias virtuales aisladas, cada una identificada por un número (tag). Para que las VMs tengan red necesitamos un bridge; Proxmox usa `vmbr0` como principal, y lo configuramos como **VLAN-aware** para que ese único bridge pueda transportar varias VLANs — un segmento por grupo de VMs:
+Una VLAN divide una red física en varias virtuales aisladas, cada una identificada por un número (tag). Para que las VMs tengan red necesitamos un bridge; Proxmox usa `vmbr0` como principal, y lo configuramos como **VLAN-aware** para que ese único bridge pueda transportar varias VLANs — un segmento por grupo de VMs. Esta configuración va en `/etc/network/interfaces`, el fichero de red de Debian:
 
 ```
 auto vmbr0
@@ -252,6 +258,6 @@ Tiempo total: **unos 20 minutos** desde el servidor en blanco.
 
 ---
 
-*Siguiente: Part 2 — The Seven Kingdoms: Deploying Windows VMs with Unattended Install*
+*Siguiente: [Part 2 — The Seven Kingdoms: Deploying Windows VMs with Unattended Install]({% post_url es/2026-04-12-ad-dfir-lab-part2-windows-vms %})*
 
 *Anterior: [Introducción — The Iron Throne of DFIR]({% post_url es/2026-04-12-ad-dfir-lab-intro %})*

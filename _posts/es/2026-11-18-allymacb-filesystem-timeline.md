@@ -86,6 +86,8 @@ Un fichero llamado `invoice.pdf.exe`. La doble extensión ya basta para mirarlo.
 
 Según la fecha de modificación, el fichero es de **2018**. Según la de creación, llegó a este disco el **10 de noviembre de 2026**. Las dos no pueden contar la misma historia. Alguien le puso una fecha vieja para que, ordenando la carpeta por fecha, no llamara la atención.
 
+Un matiz: la regla que saltó, `b_after_c`, mira otra pareja de fechas. Compara la creación (B) con el cambio del registro (C), que no sale en estas dos filas: la creación es posterior a ese cambio, y eso no pasa solo.
+
 Y `unallocated`: el fichero está borrado. Su registro sigue en el `$MFT` porque nada lo ha reutilizado todavía.
 
 O sea, un ejecutable disfrazado de PDF, con la fecha falseada, borrado después. allymacb lo saca arriba con una puntuación de 70 y la explicación al lado:
@@ -122,6 +124,8 @@ allymacb tiene doce reglas de ese estilo:
 - Cambios que el diario USN vio y que las fechas niegan.
 - Trucos de nombre: doble extensión, caracteres de escritura de derecha a izquierda.
 
+Las doce, una a una, con la `b_after_c` que saltó arriba, están en [las reglas de timestomping](/es/tools/allymacb-timestomping-rules/).
+
 Lo que las hace útiles es que **el peso de cada regla está medido**, en máquinas Windows y Linux limpias. Porque `$SI` anterior a `$FILE_NAME` también le pasa a miles de ficheros legítimos: cualquier instalador que conserva la fecha original del fabricante lo produce.
 
 ## El hunt, y por qué necesita pasado
@@ -132,13 +136,15 @@ Además de las reglas hay un hunt estadístico, con el mismo método que [el de 
 allymacb -f disco.E01 --investigation-from 2026-11-03 --hunt-out hunt.csv -o timeline.csv
 ```
 
+`--investigation-from` es esa fecha de inicio. `--hunt-out` escribe aparte, en `hunt.csv`, la tabla de hallazgos: una fila por cada registro raro de ese periodo, con los significativos primero.
+
 Aquí toca ser honrado con el resultado:
 
 ```
 records: 3606 significant, 13474 candidate, 7962 habitual, 494260 baseline
 ```
 
-3 606 registros significativos son demasiados para leerlos. Y al clasificarlos por carpeta, casi todos son lo mismo: 1 268 están en `WinSxS`, 346 en `servicing` y 1 157 en `Program Files`. Son actualizaciones de Windows y software instalado esa semana, con las fechas de fábrica de cada fichero.
+3 606 registros significativos son demasiados para leerlos. Y al clasificarlos por carpeta, tres de cada cuatro son lo mismo: 1 268 están en `WinSxS`, 346 en `servicing` y 1 157 en `Program Files`. Son actualizaciones de Windows y software instalado esa semana, con las fechas de fábrica de cada fichero.
 
 El motivo está escrito en la propia explicación: *«on 0 of 1 days»*. El laboratorio solo tiene **un día** de actividad normal antes de la fecha que le di. Con un día de referencia, cualquier instalación de software es algo que «no había pasado nunca».
 
@@ -152,6 +158,8 @@ p1 $MFT: installed from 2026-10-26T03:37:07Z to 2026-10-26T05:59:59Z, 493053 of 
 ```
 
 De 519 302 registros, 493 053 son de las dos horas y media en que se instaló Windows. allymacb lo deduce del propio volumen y los marca como referencia. Si no, cada fichero del sistema operativo sería una alerta.
+
+Las dos líneas cuentan cosas distintas. La primera, los registros que cambiaron durante la instalación. La segunda, los ficheros de esa instalación sobre los que saltó alguna regla: esos avisos son los que no cuentan.
 
 ## Recuperar lo borrado
 
@@ -167,7 +175,7 @@ Es lento, porque lee el disco entero, y es para cuando sospechas que se borró a
 
 Las 19 columnas de masstin, cada una en la posición de la que más se le parece, y las mismas cinco del final: `hunt`, `hunt_score`, `hunt_why`, `verdict` y `notes`. Movimiento lateral, persistencia y sistema de ficheros de un mismo caso se leen uno al lado del otro.
 
-Por la salida estándar no sale nada más que el CSV, así que se puede encadenar:
+Por la salida estándar no sale nada más que el CSV, así que se puede encadenar. Este ejemplo es para una shell de tipo Unix (Linux, macOS, o Git Bash y WSL en Windows): `grep` filtra líneas, y las comillas simples evitan que la shell interprete el `$`.
 
 ```bash
 allymacb -f '$MFT' | grep ',unallocated,' > borrados.csv

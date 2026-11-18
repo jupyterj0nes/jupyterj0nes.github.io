@@ -28,9 +28,9 @@ There is a handful of questions you ask of any lateral movement graph, in any ca
 
 **Failures followed by a logon.** The connections where there were failed attempts and then a successful one. It is the signature of guessing a password and getting it right.
 
-**Seen for the first time latest.** The machines and accounts that show up for the first time at the end of the timeline. An account nobody had used until the day of the incident is one of the first things to explain.
+**Seen for the first time latest.** The machines and accounts that show up for the first time at the end of the timeline. There is no fixed cut-off in days or hours: the table sorts by the moment of the first appearance and puts the most recent at the top. An account nobody had used until the day of the incident is one of the first things to explain.
 
-**Centrality.** PageRank, betweenness and the number of distinct neighbours in and out. Betweenness is the interesting one: it points at the machines you *have to go through* to get from one part of the network to another. An attacker usually ends up finding them.
+**Centrality.** PageRank, betweenness and the number of distinct neighbours in and out. They are three ways of measuring how important a machine is inside the graph. PageRank scores a machine higher the more connections arrive at it, and higher still when they arrive from machines that score high themselves. In all three, a higher number is a more central machine; what you read is the order of the table, not the figure. Betweenness is the interesting one: it points at the machines you *have to go through* to get from one part of the network to another. An attacker usually ends up finding them.
 
 A click on any machine in the tables opens its neighbourhood on the map.
 
@@ -40,7 +40,7 @@ The top of the window says it: *Over the 7163 rows the view holds*. The answers 
 
 The advantage: narrow the period to the night of the incident, open Questions, and the six answers are about that night. Change the period to the week before and compare. An account used from one origin all week and from four that night is a finding that comes out no other way as fast.
 
-The trap: if you are on the Findings view, the questions are answered over the findings only. Look at the filter chips before drawing conclusions.
+The trap: if you are on the Findings view, the questions are answered over the findings only, that is, the connections masstin's [hunt](/en/tools/masstin-graph-hunt/) flagged as odd. Look at the filter chips before drawing conclusions.
 
 ## What it does not do
 

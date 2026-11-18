@@ -21,7 +21,7 @@ Para eso están los otros dos botones de **Tools › Paths**.
 
 ## Todo lo que sale de un origen
 
-Escribes el origen, dejas el destino como esté y pulsas **Everything from the origin**.
+Escribes el origen y pulsas **Everything from the origin**. La caja del destino no se usa para esto: da igual que esté vacía o rellena.
 
 [![El árbol de alcance desde LEO-DC01: tres máquinas alcanzables, cada una colgando de la que la alcanzó, con cuenta, hora y número de salto](/assets/images/viewer/p-tree.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/p-tree.webp)
 
@@ -49,11 +49,15 @@ En el mapa, el árbol entero queda marcado con el mismo degradado de cian a mage
 
 **Everything into the destination** es lo mismo mirando hacia atrás. Pones la máquina comprometida como destino y el árbol te enseña desde dónde se pudo llegar a ella, salto a salto.
 
-Aquí la hora que se guarda es la *última* posible: lo más tarde que alguien pudo salir de cada máquina y aun así llegar al destino. Es la que sirve para descartar. Si un equipo solo pudo haber iniciado la cadena antes del día 3 y sabes que el día 3 estaba apagado, fuera de la lista.
+Aquí la hora que se guarda es la *última* posible: lo más tarde que alguien pudo salir de cada máquina y aun así llegar al destino.
+
+Un ejemplo inventado para verlo: si desde una máquina se entró en el destino a las 10:00 y otra vez a las 18:00, el árbol apunta las 18:00. Antes de esa hora todavía se podía salir de ahí y llegar; después, ya no.
+
+Es la hora que sirve para descartar. Si un equipo solo pudo haber iniciado la cadena antes del día 3 y sabes que el día 3 estaba apagado, fuera de la lista.
 
 ## Sin origen: seguir a una cuenta
 
-Este modo es el que saca más partido. Dejas **vacía** la caja del origen, escribes una cuenta en **Account** y pulsas Everything from the origin.
+Este modo es el que saca más partido. Las cajas **Account**, **From** y **To** están en la misma ventana Paths, dentro de lo que despliega el botón **settings** (la tabla de ajustes está en [Find path](/es/tools/masstin-viewer-find-path/)). Dejas **vacía** la caja del origen, escribes una cuenta en **Account** y pulsas Everything from the origin.
 
 El árbol arranca entonces en *cada máquina donde esa cuenta empieza a moverse*. Te has enterado de que una cuenta está comprometida y quieres ver todo lo que hizo, sin saber de antemano dónde empezó. Sale completo, con una raíz por cada punto de partida.
 

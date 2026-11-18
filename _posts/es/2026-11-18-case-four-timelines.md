@@ -39,11 +39,13 @@ Sin decirles qué buscar, esto es lo que cada una pone arriba del todo en el ser
 | [allymacb](/es/tools/allymacb-filesystem-timeline/) | `invoice.pdf.exe`, borrado, con fecha de modificación de 2018 y de creación de 2026 |
 | [caarea](/es/tools/caarea-execution/) | `invoice.pdf.exe` y un `svch0st.exe` en `ProgramData`, ejecutados desde PowerShell |
 
-Tres hallazgos de tres fuentes de evidencia que no comparten nada: el registro, el `$MFT` y el log de seguridad. Por separado, cada uno es una pista. La pregunta es si son la misma historia.
+masstin no está en la tabla a propósito: los inicios de sesión que ve en este servidor son normales y, por sí solos, no destacan. Entran en la sección siguiente.
+
+Tres hallazgos de tres fuentes de evidencia que no comparten nada: el registro de Windows (donde el sistema guarda su configuración), el `$MFT` (el índice de ficheros del disco) y el log de seguridad. Por separado, cada uno es una pista. La pregunta es si son la misma historia.
 
 ## El mismo minuto
 
-Todas escriben la hora en UTC y con el mismo formato, así que basta con filtrar las cuatro timelines por el mismo intervalo y leerlas juntas. El 10 de noviembre, en `dev-srv01`:
+Todas escriben la hora en UTC y con el mismo formato, así que basta con filtrar las cuatro timelines por el mismo intervalo y leerlas juntas. En la práctica: abres cada CSV en tu visor, te quedas con las filas del 10 de noviembre cuya hora (la primera columna) está entre las 08:32 y las 08:36, y ordenas por esa columna. El 10 de noviembre, en `dev-srv01`:
 
 | Hora (UTC) | Quién lo dice | Qué pasa |
 |---|---|---|
@@ -76,11 +78,11 @@ Y al revés: sin caarea, masstin tendría dos logins normales. Un administrador 
 
 Para que esa tabla se pueda hacer sin trabajo, las cuatro herramientas (y [etcdump](/es/tools/etcdump-linux-configuration/), para la configuración de Linux) escriben el mismo tipo de fichero:
 
-- **19 columnas**, y cada una en la posición de la que más se le parece en las demás: la hora primero, la máquina después, el tipo de evento, la cuenta, y al final el fichero del que se leyó.
+- **19 columnas**, y cada una en la posición de la que más se le parece en las demás: la hora primero, la máquina después, el tipo de evento, la cuenta, y al final el fichero del que se leyó. Son 14 que describen el evento y 5 de análisis. Las de masstin, una a una, están en [su formato CSV](/es/tools/masstin-csv-format/).
 - **La hora en UTC, con anchura fija.** Ordenar el texto es ordenar el tiempo.
 - **Las mismas cinco columnas al final:** `hunt`, `hunt_score` y `hunt_why` para lo que encuentra la herramienta; `verdict` y `notes` para lo que decide el analista.
 
-Las tres del hunt usan las mismas palabras en todas: `significant`, `candidate`, `habitual`. Y la misma escala de 0 a 100, que en todas mide lo mismo: lo raro que es eso comparado con lo normal, no la confianza de quien escribió la regla. Un 78 en caarea y un 70 en allymacb se pueden poner en la misma lista.
+Las tres del hunt usan las mismas palabras en todas. Las que más verás son `significant`, `candidate` y `habitual`; la lista completa está en [la escala del hunt](/es/tools/hunt-score-across-tools/). Y la misma escala de 0 a 100, que en todas mide lo mismo: lo raro que es eso comparado con lo normal, no la confianza de quien escribió la regla. Un 78 en caarea y un 70 en allymacb se pueden poner en la misma lista.
 
 Las dos últimas columnas son del analista y ninguna herramienta escribe en ellas. Lo que se marca en una timeline se queda en la timeline.
 

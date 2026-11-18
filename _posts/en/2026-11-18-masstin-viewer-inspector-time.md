@@ -28,9 +28,9 @@ It depends on what you clicked.
 
 [![The inspector with a connection selected: origin and destination, account, number of events, first and last time, logon type, the marks and the list of rows](/assets/images/viewer/m-marked.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/m-marked.webp)
 
-At the top, who and what: `DEV-SRV01 → DEV-DC01` as `ryan.devlead@DEV`, 23 events between 3 and 10 November, logon type 3, event 4624. Below, what the hunt says (nothing here, because this timeline does not carry it). Then the marks, which I cover in [their own article](/en/tools/masstin-viewer-marks-case/). And at the end the rows behind it, the first 300, with their time and event.
+At the top, who and what: `DEV-SRV01 → DEV-DC01` as `ryan.devlead@DEV`, 23 events between 3 and 10 November, logon type 3, event 4624. The 4624 is the event Windows writes when a logon succeeds, and type 3 is a network logon: the account comes in from another machine to use a resource, without opening a desktop. Below, what the hunt says (nothing here, because this timeline does not carry it). The [hunt](/en/tools/masstin-graph-hunt/) is masstin's analysis that points at the odd connections; here you would see its state (`significant`, `candidate`…), its score and the reason ([what they mean](/en/tools/hunt-score-across-tools/)). Then the marks, which I cover in [their own article](/en/tools/masstin-viewer-marks-case/). And at the end the rows behind it, the first 300, with their time and event.
 
-**See its rows in** takes those rows to three places: the viewer's own Timeline mode, agentc00pr, or another program (a copy in your CSV application). If you tick rows in the list, the three buttons are about the ticked ones only.
+**See its rows in** takes those rows to three places: the viewer's own Timeline mode, agentc00pr, or another program (a copy in your CSV application). agentc00pr is the case workbench of the same family of tools; if you do not use it, you do not need that button. If you tick rows in the list, the three buttons are about the ticked ones only.
 
 **Nothing selected.** A summary of the view: how many machines, connections and rows, and how they split by hunt state and by verdict.
 
@@ -44,7 +44,7 @@ What every colour, ring, halo and width means. For when someone looks over your 
 
 ## The time strip
 
-At the very bottom there is a histogram of the **whole** timeline: a bar every three pixels, on a log scale, red where a `significant` connection falls. Over it, a bright band between two handles marks the period you are looking at.
+At the very bottom there is a histogram of the **whole** timeline: a bar every three pixels, on a log scale, red where a `significant` connection falls, that is, one the hunt flagged as a finding. The log scale only means the tall bars are squashed: an hour with ten events still shows next to one with ten thousand. Over it, a bright band between two handles marks the period you are looking at.
 
 [![The viewer with the period narrowed to one hour: three machines and two connections are left, the band on the strip is narrow and the period shows as a filter chip](/assets/images/viewer/t-window.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/t-window.webp)
 

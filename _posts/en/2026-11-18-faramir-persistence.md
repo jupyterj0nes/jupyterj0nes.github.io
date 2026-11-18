@@ -45,11 +45,17 @@ Six thousand entries does not mean six thousand odd things. A freshly installed 
 
 That is why what matters is not the list but the first three figures.
 
+The rest of that output, so that it does not scare you:
+
+- **`89 row(s) tested`:** the rows that went through the statistical test. The others already had something speaking for them: a rule, or a clean reference.
+- **`alpha 0.05`:** the bar of that test. [The hunt scale](/en/tools/hunt-score-across-tools/) explains it.
+- **`444 warning(s)`:** they are not findings. They are reading warnings: some piece of the evidence was only partly processed, for example a dirty hive without its logs. The run goes on and tells you.
+
 ## What it finds
 
 Of the 6,162, 6,051 are habitual. They are what a clean system ships with, or what is the same on several machines. The ones to look at are the others.
 
-This is what it puts at the very top on `dev-srv01`:
+This is what it puts at the very top on `dev-srv01`. The score runs from 0 to 100 and measures how rare the row is; how to read it is in [the hunt scale](/en/tools/hunt-score-across-tools/):
 
 | Technique | What runs | Score | Why |
 |---|---|---|---|
@@ -75,6 +81,8 @@ linux:sudoers:nopasswd   Sudoers [line 55]: %Leadership ALL=(ALL) NOPASSWD:ALL  
 
 A whole group with passwordless sudo. It is lab configuration, not an attack, but it is exactly the line added by someone who wants to come back as root.
 
+If you also read the [etcdump](/en/tools/etcdump-linux-configuration/) article, you will see this same line with 35 points instead of 29. It is not a mistake: each tool measures its rules against its own clean reference, and the two are not the same size.
+
 ## Two engines, one column
 
 Every row goes through two examinations.
@@ -94,7 +102,7 @@ rule H3001 (high): Persistence from a scratch folder [T1547]; on 2 of 5 hosts
 
 An attacker with some craft deletes their persistence on the way out. faramir looks for what was deleted too, in three places:
 
-- **Free cells of the registry.** When a key is deleted, its data stays in the hive until something overwrites it. In the lab server's `SOFTWARE` it recovered 711 deleted keys.
+- **Free cells of the registry.** When a key is deleted, its data stays in the hive until something overwrites it. In the lab server's `SOFTWARE` it recovered 711 deleted keys. That is not 711 rows: only the ones in a persistence location reach the timeline.
 - **Shadow copies.** What was in a snapshot and is gone from the live volume. In this case, three entries.
 - **The ext4 journal.** On Linux, deleted crontabs, systemd units and SSH keys, with their name, dates and content.
 
@@ -114,7 +122,7 @@ What it flags are leads, not verdicts. In this very run, among the 36 significan
 
 The honest count is this: out of 6,162 entries it leaves you a hundred-odd to look at, and the ones that matter are among them. That is reading a hundred rows instead of six thousand. It is not reading none.
 
-To bring the noise down on a particular network there are two options: `--known-good`, with the CSV of a clean machine from that organisation, and `--baseline`, with the date until which the system was trusted.
+To bring the noise down on a particular network there are two options: `--known-good`, with the CSV of a clean machine from that organisation, and `--baseline`, with the date until which the system was trusted. faramir's documentation gives this example with both: `faramir -f /cases/WS01.E01 -o ws01.csv --baseline "2026-10-01 08:00" --known-good /baselines/ws-gold.csv`.
 
 ## With the rest of the case
 

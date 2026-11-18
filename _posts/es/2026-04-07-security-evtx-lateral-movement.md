@@ -103,7 +103,11 @@ Se genera cuando un proceso se autentica con credenciales distintas a las de la 
 
 > **Tip forense:** Si el `SubjectUserName` es una cuenta de servicio y el `TargetUserName` es un Domain Admin, tienes un caso claro de escalada de privilegios seguida de movimiento lateral.
 
-> **El 4648 te dice qué sesión lo hizo.** Su `SubjectLogonId` es el logon ID de la sesión, en la máquina de origen, cuyo proceso usó las credenciales. Es el mismo ID del 4624 que abrió esa sesión. Masstin lo guarda en `logon_id`, y por eso puede afirmar que un salto de B a C lo hizo la sesión que alguien abrió en B viniendo de A.
+A diferencia del 4624, el 4648 se escribe en la máquina **de origen**: la que usa las credenciales, no la que las recibe.
+
+> **El 4648 te dice qué sesión lo hizo.** Cada sesión abierta en una máquina tiene un número, el *logon ID*. El `SubjectLogonId` del 4648 es el logon ID de la sesión cuyo proceso usó las credenciales, y es el mismo número que lleva el 4624 que abrió esa sesión. Masstin lo guarda en la columna `logon_id`.
+>
+> Un ejemplo: alguien entra en B desde A (un 4624 en B) y luego, desde B, salta a C (un 4648 en B). Los dos eventos llevan el mismo logon ID, así que se puede afirmar que el salto de B a C lo hizo la sesión que venía de A.
 
 ---
 
@@ -122,7 +126,7 @@ Cuatro palabras para no perderse:
 - **TGS o ticket de servicio:** el que se pide después, con el TGT, para entrar en un servicio concreto (un recurso compartido, una base de datos).
 - **Pre-autenticación:** la comprobación de la contraseña antes de dar el TGT. Si una cuenta la tiene desactivada, cualquiera puede pedir material cifrado con su contraseña y probar a romperlo en casa. Ese ataque se llama *AS-REP Roasting*. El equivalente con tickets de servicio es *Kerberoasting*.
 
-> **Un ticket no es un inicio de sesión en el controlador de dominio.** Un 4768, 4769 o 4770 correcto (y también un 4776) es una autenticación *en* el DC de camino a otro sitio. En la ventana de masstin se tratan como «connect», así que un camino no salta a un DC solo porque alguien le pidió un ticket. En el CSV siguen escritos igual que siempre.
+> **Un ticket no es un inicio de sesión en el controlador de dominio.** Un 4768, 4769 o 4770 correcto (y también un 4776) es una autenticación *en* el DC de camino a otro sitio. En [la ventana de masstin](/es/tools/masstin-viewer/) (su interfaz gráfica, que dibuja los caminos entre máquinas) se tratan como «connect», así que un camino no salta a un DC solo porque alguien le pidió un ticket. En el CSV siguen escritos igual que siempre.
 
 ### Event ID 4768 — Solicitud de TGT (AS-REQ)
 
@@ -148,7 +152,7 @@ Se genera cuando un usuario con TGT válido solicita un ticket de servicio para 
 | IpAddress | Origen de la solicitud |
 | TicketEncryptionType | 0x17 (RC4) puede indicar **Kerberoasting** |
 
-> **Ataque relacionado:** En un ataque de **Kerberoasting**, el atacante solicita tickets de servicio para cuentas con SPN configurado, y luego intenta crackear el ticket offline. Busca ráfagas de 4769 con `TicketEncryptionType` 0x17 desde una misma IP.
+> **Ataque relacionado:** En un ataque de **Kerberoasting**, el atacante solicita tickets de servicio para cuentas con SPN configurado (el SPN, *Service Principal Name*, es el nombre con el que un servicio está registrado en el dominio), y luego intenta crackear el ticket offline. Busca ráfagas de 4769 con `TicketEncryptionType` 0x17 desde una misma IP.
 
 ### Event ID 4770 — Renovación de TGT
 

@@ -54,8 +54,8 @@ Y en el informe las cuentas salen en mayúsculas y con guion bajo (`SVC_SQL@DEV`
 Línea a línea:
 
 - **Machines.** Había 367 nodos y eran 220 máquinas: 147 direcciones resultaron ser máquinas que ya tenían nombre.
-- **Panel.** Solo se comparan los destinos de los que hay logs continuos. De una máquina de la que tienes tres días de registro no se puede decir qué es normal.
-- **Connections.** En el periodo investigado hay 563 conexiones. 531 ya habían ocurrido antes: son habituales y ni se examinan. De las 32 nuevas, **24 son significativas**.
+- **Panel.** Solo se comparan los destinos de los que hay logs continuos. De una máquina de la que tienes tres días de registro no se puede decir qué es normal. *Form the null* quiere decir que esos 35 días hacen de vara de medir: en estadística, «el nulo» es lo normal contra lo que se compara.
+- **Connections.** En el periodo investigado hay 563 conexiones. 531 ya habían ocurrido antes: son habituales y ni se examinan. De las 32 nuevas, **24 son significativas**. `p = 1` es la forma estadística de decir «nada raro», y por eso las habituales no se ponen a prueba. `FDR 0.05` es el nivel de exigencia: aceptas que hasta un 5 % de lo que sale como significativo sea un hallazgo falso. Se cambia con `--alpha`.
 - **Score.** Lo máximo que puede puntuar una conexión con estos datos. Con diez semanas de referencia, un logon no puede ser más raro que «uno entre 13 590».
 
 Con esa última línea la herramienta te dice hasta dónde llega su propia vista.
@@ -101,6 +101,8 @@ Si no quieres que toque la timeline, `--no-annotate`.
 | 24 | 17:22 | ADM-JUMP01 | PTR-SRV01 | ADM_NORA@LEONCORP | login OK | 38 |
 
 La fila 1 es el administrador del dominio de desarrollo entrando al servidor de ficheros **desde el servidor web Linux**. La 13 es la fuerza bruta: el 73 son los intentos fallidos con la cuenta `deploy`. Esa dirección falló 184 veces en total, probando también otros nombres de usuario, pero para el hunt cada cuenta es una conexión distinta. La 24 es otra cosa, y enseguida vuelvo a ella.
+
+El orden no es solo por puntuación, y por eso la 24, con 38, va detrás de la 13, con 29. Entre las significativas manda primero la clase y después la rareza: las que juntan un cambio de credencial con un acceso nuevo van delante, y una credencial habitual en una conexión nueva, que es lo que es la 24, va detrás. Las clases están explicadas más abajo.
 
 Las columnas que más se usan:
 
@@ -149,10 +151,10 @@ Para cada uno:
 - **Accounts it used for the first time.** De quién es cada cuenta: *«`SVC_SQL`: in the baseline it logged in from DEV-SRV01 (71 days), PTR-SRV01 (71 days). This origin had never used it»*.
 - **Could be benign if.** Qué situación legítima produce el mismo patrón: un servidor de salto compartido, una cuenta de orquestación apuntada a máquinas nuevas, un técnico en el puesto de un compañero.
 - **To rule that out.** Cómo descartarlo.
-- **Events to pull.** Qué eventos ir a buscar: 4648 y 4688 en el origen, 4768, 4769 y 4776 en el controlador de dominio, 4672, 7045 y 4698 en el destino.
+- **Events to pull.** Qué eventos de Windows ir a buscar, por su número (Event ID). En el origen, 4648 (logon con credenciales explícitas) y 4688 (creación de un proceso). En el controlador de dominio, 4768 y 4769 (Kerberos: el TGT y el ticket de servicio) y 4776 (NTLM). En el destino, 4672 (privilegios), 7045 (servicio instalado) y 4698 (tarea programada).
 
 Las tres últimas secciones son lo que más tiempo ahorra. El hunt no se queda en «mira esto»: te dice qué mirar y con qué descartarlo.
 
 ## Cuánto fiarse
 
-Sobre el conjunto público de LANL (58 días de una empresa real, con un red team etiquetado), 99 de las 100 primeras filas del hunt son del red team, y entre las 500 primeras, de 465 000, están 286 de sus 444 conexiones (el 64 %). Lo que no encuentra también está medido: la máquina que hizo un solo logon discreto por destino, con un usuario distinto cada vez. Los detalles están en [el artículo principal](/es/tools/masstin-graph-hunt/).
+Sobre el conjunto público de LANL (58 días de una empresa real, con un red team etiquetado), las 100 primeras filas del hunt son todas del red team, y entre las 500 primeras, de 465 000, están 288 de sus 444 conexiones (el 65 %). Lo que no encuentra también está medido: la máquina que hizo un solo logon discreto por destino, con un usuario distinto cada vez. Los detalles están en [el artículo principal](/es/tools/masstin-graph-hunt/).

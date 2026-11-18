@@ -14,7 +14,7 @@ comments: true
 ---
 The graph places machines by who they talk to, not by where they are. Usually that is what you want. But when the question is "did it leave the user VLAN?" or "what did it touch in the DMZ?", what you need to see is the network plan.
 
-The antenna button on the toolbar (or **View › Subnet regions**) groups the machines by subnet and draws each group as a coloured region with its name.
+The antenna button on the toolbar (or **View › Subnet regions**) groups the machines by subnet and draws each group as a coloured region with its name. It is a toolbar button: do not mix it up with the antenna on the map, which is an IP address with no name.
 
 [![The lab graph with subnet regions: one group with the domain controllers and a server, another with the Linux server and two addresses](/assets/images/viewer/s-subnets.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/s-subnets.webp)
 
@@ -22,7 +22,9 @@ A note on the screenshot. The whole lab lives in a single /24, so grouped as it 
 
 ## Where the groups come from
 
-Two places:
+First, the notation. A CIDR is a way of writing a range of addresses: the address where it starts, a slash and how many bits the whole range has in common. `10.10.0.0/24` is the 256 addresses that start with `10.10.0.`; a `/22` is a range four times as large, 1,024 addresses. The smaller the number after the slash, the bigger the range.
+
+The groups come from two places:
 
 - **Your ranges.** In **Tools › Subnets…** you write the CIDRs with a name, one per line:
 
@@ -52,4 +54,4 @@ So the order is: join names and addresses first, then turn on subnets. The other
 
 ## Where it is kept
 
-Named ranges are saved with the timeline (in its case file, or in `<timeline>.views.json` when there is none). You define them once per case.
+Named ranges are saved with the timeline (in its case file, or in `<timeline>.views.json` when there is none). You define them once per case. What the case file is and when each of the two is used is in [Marks, notes and the case file](/en/tools/masstin-viewer-marks-case/).

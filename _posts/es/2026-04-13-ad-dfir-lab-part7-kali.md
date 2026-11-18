@@ -12,7 +12,7 @@ description: "Preparamos Kali para atacar el dominio: qué trae kali-linux-defau
 comments: true
 ---
 
-*Esta es la Part 7 de la serie [AD DFIR Lab]({% post_url es/2026-04-12-ad-dfir-lab-intro %}). Dejamos Kali lista para los ataques de Phase 9.*
+*Esta es la Part 7 de la serie [AD DFIR Lab]({% post_url es/2026-04-12-ad-dfir-lab-intro %}). Dejamos Kali lista para los ataques de la Part 10.*
 
 ## kali-linux-default trae casi todo, pero no todo
 
@@ -117,7 +117,7 @@ sudo chmod +x /usr/local/bin/kerbrute
 
 ## NOPASSWD sudo para automatización (solo en lab)
 
-Cuando queremos ejecutar comandos en Kali desde el host Proxmox vía SSH, cada `sudo` pide password interactivamente y rompe la automatización:
+Cuando queremos ejecutar comandos en Kali desde el host Proxmox vía SSH (esto supone que ya puedes entrar desde el host como usuario `kali`, con contraseña o con clave), cada `sudo` pide password interactivamente y rompe la automatización:
 
 ```
 sudo: a terminal is required to read the password
@@ -176,7 +176,9 @@ Un solo comando valida seis capas del stack. Esta es **la prueba definitiva de q
 
 ## Snapshot `clean-ad`
 
-Antes de generar ruido histórico o ejecutar ataques, tomamos un snapshot **`clean-ad`**:
+Antes de generar ruido histórico o ejecutar ataques, tomamos un snapshot **`clean-ad`**.
+
+Ojo con el orden: el test de la sección anterior ya ha dejado rastro en los logs del dominio. Si lo has lanzado, antes de tomar este snapshot revierte las VMs Windows a `audit-configured` (el snapshot del final de la Part 6). El porqué está en el Gotcha de más abajo.
 
 ```bash
 for VMID in 100 101 102 103 104 105 106 107 108; do
@@ -208,7 +210,7 @@ Get-WinEvent -FilterHashtable @{LogName="Security"; Id=4768} |
 # 4/13/2026 8:39:44 AM  4768   ← el test!
 ```
 
-Solución: revertir las VMs Windows al snapshot anterior (`audit-configured`), dejar Kali intocada (su estado con tools instaladas es correcto), y retomar `clean-ad` con Windows limpios + Kali armado. ZFS snapshots por VM son independientes, así que podemos revertir solo algunas VMs y snapshottar diferentes estados en el mismo "punto lógico".
+Solución: revertir las VMs Windows al snapshot anterior (`audit-configured`) con `qm rollback <VMID> audit-configured` en cada una (101 a 106), dejar Kali intocada (su estado con tools instaladas es correcto), y retomar `clean-ad` con Windows limpios + Kali armado. ZFS snapshots por VM son independientes, así que podemos revertir solo algunas VMs y snapshottar diferentes estados en el mismo "punto lógico".
 
 **Regla**: cualquier acción que toque el dominio deja rastros en EVTX. Haz el snapshot target **antes** de cualquier test, no después.
 

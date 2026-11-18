@@ -14,7 +14,7 @@ comments: true
 ---
 El grafo coloca las máquinas según con quién hablan, no según dónde están. Normalmente es lo que quieres. Pero cuando la pregunta es «¿ha salido de la VLAN de usuarios?» o «¿qué ha tocado en la DMZ?», lo que necesitas ver es el plano de la red.
 
-El botón de la antena en la barra (o **View › Subnet regions**) agrupa las máquinas por subred y dibuja cada grupo como una región de color con su nombre.
+El botón de la antena en la barra (o **View › Subnet regions**) agrupa las máquinas por subred y dibuja cada grupo como una región de color con su nombre. Es un botón de la barra: no lo confundas con la antena del mapa, que es una dirección IP sin nombre.
 
 [![El grafo del laboratorio con regiones de subred: un grupo con los controladores de dominio y un servidor, y otro con el servidor Linux y dos direcciones](/assets/images/viewer/s-subnets.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/s-subnets.webp)
 
@@ -22,7 +22,9 @@ Una nota sobre la captura. El laboratorio entero vive en una sola /24, así que 
 
 ## De dónde salen los grupos
 
-De dos sitios:
+Primero, la notación. Un CIDR es una forma de escribir un rango de direcciones: la dirección donde empieza, una barra y cuántos bits son comunes a todo el rango. `10.10.0.0/24` son las 256 direcciones que empiezan por `10.10.0.`; un `/22` es un rango cuatro veces mayor, 1 024 direcciones. Cuanto más pequeño el número tras la barra, más grande el rango.
+
+Los grupos salen de dos sitios:
 
 - **Tus rangos.** En **Tools › Subnets…** escribes los CIDR con un nombre, uno por línea:
 
@@ -52,4 +54,4 @@ Así que el orden es: primero unir nombres y direcciones, después activar las s
 
 ## Dónde se guarda
 
-Los rangos con nombre se guardan con la timeline (en su fichero de caso, o en `<timeline>.views.json` si no lo hay). Los defines una vez por caso.
+Los rangos con nombre se guardan con la timeline (en su fichero de caso, o en `<timeline>.views.json` si no lo hay). Los defines una vez por caso. Qué es el fichero de caso y cuándo se usa cada uno está en [Marcas, notas y fichero de caso](/es/tools/masstin-viewer-marks-case/).

@@ -28,6 +28,8 @@ GOAD has a Python launcher (`goad.py`) that orchestrates everything: it provisio
 
 Two words of vocabulary first. A **forest** is the top-level container of an Active Directory install; a **domain** lives inside it, and a forest can hold several in a parent/child tree (here `north` is a child of `sevenkingdoms`). A **trust** is a link that lets accounts in one domain or forest authenticate against another — our lab has a bidirectional trust between the two forests, which is exactly what makes the cross-forest attacks possible. Throughout this part, VM IDs `101`-`108` refer to the hosts in Part 2's VM table.
 
+And two more about the tool: **Ansible** configures machines remotely from YAML files called **playbooks**, and the **inventory** is the file that tells it which machines to act on and how to connect to them.
+
 Skipping the launcher means we install its two dependencies by hand: clone GOAD and put Ansible on the Proxmox host.
 
 ```bash
@@ -137,6 +139,8 @@ srv03
 # ... and many more
 ```
 
+The block is cut short: the remaining groups are copied as they are from the GOAD file named above. Our inventory is saved at `/root/lab/goad/inventory`, the path we will use when running the playbooks.
+
 ## The DNS-before-DNS problem
 
 `build.yml` —the first playbook— needs to install `NuGet` from the PowerShell Gallery. It fails with:
@@ -186,7 +190,7 @@ For the "GOAD" lab (the full one with two forests + child + trust), the order is
 16. vulnerabilities.yml — final vulnerable configuration
 ```
 
-Each one runs with:
+Each one runs from the playbooks folder of the GOAD repo (`/root/GOAD/ansible`), passing it our inventory:
 ```bash
 ansible-playbook -i /root/lab/goad/inventory build.yml
 ```
@@ -202,9 +206,9 @@ for VMID in 100 101 102 103 104 105 106 107 108; do
 done
 ```
 
-ZFS snapshots are instant and practically free in disk space (until the content changes a lot). If the next playbook breaks something, `qm rollback` brings you back in seconds.
+ZFS snapshots are instant and practically free in disk space (until the content changes a lot). If the next playbook breaks something, `qm rollback` brings you back in seconds. The syntax is `qm rollback <VMID> <snapshot-name>`, once per VM.
 
-## Result after the first 6 playbooks
+## Result after the first 7 playbooks
 
 After `build.yml` → `ad-trusts.yml`:
 

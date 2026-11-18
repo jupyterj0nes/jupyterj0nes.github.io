@@ -40,6 +40,8 @@ Cuando estás en medio de un incidente y necesitas levantar un entorno de visual
 | **Linux** | `sudo apt install memgraph` o descarga el paquete `.deb`/`.rpm` desde [memgraph.com/download](https://memgraph.com/download). Inicia con `sudo systemctl start memgraph` |
 | **macOS** | `docker compose` (mismo enfoque que Windows/Docker) |
 
+**En Windows, no ejecutes todavía el comando de abajo si no tienes Docker.** Haz primero los Pasos 1 y 2 de [Requisitos previos en Windows](#requisitos-previos-en-windows-wsl-2--docker) y vuelve aquí. Sin Docker Desktop corriendo, el comando falla.
+
 Una vez que Docker está corriendo, instala Memgraph con:
 
 ```powershell
@@ -324,6 +326,8 @@ masstin -a merge-memgraph-nodes \
         --database localhost:7687 \
         --old-node "10.0.0.10" --new-node "WORKSTATION-A"
 ```
+
+Con ese comando basta. Lo que sigue explica cómo hacer lo mismo a mano, y solo te hace falta si quieres escribir el Cypher tú: puedes saltártelo.
 
 Internamente, masstin descubre los tipos de relación que tocan al nodo viejo y ejecuta una query de transferencia por cada tipo — porque Cypher vanilla **no permite tipos de relación dinámicos** en `CREATE`, y masstin produce un tipo por cada `target_user_name`. Si prefieres ejecutar el Cypher a mano para un tipo concreto `:RELTYPE`, el patrón es:
 

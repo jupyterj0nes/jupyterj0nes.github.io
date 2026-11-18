@@ -55,6 +55,8 @@ Masstin uses [libesedb](https://github.com/libyal/libesedb) (Joachim Metz's fore
 
 ### What masstin extracts
 
+Each UAL record keeps two dates, the first access and the most recent one, and masstin writes one row for each. That is why `time_created` appears twice in the table.
+
 From the **CLIENTS** table in each `.mdb` file:
 
 | UAL Field | Masstin Column | Description |
@@ -138,6 +140,8 @@ UAL is your fallback when Security.evtx has rolled over or been cleared. If the 
 
 UAL records the **total number of accesses** for each username/IP/role combination per year. A user with `TotalAccesses: 2` on a Domain Controller where admins typically show thousands of accesses is suspicious. Combined with timestamps around the incident timeframe, this is strong evidence of lateral movement.
 
+In the CSV that number goes in the `detail` column, next to the role. Two accesses to the File Server role read like this: `UAL: File Server (2x)`.
+
 ### Correlating with other artifacts
 
 UAL entries in the masstin timeline sit alongside EVTX events, Linux logs, and EDR data. When you see a `SMB` UAL entry from an IP that also appears in Security.evtx 4624 Type 3 logons, you have corroboration. When the EVTX is gone but the UAL record remains, you still have the access evidence.
@@ -149,6 +153,8 @@ If you know a compromised username, search the UAL timeline across all servers. 
 ---
 
 ## Technical details
+
+This section explains how masstin works inside. You do not need it to use UAL in an investigation: you can skip it.
 
 ### ESE database handling
 

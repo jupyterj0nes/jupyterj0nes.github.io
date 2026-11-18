@@ -20,7 +20,7 @@ Now there is one command:
 masstin -a parse -d /evidence/case -o timeline.csv
 ```
 
-`-d` is a folder, walked whole. `-f` is a file, and only that file is read. Both can be repeated and mixed.
+`-d` is a folder, walked whole. `-f` is a file, and only that file is read. Both can be repeated and mixed. `-d` also takes a drive letter (`D:`), to read [a mounted disk](/en/tools/masstin-live-volumes/) without imaging it.
 
 <figure class="diagram"><img src="/assets/images/diagrams/one-timeline-en.svg" alt="What masstin does: many ways of recording a login, one file at the end." loading="lazy"><figcaption>What masstin does: many ways of recording a login, one file at the end.</figcaption></figure>
 
@@ -61,6 +61,13 @@ It recognises: EVTX files and ZIPs of EVTX, UAL databases, KAPE, Velociraptor, C
 => 2 UAL databases found
 ```
 
+That block puts several things together. In parts:
+
+- **`=> Image 1/1`** and the two lines under it: the disk image, the partitions it has and what is taken out of it.
+- **`=> Linux evidence found`**: the two Linux triages.
+- **`=> Triage found: KAPE`**: one KAPE triage, with the ZIP it comes from. There is a block like it for each one; the `...` stands for the lines of the others, cut here.
+- **The last two lines**: the total of what it is going to read.
+
 From the 50 GB image it takes the logs of the file system, and those of the shadow copy it finds as well. It opens ZIPs, nested or not. And it puts Windows and Linux into the same timeline.
 
 At the end, the breakdown by source:
@@ -79,7 +86,7 @@ At the end, the breakdown by source:
 
 This breakdown is more useful than it looks. It tells you which machine gave you nothing (so you are missing evidence, or the log was empty) and which logs contribute: here you can see the shadow copy's `Security.evtx` brings almost the same events as the current one. Duplicates are removed by themselves at the end.
 
-The result for this case: 30,731 rows in one timeline.
+The result for this case: 30,731 rows in one timeline. The timeline is a CSV file with one row per event: when, to which machine, from where and with which account. Its columns are explained in [the CSV format](/en/tools/masstin-csv-format/).
 
 ## What it cannot guess
 
@@ -91,7 +98,7 @@ There are two things `parse` cannot know by itself, and they are options:
 masstin -a parse -d /evidence/case -f fortigate-vpn.log --rules rules/vpn -o timeline.csv
 ```
 
-Files given with `-f` that it does not recognise are read with those [YAML rules](/en/tools/masstin-custom-parsers/), and their rows go into the same timeline.
+Files given with `-f` that it does not recognise are read with those [YAML rules](/en/tools/masstin-custom-parsers/), and their rows go into the same timeline. `rules/` is the rule library that comes in masstin's repository, and `rules/vpn` its folder of VPN rules. `--rules` takes a folder or a single YAML file.
 
 **`--carve`**, to recover events from deleted or overwritten logs:
 
@@ -119,9 +126,9 @@ If it finds nothing it knows, it stops and says so. If what it finds gives no ev
 
 ## And the old parsers?
 
-They are still there: `parse-windows`, `parse-image`, `parse-linux`, `parse-mac`, `parse-massive`. `parse` is made of them. They are for someone who already knows what the evidence is and does not want the look first, such as a script that always gets the same kind.
+They are still there: `parse-windows`, `parse-image`, `parse-linux`, `parse-mac`, `parse-massive`. Also `parser-elastic` (Winlogbeat JSON; that is its name, with the r), `parse-custom` (the rules of `--rules`) and `carve-image` (the carving of `--carve`). `parse` is made of them. They are for someone who already knows what the evidence is and does not want the look first, such as a script that always gets the same kind.
 
-One difference to keep in mind: `carve-image` on its own gives every carved event, including the ones the live logs already hold. `parse --carve` keeps only what was recovered.
+One difference to keep in mind: `carve-image`, the action that only carves disk images, on its own gives every carved event, including the ones the live logs already hold. `parse --carve` keeps only what was recovered.
 
 ## From the window
 

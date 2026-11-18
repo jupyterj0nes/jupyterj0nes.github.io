@@ -26,9 +26,9 @@ Before opening the window, it looks at where it is. In a **remote desktop sessio
 Renderer: software, drawn by the CPU (a remote desktop session: no GPU to draw with)
 ```
 
-Nothing to configure and no parameter to remember.
+Nothing to configure and no parameter to remember. If you opened the viewer with a double click and have no console in front of you, **Help › About** says the same.
 
-That rasteriser is made for this kind of picture. It remembers what it has already drawn and repaints only the areas that change, it uses whatever vector instructions the processor has (SSE4.1, AVX2 or NEON), and it hands the frame to the system as a plain bitmap, which is exactly what a remote desktop carries well.
+A rasteriser is the part of the program that turns the drawing into the pixels on the screen. This one is made for this kind of picture: it remembers what it has already drawn, repaints only the areas that change and hands the system a plain, ordinary image, which is exactly what a remote desktop carries well.
 
 Not all of it is our code, and that should be said: it starts from the rasteriser of egui_software_backend, by DGriffin91 (MIT or Apache-2.0 licence), brought into masstin and adapted.
 
@@ -65,9 +65,11 @@ masstin -a view -f timeline.csv --renderer software
 masstin -a view -f timeline.csv --renderer glow
 ```
 
+`software` is the CPU rasteriser this article is about, and `glow` is the normal drawing with OpenGL, the one that uses the graphics card.
+
 `software` works on any machine, Linux and macOS included. It comes in handy when a graphics driver misbehaves, which on virtual machines happens more than it should.
 
-There are environment variables too, in case you launch it from a script: `MASSTIN_VIEW_RENDERER` and `MASSTIN_VIEW_LIGHT=1`.
+There are environment variables too, in case you launch it from a script: `MASSTIN_VIEW_RENDERER` and `MASSTIN_VIEW_LIGHT=1`. The first takes the same two values as `--renderer` (`software` or `glow`). The second asks for light mode from the start. An environment variable is set before launching the program: in PowerShell, `$env:MASSTIN_VIEW_LIGHT = "1"`; in bash, `export MASSTIN_VIEW_LIGHT=1`.
 
 ## Knowing what is going on
 

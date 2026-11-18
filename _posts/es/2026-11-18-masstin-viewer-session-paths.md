@@ -36,7 +36,7 @@ Debajo del selector, la ventana te dice con qué cuenta para trabajar: `325 of 3
 
 ## En Windows: el 4648
 
-El registro que hace de prueba en Windows es el **4648**, «se intentó un inicio de sesión con credenciales explícitas». Se escribe en la máquina de *origen* cuando un proceso se autentica contra otra con un usuario y contraseña dados a mano: un `runas`, un `Enter-PSSession -Credential`, un `net use` con usuario, PsExec con `-u`.
+El registro que hace de prueba en Windows es el **4648**, «se intentó un inicio de sesión con credenciales explícitas». Se escribe en la máquina de *origen* cuando un proceso se autentica contra otra con un usuario y contraseña dados a mano: un `runas`, un `Enter-PSSession -Credential`, un `net use` con usuario, PsExec con `-u`. No hace falta conocerlas todas: son las formas habituales que tiene un administrador, o un atacante, de ejecutar algo en otra máquina con un usuario distinto del de su sesión.
 
 Lo que casi nadie mira del 4648 es su `SubjectLogonId`. Es el logon ID de la sesión cuyo proceso hizo la conexión. El mismo número del 4624 que abrió esa sesión.
 
@@ -61,13 +61,15 @@ LEO-DC01 -(masstin.path@DEV 22:31)-> DEV-SRV01
 
 Fíjate en las flechas. El primer salto va con guiones, `-( )->`: es el punto de partida y no hay sesión anterior que lo explique. Los dos siguientes van con iguales, `=( )=>`: la máquina dejó escrito que los hizo la sesión que acababa de entrar.
 
+Los iguales son solo para la primera manera de atar un salto, el registro escrito. Un salto atado solo porque encaja en el tiempo de la sesión se dibuja con guiones, como el primero. Y la marca no depende del modo: en [Find path](/es/tools/masstin-viewer-find-path/) por tiempo esta misma cadena sale con los mismos iguales, porque el registro está en la timeline se busque como se busque.
+
 Esa diferencia tipográfica es deliberada. Cuando copias la cadena a un informe, se ve qué saltos están probados y cuáles son solo coherentes.
 
 ## En Linux: auditd y su `ses`
 
 Linux no tiene logon ID, pero auditd tiene algo que hace el mismo papel. Cada login recibe un identificador de sesión, `ses=`, y el kernel lo estampa en todos los registros de todos los procesos que nacen de ahí.
 
-Si la máquina audita la llamada `connect`, cada conexión saliente queda con su `ses`. masstin la convierte en una fila `AUDIT_CONNECT` y la ata al login SSH de esa sesión. El detalle, con la regla que hace falta, está en el [artículo de artefactos de Linux](/es/artifacts/linux-forensic-artifacts/).
+`connect` es la llamada al sistema que hace cualquier programa para abrir una conexión de red. auditd no la registra por defecto: hace falta una regla de auditoría que se lo pida. Si la máquina audita la llamada `connect`, cada conexión saliente queda con su `ses`. masstin la convierte en una fila `AUDIT_CONNECT` y la ata al login SSH de esa sesión. El detalle, con la regla que hace falta, está en el [artículo de artefactos de Linux](/es/artifacts/linux-forensic-artifacts/).
 
 Lo probamos en el laboratorio saltando desde una máquina Linux a dos Windows por SMB. La cadena sale con sus iguales. Y la comprobación más convincente fue la contraria: otra sesión SSH abierta a la vez en la misma máquina, que no hizo nada, no produce ningún camino por sesión. Por tiempo sí lo habría producido.
 
@@ -75,8 +77,8 @@ Lo probamos en el laboratorio saltando desde una máquina Linux a dos Windows po
 
 Conviene tenerlo claro para no sacar conclusiones de un resultado vacío:
 
-- **El 4648 solo existe con credenciales explícitas.** Un salto que reutiliza el ticket de la sesión (un `dir \\servidor\c$` sin más) no lo genera. Ahí solo queda la prueba del tiempo de sesión.
-- **Sin logoffs no hay duración.** Si los 4634 se han rotado o la política no los audita, la sesión no tiene final. Hay una casilla, *the gap where a logon has no logoff*, que en ese caso usa el margen de horas como sustituto, y lo indica.
+- **El 4648 solo existe con credenciales explícitas.** Un salto que reutiliza el ticket de la sesión, es decir, que entra en la otra máquina con la identidad con la que ya se inició sesión y sin escribir otra contraseña (un `dir \\servidor\c$` sin más), no lo genera. Ahí solo queda la prueba del tiempo de sesión.
+- **Sin logoffs no hay duración.** Si los 4634 se han rotado o la política no los audita, la sesión no tiene final. Hay una casilla en la ventana Paths, justo debajo del selector *by session (logon ID)*, que se llama *the gap where a logon has no logoff* y que en ese caso usa el margen de horas como sustituto, y lo indica.
 - **auditd necesita la regla de `connect`.** Sin ella no hay nada que leer.
 - **Depende del origen de los datos.** El logon ID del 4648 se lee de los EVTX. Si la timeline viene de un EDR o de un SIEM que no conserva ese campo, la columna llega vacía.
 

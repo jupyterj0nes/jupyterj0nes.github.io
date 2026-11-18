@@ -26,6 +26,8 @@ Una semilla puede ser un nombre de máquina, una dirección o una cuenta, y se p
 
 Los datos son los del escenario generado de [el hunt desde el visor](/es/tools/masstin-hunt-viewer/): inventados, con una intrusión con guion. La semilla es la dirección externa que hizo fuerza bruta por SSH.
 
+La orden no lleva `-o`. Sin ella no se escribe la tabla de hallazgos: sale el informe de `--report`, que `--seed` necesita, y la timeline queda anotada con las columnas del hunt, como siempre.
+
 ## Lo que devuelve
 
 ```
@@ -45,13 +47,20 @@ Y el informe se abre con la cadena:
 
 Seis saltos sobre seis máquinas, a partir de una sola dirección IP.
 
+Dos columnas que no se explican solas:
+
+- **Prof.** es la profundidad: a cuántos saltos de la semilla está ese login. El de la propia semilla es 1.
+- **Sigue a** dice de qué salto cuelga: por cuál se entró en la máquina de la que sale este.
+
+Por eso el salto 6 tiene profundidad 2 aunque sea el último en el tiempo. Sale de `LEO-LNX01`, la máquina en la que se entró en el salto 1, igual que los saltos 2 y 3. El número de la primera columna va por hora, no por profundidad.
+
 ## Cómo sigue el rastro
 
 La regla es conservadora a propósito, y conviene entenderla.
 
 **Empieza por los logins de la semilla.** Aquí, la entrada de `203.0.113.45` en `LEO-LNX01` como `deploy`.
 
-**Desde cada máquina en la que entra, sigue solo mientras esa sesión está abierta.** Desde su logon hasta su cierre, o hasta el final del día si el cierre no se registró. Un login que sale de `LEO-LNX01` tres días después no es de la cadena.
+**Desde cada máquina en la que entra, sigue solo mientras esa sesión está abierta.** Desde su logon hasta su cierre, o hasta el final del día si el cierre no se registró. En ese segundo caso la cadena puede recoger más de la cuenta; lo retomo al final. Un login que sale de `LEO-LNX01` tres días después no es de la cadena.
 
 **Y no sigue cualquier login.** Solo los que son conexiones nuevas o usan una cuenta que la cadena ya había usado. El tráfico habitual de un servidor que estaba ahí antes del ataque no se le cuelga al atacante.
 
@@ -90,7 +99,7 @@ Veinticuatro minutos de fuerza bruta, y luego cinco intentos en veinte segundos 
 
 **Qué había abierto en la semilla cuando empezó a actuar.** Por si la semilla no es el principio sino un paso intermedio.
 
-**Dos consultas Cypher.** Una dibuja exactamente esos saltos. La otra devuelve todo lo que pasó entre las máquinas de la cadena en ese periodo, para comprobarlo. Si no usas base de datos de grafos, lo mismo se ve en el [visor](/es/tools/masstin-viewer-find-path/).
+**Dos consultas Cypher.** Cypher es el lenguaje de consulta de las bases de datos de grafos, como Neo4j y Memgraph, que guardan las máquinas como nodos y las conexiones como relaciones entre ellos. Una dibuja exactamente esos saltos. La otra devuelve todo lo que pasó entre las máquinas de la cadena en ese periodo, para comprobarlo. Si no usas base de datos de grafos, lo mismo se ve en el [visor](/es/tools/masstin-viewer-find-path/).
 
 ## Semillas que ya existían
 
@@ -98,7 +107,7 @@ Un detalle que evita muchos falsos positivos. Si la semilla es una máquina que 
 
 Si la semilla no se había visto nunca, como aquí, arranca con todo lo que hizo.
 
-Y si quieres acotar más: `--seed-from` y `--seed-to` limitan qué logins pueden iniciar la cadena.
+Y si quieres acotar más: `--seed-from` y `--seed-to` limitan qué logins pueden iniciar la cadena. Las dos llevan una fecha y hora en UTC, escrita como `"AAAA-MM-DD HH:MM:SS"`. Si no las pones, valen el principio y el final del periodo investigado.
 
 ## Desde el visor
 

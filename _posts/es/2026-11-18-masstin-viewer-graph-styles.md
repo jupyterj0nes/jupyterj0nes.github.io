@@ -22,8 +22,8 @@ El mapa del [visor de masstin](/es/tools/masstin-viewer/) tiene bastante informa
 
 - El **grosor** crece con el número de eventos.
 - El **color** es el resultado: gris si el logon fue bien, rojo si falló, morado y punteado si es una conexión sin logon, gris punteado para un cierre de sesión.
-- Si has pasado el hunt, manda él: rojo y grueso para lo `significant`, naranja para lo `candidate`.
-- Un **halo** rosa o verde es una marca tuya (sospechoso, confirmado o benigno).
+- Si has pasado el hunt, manda él: rojo y grueso para lo `significant`, naranja para lo `candidate`. El [hunt](/es/tools/masstin-graph-hunt/) es el análisis de masstin que señala las conexiones raras; `significant` es lo que pasa su listón y `candidate` lo que no llega pero merece un vistazo ([los estados y la puntuación](/es/tools/hunt-score-across-tools/)).
+- Un **halo** es una marca tuya: rosa si la marcaste como sospechosa o confirmada, verde si como benigna.
 
 La línea nace apagada en el origen y llega encendida al destino. Con eso la dirección se ve antes de fijarte en la flecha.
 
@@ -69,7 +69,7 @@ Para lo que no cubre un desplegable están las reglas (**Rules** en la barra).
 
 [![La ventana Style rules con los botones que añaden las reglas habituales: ocultar cuentas de máquina, atenuar lo benigno, controladores de dominio como hexágonos](/assets/images/viewer/g-rules.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/viewer/g-rules.webp)
 
-Una regla es un campo (máquina, cuenta, tipo de logon, event ID, resultado, hunt, veredicto), un patrón y el aspecto que da: color, grosor, tamaño, forma, punteado, brillo u ocultar. Gana la primera que encaja. Las de uso diario vienen ya como botones: una cuenta en color, ocultar las cuentas de máquina, atenuar lo que marcaste como benigno.
+Una regla es un campo (máquina, cuenta, tipo de logon, event ID, resultado, hunt, veredicto), un patrón y el aspecto que da: color, grosor, tamaño, forma, punteado, brillo u ocultar. El patrón es el texto con el que se compara el campo y se escribe igual que en los filtros (`adm*`, `*$`, `=DC01`): la tabla está en [Filtros, vistas y búsqueda](/es/tools/masstin-viewer-filters/). Vacío, encaja con todo. Gana la primera que encaja. Las de uso diario vienen ya como botones: una cuenta en color, ocultar las cuentas de máquina, atenuar lo que marcaste como benigno.
 
 Para empezar, la de ocultar cuentas de máquina. Las cuentas que acaban en `$` llenan el grafo de líneas y casi nunca son lo que buscas.
 

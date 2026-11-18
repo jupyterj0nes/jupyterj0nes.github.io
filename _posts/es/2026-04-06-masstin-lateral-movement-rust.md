@@ -59,6 +59,8 @@ Masstin parsea **todas** estas fuentes y las fusiona en una **única timeline cr
 
 ## Características clave
 
+Esta tabla es de referencia: lista todo lo que hace masstin, con detalle técnico que no necesitas para empezar. Si es tu primera vez, salta a [Instalar](#instalar) y vuelve aquí cuando busques algo concreto.
+
 | Característica | Descripción | Artículo |
 |----------------|-------------|----------|
 | **Parsing unificado cross-OS** | **Un solo comando `parse` auto-detecta el SO de cada partición** — NTFS recibe parsing Windows (EVTX + UAL + VSS), ext4 recibe parsing Linux (auth.log, wtmp, audit.log, **logs binarios de systemd-journald**, etc.) — todo fusionado en una timeline. Apunta a una carpeta con imágenes mixtas y obtén un único CSV. Cero pasos manuales. | [Imágenes forenses](/es/tools/masstin-vss-recovery/) |
@@ -101,12 +103,22 @@ Masstin parsea **todas** estas fuentes y las fusiona en una **única timeline cr
 
 Ve a [**Releases**](https://github.com/jupyterj0nes/masstin/releases) y descarga el binario para tu plataforma. Nada más.
 
+El binario es un programa de consola: no tiene instalador y no se abre con doble clic. Para usarlo:
+
+1. Abre una terminal (PowerShell en Windows) en la carpeta donde lo has descargado.
+2. En Linux y macOS, márcalo antes como ejecutable (`chmod +x` sobre el fichero).
+3. Los ejemplos de esta página escriben `masstin` a secas. Puedes renombrar el fichero descargado a `masstin` (`masstin.exe` en Windows) o escribir el nombre que tenga. Si la carpeta no está en el `PATH`, se llama con `.\masstin.exe` en Windows y con `./masstin` en Linux y macOS.
+
 ### Compilar desde el código fuente (alternativa)
 
 ```bash
 git clone https://github.com/jupyterj0nes/masstin.git
 cd masstin && cargo build --release
 ```
+
+## Primeros pasos
+
+Con el binario listo, esta es la guía de uso, en el orden en que se suele trabajar: parsear la evidencia, mirar el grafo, seguir el rastro y cazar.
 
 ### Parsear evidencia
 
@@ -145,7 +157,7 @@ masstin -a load-neo4j -f full-timeline.csv --database localhost:7687 --user neo4
 
 ### Reconstruir el camino del atacante
 
-La query de camino temporal encuentra la ruta cronológicamente coherente entre dos nodos:
+La query de camino temporal encuentra la ruta cronológicamente coherente entre dos nodos. Así escrita es para Memgraph: `localDateTime()` es una función suya. La versión para Neo4j está en el [artículo de Neo4j](/es/tools/neo4j-cypher-visualization/).
 
 ```cypher
 MATCH path = (start:host {name:'10.10.1.50'})-[*]->(end:host {name:'SRV-BACKUP'})
@@ -187,7 +199,15 @@ Todo esto llega con masstin 1.5.0.
 
 ### Cazar sin saber qué buscar
 
-Con el timeline hecho, `graph-hunt-csv` responde a la pregunta que el analista trae el primer día: de todo lo que pasó después del compromiso, ¿qué es nuevo para esta red? Sin base de datos ni plugins: cada conexión de la ventana se mide contra la línea base, el único número que eliges es la tasa de falsos descubrimientos, y el informe explica cada hallazgo en palabras. Sin ninguna pista: en el conjunto público de Los Álamos (21 millones de logins, 749 eventos del equipo rojo etiquetados) la máquina del equipo rojo sale en el puesto 1 y 204 conexiones superan la tasa de falsos descubrimientos del 5 %. Los 22 minutos de ejecución están recortados en la grabación.
+Con el timeline hecho, `graph-hunt-csv` responde a la pregunta que el analista trae el primer día: de todo lo que pasó después del compromiso, ¿qué es nuevo para esta red? Sin base de datos ni plugins: cada conexión de la ventana se mide contra la línea base, el único número que eliges es la tasa de falsos descubrimientos, y el informe explica cada hallazgo en palabras.
+
+Tres términos, en llano:
+
+- **Línea base**: lo que la red hacía antes de la fecha de corte (`--investigation-from`). Se toma como lo normal.
+- **p-valor**: la probabilidad de ver algo así de raro si fuera actividad normal. Cuanto más pequeño, más inusual es la conexión.
+- **Tasa de falsos descubrimientos**: la parte de los hallazgos que aceptas que sean falsas alarmas. Con el 5 %, de cada 100 conexiones señaladas se esperan unas 5 que no eran nada.
+
+Sin ninguna pista: en el conjunto público de Los Álamos (21 millones de logins, 749 eventos del equipo rojo etiquetados) la máquina del equipo rojo sale en el puesto 1 y 204 conexiones superan la tasa de falsos descubrimientos del 5 %. Los 22 minutos de ejecución están recortados en la grabación.
 
 ```bash
 masstin -a graph-hunt-csv -f timeline.csv --investigation-from "2026-03-15 00:00:00" \

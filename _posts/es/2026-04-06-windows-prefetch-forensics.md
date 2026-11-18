@@ -44,7 +44,9 @@ El hash se calcula basándose en la ruta del archivo y, en algunos casos, los ar
 
 ## Análisis con PECmd
 
-**PECmd** de Eric Zimmerman es la herramienta de referencia para parsear archivos Prefetch:
+**PECmd** de Eric Zimmerman es la herramienta de referencia para parsear archivos Prefetch. Es gratuita y forma parte del conjunto de herramientas que Eric Zimmerman publica en su web.
+
+Los ejemplos apuntan al `C:\Windows\Prefetch` de un sistema en vivo. Si trabajas con una imagen forense o un triage, pon en su lugar la ruta de la carpeta `Prefetch` que hayas extraído: PECmd lee los `.pf` de cualquier carpeta.
 
 ```bash
 PECmd.exe -f "C:\Windows\Prefetch\CMD.EXE-4A81B364.pf"
@@ -65,7 +67,7 @@ PECmd.exe -d "C:\Windows\Prefetch" --csv "C:\output" --csvf prefetch_results.csv
 
 ## Limitaciones
 
-- Prefetch está **deshabilitado por defecto en SSDs** en algunas versiones de Windows (aunque Windows 10/11 lo mantiene habilitado).
+- En Windows 10/11 Prefetch sigue **habilitado también en SSDs**. En algunas versiones anteriores de Windows venía deshabilitado por defecto cuando el disco era un SSD.
 - Máximo de **1024 archivos Prefetch** desde Windows 8 (128 en Windows 7 y anteriores). Al llegar al límite, los más antiguos se eliminan.
 - Solo disponible en ediciones **Windows cliente** (no en Server por defecto).
 - Los timestamps pueden manipularse via timestomping, pero los metadatos de Prefetch son más difíciles de falsificar.
