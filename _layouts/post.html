@@ -45,6 +45,26 @@ layout: default
 
 <article class="post-full">
   <div class="container container-narrow">
+    {%- assign sec = page.section | default: "" -%}
+    {%- assign hero_img = page.hero -%}
+    {%- assign hero_text = page.hero_text -%}
+    {%- unless hero_img or hero_text -%}
+      {%- if sec contains "masstin" -%}{%- assign hero_img = "masstin.webp" -%}
+      {%- elsif sec == "caarea" -%}{%- assign hero_img = "caarea.webp" -%}
+      {%- elsif sec == "faramir" -%}{%- assign hero_img = "faramir.svg" -%}
+      {%- elsif sec == "allymacb" -%}{%- assign hero_img = "allymacb.svg" -%}
+      {%- elsif sec == "etcdump" -%}{%- assign hero_text = "etcdump" -%}
+      {%- elsif sec == "common" -%}{%- assign hero_text = "evidencefs · blockcarve · dirtyhive" -%}
+      {%- elsif sec == "family" -%}{%- assign hero_text = "masstin · caarea · faramir · allymacb" -%}
+      {%- endif -%}
+    {%- endunless -%}
+    {%- if hero_img %}
+    <figure class="post-hero post-hero-{{ hero_img | split: "." | first }}">
+      <img src="{{ '/assets/images/tools/' | append: hero_img | relative_url }}" alt="{{ hero_img | split: "." | first }}">
+    </figure>
+    {%- elsif hero_text %}
+    <div class="post-hero post-hero-text" aria-hidden="true"><span>{{ hero_text }}</span></div>
+    {%- endif %}
     <header class="post-header">
       <div class="post-meta">
         <time datetime="{{ page.date | date_to_xmlschema }}">

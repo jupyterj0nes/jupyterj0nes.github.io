@@ -39,7 +39,7 @@
   --font-mono: 'Space Mono', 'JetBrains Mono', 'Consolas', monospace;
 
   --container-width: 1180px;
-  --container-narrow: 780px;
+  --container-narrow: 820px;
 }
 
 /* === RESET & BASE === */
@@ -292,8 +292,8 @@ a:hover { color: #f2c27e; }
    ============================================ */
 .page-content,
 .post-content {
-  font-size: 1.06rem;
-  line-height: 1.82;
+  font-size: 1.125rem;
+  line-height: 1.8;
   color: var(--body);
 }
 .page-content h2,
@@ -944,4 +944,78 @@ a:hover { color: #f2c27e; }
   font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500;
   color: var(--green); border: 1px dashed var(--green); border-radius: 999px;
   padding: 0.1rem 0.6rem; margin-left: 0.5rem; vertical-align: middle;
+}
+
+
+/* ============================================
+   POST HERO (tool logo above the title)
+   ============================================ */
+.post-hero {
+  margin: 0 0 2.2rem;
+  height: 250px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(700px 260px at 50% 0%, rgba(122, 166, 242, 0.10), transparent 70%),
+    var(--sec);
+}
+.post-hero img {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+  display: block;
+}
+.post-hero-masstin { background: #08080b; }
+.post-hero-caarea { background: #fdf9f5; }
+.post-hero-caarea img { padding: 0.6rem 0; }
+.post-hero-allymacb { background: #ff5c7a; }
+.post-hero-allymacb img { padding: 0.8rem; }
+.post-hero-faramir { background: #0a1120; }
+.post-hero-text {
+  height: 150px;
+  background:
+    radial-gradient(600px 200px at 50% 0%, rgba(227, 164, 79, 0.14), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 44px),
+    var(--sec);
+}
+.post-hero-text span {
+  font-family: var(--font-mono);
+  font-size: clamp(1.1rem, 3.2vw, 1.9rem);
+  letter-spacing: 0.04em;
+  color: var(--head2);
+  text-align: center;
+  padding: 0 1rem;
+}
+
+/* ============================================
+   WIDE BLOCKS: code, tables and images may grow past the
+   text column to the right, only as far as their content needs.
+   ============================================ */
+@media (min-width: 1180px) {
+  .post-content > .highlighter-rouge,
+  .post-content > pre {
+    width: max-content;
+    min-width: 100%;
+    max-width: calc(100% + 280px);
+  }
+  .post-content > table {
+    width: max-content;
+    min-width: 100%;
+    max-width: calc(100% + 280px);
+  }
+  .post-content > p > img:only-child,
+  .post-content > p > a:only-child > img,
+  .post-content > video,
+  .post-content > p > video:only-child {
+    width: calc(100% + 280px);
+    max-width: calc(100% + 280px);
+  }
+}
+@media (max-width: 760px) {
+  .post-hero { height: 170px; border-radius: 10px; }
+  .post-hero-text { height: 110px; }
 }
