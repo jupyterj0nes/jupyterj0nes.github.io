@@ -14,6 +14,10 @@ comments: true
 
 ## The problem
 
+[![The rows that come out of the lab server's UAL: who accessed the file server, from which address and how many times. They come from no event log.](/assets/images/artifacts/tl-ual.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-ual.webp)
+
+<p class="video-cap">The rows that come out of the lab server's UAL: who accessed the file server, from which address and how many times. They come from no event log.</p>
+
 You collect forensic evidence from a Domain Controller. The Security event log has been rolling over every few hours on this busy server — or worse, the attacker cleared it. You need to know who accessed this server, from which IP, and when. The event logs can't tell you.
 
 **User Access Logging (UAL)** can.

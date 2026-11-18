@@ -12,7 +12,11 @@ description: "Forensic guide to Linux artifacts for detecting lateral movement: 
 comments: true
 ---
 
-## Lateral Movement in Linux: Different Ecosystem, Same Principles
+## Lateral Movement in Linux: Different Ecosystem, Same Principles
+
+[![SSH logons on the lab's Linux server in the timeline: the account, the source address, the method (public key) and the sshd process of each session.](/assets/images/artifacts/tl-ssh.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-ssh.webp)
+
+<p class="video-cap">SSH logons on the lab's Linux server in the timeline: the account, the source address, the method (public key) and the sshd process of each session.</p>
 
 When we think about lateral movement, the conversation tends to center on Windows environments: EVTX, Kerberos, PsExec, RDP. But modern enterprise environments are hybrid, and attackers don't stop at operating system boundaries. Linux servers — especially those running web services, databases, or container infrastructure — are frequent targets.
 

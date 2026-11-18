@@ -14,6 +14,10 @@ comments: true
 
 ## El problema
 
+[![Las filas que salen del UAL del servidor del laboratorio: quién accedió al servidor de ficheros, desde qué dirección y cuántas veces. No vienen de ningún log de eventos.](/assets/images/artifacts/tl-ual.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-ual.webp)
+
+<p class="video-cap">Las filas que salen del UAL del servidor del laboratorio: quién accedió al servidor de ficheros, desde qué dirección y cuántas veces. No vienen de ningún log de eventos.</p>
+
 Recoges evidencia forense de un Domain Controller. El log de seguridad ha estado rotando cada pocas horas en este servidor ocupado — o peor, el atacante lo borró. Necesitas saber quién accedió a este servidor, desde qué IP y cuándo. Los event logs no te lo pueden decir.
 
 **User Access Logging (UAL)** si puede.

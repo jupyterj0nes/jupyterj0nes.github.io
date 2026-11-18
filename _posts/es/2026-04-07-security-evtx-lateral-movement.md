@@ -28,6 +28,10 @@ Cada evento se escribe en la máquina donde ocurre. Un inicio de sesión por red
 
 ---
 
+[![Un inicio de sesión de dominio visto en Security.evtx, tal como lo ordena masstin. Cada entrada de la cuenta deja cuatro eventos seguidos: 4768 (pide el TGT), 4769 (pide el ticket de servicio), 4648 (credenciales explícitas) y 4624 (inicia sesión).](/assets/images/artifacts/tl-sec.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-sec.webp)
+
+<p class="video-cap">Un inicio de sesión de dominio visto en Security.evtx, tal como lo ordena masstin. Cada entrada de la cuenta deja cuatro eventos seguidos: 4768 (pide el TGT), 4769 (pide el ticket de servicio), 4648 (credenciales explícitas) y 4624 (inicia sesión).</p>
+
 ## Eventos de logon y logoff
 
 ### Event ID 4624 — Logon exitoso
@@ -104,6 +108,10 @@ Se genera cuando un proceso se autentica con credenciales distintas a las de la 
 ---
 
 ## Eventos Kerberos
+
+[![Los 4768 del laboratorio, sin las cuentas de máquina: quién pidió un TGT, a qué controlador de dominio y desde qué dirección.](/assets/images/artifacts/tl-krb.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-krb.webp)
+
+<p class="video-cap">Los 4768 del laboratorio, sin las cuentas de máquina: quién pidió un TGT, a qué controlador de dominio y desde qué dirección.</p>
 
 Los eventos Kerberos son fundamentales para reconstruir la autenticación en entornos de Active Directory. Se generan **en el Domain Controller**.
 

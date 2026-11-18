@@ -120,6 +120,10 @@ The text is the one Windows itself writes:
 
 ---
 
+[![SMB events from the lab in the timeline: the 30806 from SMBClient/Connectivity name the server each machine was talking to, and below, in red, the 1009 and 551 failures the server records.](/assets/images/artifacts/tl-smb.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-smb.webp)
+
+<p class="video-cap">SMB events from the lab in the timeline: the 30806 from SMBClient/Connectivity name the server each machine was talking to, and below, in red, the 1009 and 551 failures the server records.</p>
+
 ## SMB Event Summary
 
 | Log | Event ID | Machine | Description | Relevance |

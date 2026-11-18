@@ -120,6 +120,10 @@ El texto es el que escribe el propio Windows:
 
 ---
 
+[![Eventos SMB del laboratorio en la timeline: los 30806 de SMBClient/Connectivity nombran el servidor con el que hablaba cada máquina, y abajo, en rojo, los fallos 1009 y 551 que apunta el servidor.](/assets/images/artifacts/tl-smb.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-smb.webp)
+
+<p class="video-cap">Eventos SMB del laboratorio en la timeline: los 30806 de SMBClient/Connectivity nombran el servidor con el que hablaba cada máquina, y abajo, en rojo, los fallos 1009 y 551 que apunta el servidor.</p>
+
 ## Tabla resumen de eventos SMB
 
 | Log | Event ID | Máquina | Descripción | Relevancia |

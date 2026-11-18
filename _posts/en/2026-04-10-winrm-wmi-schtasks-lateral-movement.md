@@ -63,6 +63,10 @@ Remote WMI execution (`wmic /node:host process call create`) generates Event ID 
 
 ## Scheduled Tasks — Remote Registration
 
+[![The two tasks masstin flags on the lab's server, with their command. Note that source and destination are the same machine under two different names: the renamed-machine case the text warns about.](/assets/images/artifacts/tl-task.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-task.webp)
+
+<p class="video-cap">The two tasks masstin flags on the lab's server, with their command. Note that source and destination are the same machine under two different names: the renamed-machine case the text warns about.</p>
+
 When an attacker schedules a task remotely (via `schtasks /CREATE /S target` or similar tools), the task XML file in `Windows\System32\Tasks\` records the **source machine** in the `<Author>` field:
 
 ```xml

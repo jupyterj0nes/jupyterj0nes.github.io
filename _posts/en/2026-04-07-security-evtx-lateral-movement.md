@@ -28,6 +28,10 @@ Each event is written on the machine where it happens. A network logon is record
 
 ---
 
+[![A domain logon as seen in Security.evtx, in the order masstin puts it. Each entry of the account leaves four events in a row: 4768 (asks for the TGT), 4769 (asks for the service ticket), 4648 (explicit credentials) and 4624 (logs on).](/assets/images/artifacts/tl-sec.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-sec.webp)
+
+<p class="video-cap">A domain logon as seen in Security.evtx, in the order masstin puts it. Each entry of the account leaves four events in a row: 4768 (asks for the TGT), 4769 (asks for the service ticket), 4648 (explicit credentials) and 4624 (logs on).</p>
+
 ## Logon and Logoff Events
 
 ### Event ID 4624 — Successful Logon
@@ -104,6 +108,10 @@ Generated when a process authenticates with credentials different from those of 
 ---
 
 ## Kerberos Events
+
+[![The lab's 4768 events, without the machine accounts: who asked for a TGT, from which domain controller and from which address.](/assets/images/artifacts/tl-krb.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-krb.webp)
+
+<p class="video-cap">The lab's 4768 events, without the machine accounts: who asked for a TGT, from which domain controller and from which address.</p>
 
 Kerberos events are fundamental for reconstructing authentication in Active Directory environments. They are generated **on the Domain Controller**.
 

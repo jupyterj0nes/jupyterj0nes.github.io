@@ -12,7 +12,11 @@ description: "Guía forense de artefactos Linux para detectar movimiento lateral
 comments: true
 ---
 
-## Movimiento lateral en Linux: diferente ecosistema, mismos principios
+## Movimiento lateral en Linux: diferente ecosistema, mismos principios
+
+[![Inicios de sesión por SSH del servidor Linux del laboratorio en la timeline: la cuenta, la dirección de origen, el método (clave pública) y el proceso sshd de cada sesión.](/assets/images/artifacts/tl-ssh.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-ssh.webp)
+
+<p class="video-cap">Inicios de sesión por SSH del servidor Linux del laboratorio en la timeline: la cuenta, la dirección de origen, el método (clave pública) y el proceso sshd de cada sesión.</p>
 
 Cuando pensamos en movimiento lateral, la conversación suele centrarse en entornos Windows: EVTX, Kerberos, PsExec, RDP. Pero los entornos empresariales modernos son híbridos, y los atacantes no se detienen en las fronteras del sistema operativo. Servidores Linux, especialmente los que ejecutan servicios web, bases de datos o infraestructura de contenedores, son objetivos frecuentes.
 

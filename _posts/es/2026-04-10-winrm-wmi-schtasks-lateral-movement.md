@@ -63,6 +63,10 @@ La ejecución remota de WMI (`wmic /node:host process call create`) genera el Ev
 
 ## Scheduled Tasks — Registro remoto
 
+[![Las dos tareas que masstin señala en el servidor del laboratorio, con su comando. Fíjate en que el origen y el destino son la misma máquina con dos nombres distintos: es el caso de una máquina renombrada del que avisa el texto.](/assets/images/artifacts/tl-task.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-task.webp)
+
+<p class="video-cap">Las dos tareas que masstin señala en el servidor del laboratorio, con su comando. Fíjate en que el origen y el destino son la misma máquina con dos nombres distintos: es el caso de una máquina renombrada del que avisa el texto.</p>
+
 Cuando un atacante programa una tarea remotamente (vía `schtasks /CREATE /S target` o herramientas similares), el fichero XML de la tarea en `Windows\System32\Tasks\` registra la **máquina origen** en el campo `<Author>`:
 
 ```xml

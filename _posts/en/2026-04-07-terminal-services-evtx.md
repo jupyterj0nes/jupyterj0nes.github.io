@@ -164,6 +164,10 @@ The text is *A connection from the client computer with an IP address of … fai
 
 ## Reconstructing a Complete RDP Session
 
+[![A real RDP session from the lab in masstin's timeline, filtered on logon_type 10. From top to bottom: the connection arrives (131), the client starts it (1024, 1102), authentication is accepted (1149), the logon happens (4624), the session is created (21), the desktop starts (22) and, later, it is closed (4647, 24).](/assets/images/artifacts/tl-rdp.webp){: style="display:block; margin: 1rem auto; max-width: 100%;" loading="lazy"}](/assets/images/artifacts/tl-rdp.webp)
+
+<p class="video-cap">A real RDP session from the lab in masstin's timeline, filtered on logon_type 10. From top to bottom: the connection arrives (131), the client starts it (1024, 1102), authentication is accepted (1149), the logon happens (4624), the session is created (21), the desktop starts (22) and, later, it is closed (4647, 24).</p>
+
 To reconstruct an RDP session from start to finish, correlate the events in this order. Those marked Security.evtx are in another file, `Security.evtx`, on the same destination machine:
 
 1. **131** (RdpCoreTS) — The connection arrives: source address
