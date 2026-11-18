@@ -52,7 +52,7 @@ masstin -a parse-image --all-volumes -o timeline.csv
 
 **Live, you change the machine.** Not much, but something: running any program on a live system leaves a trace (masstin's own prefetch, for one). If the case may end up in court, write it down in your notes and, when you can, make the image as well. masstin reads; it does not write to the volume. Put the output CSV on another drive.
 
-**A PowerShell trap.** Do not end a path with `\` inside single quotes: PowerShell takes it as escaping the quote and mangles the arguments. masstin detects it and warns you, but the safest thing is to leave the trailing backslash out, or use double quotes.
+**A PowerShell trap.** In Windows PowerShell 5.1, the one Windows ships with, a path **with spaces** that ends in `\` swallows the arguments after it: `-d 'D:\my case' -o out.csv` reaches the program as one odd path. It happens with single and with double quotes alike. masstin detects it and warns you, but the safest thing is to leave the trailing backslash out. In PowerShell 7.3 or later it no longer happens.
 
 ## When to image anyway
 

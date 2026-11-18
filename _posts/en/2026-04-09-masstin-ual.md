@@ -72,7 +72,7 @@ Each UAL record produces **two timeline entries**: one for the first access (`In
 | File Server | `SMB` | SMB file share access, named pipes (PsExec, sc.exe) |
 | Remote Access | `RDP` | Remote Desktop connections |
 | Web Server | `HTTP` | IIS web server access |
-| FTP Server | `HTTP` | FTP connections |
+| FTP Server | `HTTP` | FTP connections. masstin groups them with the web ones under `HTTP`; the exact role stays in the `detail` column |
 | Active Directory Domain Services | `LDAP` | AD authentication and queries |
 | Active Directory Certificate Services | `CERT` | Certificate enrollment |
 | DHCP Server | `DHCP` | DHCP lease requests |

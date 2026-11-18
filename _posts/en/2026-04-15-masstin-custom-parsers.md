@@ -185,7 +185,7 @@ First matched records:
   2016/02/24 22:41:24 | SUCCESSFUL_LOGON  | user=user1         | src=64.147.162.160 | dst=VPN-GW-N  | detail=GlobalProtect gateway register (session up) | user=user1 from=64.147.162.160 os=Microsoft Windows Server 2008 R2 Enterprise Edition Service Pack 1
 ```
 
-Source IP, username, authentication type, OS version — all populated correctly for every logon event. The four matched records land in the same 14-column CSV and are ready for `load-memgraph` or `load-neo4j` like any other masstin source.
+Source IP, username, authentication type, OS version — all populated correctly for every logon event. The four matched records land in the same CSV timeline as everything else (19 columns today: the 14 of the event and the 5 of the analysis) and are ready for `load-memgraph` or `load-neo4j` like any other masstin source.
 
 ---
 
@@ -282,9 +282,8 @@ Full documentation in the [filtering section of `docs/parsing.md`](https://githu
 
 ## What's next
 
-- **JSON extractor.** Shipped in v1.1.0 as `type: json` with dot-path selectors; `rules/json/mordor.yaml` is the first rule built on it.
 - **Conditional map.** `when: ${action} == "fail"` style predicates so a single parser can handle both success and failure line variants of the same event when the format makes that cleaner than two parsers.
-- **More rules.** Cisco ASA AnyConnect, Fortinet FortiGate, OpenVPN and Squid are the next priorities. Checkpoint, ZScaler, Cloudflare Access are in the backlog.
+- **More rules.** The library holds 13 rules today: the Cisco, Fortinet, OpenVPN, Squid, Check Point, Zscaler and Cloudflare Access ones listed here as pending are already in, and so is the JSON extractor (`type: json`). The next ones depend on the samples that arrive.
 - **PAN-OS 9.1+ dedicated `globalprotect` log type.** A second Palo Alto rule covering the 49+ column dedicated format, once I can validate it against real samples.
 - **Per-rule validation command.** Checking a rule file for schema errors without running it against a log.
 

@@ -72,7 +72,7 @@ Cada registro UAL produce **dos entradas en la timeline**: una para el primer ac
 | File Server | `SMB` | Acceso a shares SMB, named pipes (PsExec, sc.exe) |
 | Remote Access | `RDP` | Conexiones Remote Desktop |
 | Web Server | `HTTP` | Acceso al servidor web IIS |
-| FTP Server | `HTTP` | Conexiones FTP |
+| FTP Server | `HTTP` | Conexiones FTP. masstin las agrupa con las web bajo `HTTP`; el rol exacto queda en la columna `detail` |
 | Active Directory Domain Services | `LDAP` | Autenticacion y consultas AD |
 | Active Directory Certificate Services | `CERT` | Solicitud de certificados |
 | DHCP Server | `DHCP` | Solicitudes de lease DHCP |

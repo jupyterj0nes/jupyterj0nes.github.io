@@ -223,8 +223,8 @@ masstin -a parse -d /evidence/case/ --carve -o timeline.csv
 # Specific images
 masstin -a parse -f DC01.e01 -f SRV-FILE.vmdk --carve -o timeline.csv
 
-# Scan only unallocated space (faster, planned)
-masstin -a parse -f server.e01 --carve --carve-unalloc -o timeline.csv
+# --carve-unalloc (unallocated space only) is planned but does nothing yet:
+# today --carve always walks the whole image
 
 # Skip known bad offsets (for pathological E01s)
 masstin -a parse -f broken.e01 --carve --skip-offsets 0x6478b6000 -o timeline.csv

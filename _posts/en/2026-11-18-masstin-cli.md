@@ -29,7 +29,7 @@ masstin -a ACTION [-d FOLDER]... [-f FILE]... [-o OUTPUT] [options]
 | `-a, --action` | The action. They are listed below |
 | `-d, --directory` | A folder, walked whole. A drive letter too (`D:`). Repeatable |
 | `-f, --file` | One file. Repeatable |
-| `-o, --output` | Where to write. Without it, the timeline goes to standard output |
+| `-o, --output` | Where to write. In the parsers, without it the timeline goes to standard output |
 | `--overwrite` | Overwrite the output if it exists. Without it, an existing file is an error, said before anything is read |
 | `--threads N` | Fix the number of threads. Without it, masstin [measures what is idle](/en/tools/masstin-performance/) |
 | `--silent` | No console output, for automation |
@@ -45,7 +45,7 @@ masstin -a ACTION [-d FOLDER]... [-f FILE]... [-o OUTPUT] [options]
 | `parse-linux` | Only Linux logs and triages |
 | `parse-mac` | Only `.logarchive` bundles or `log show` exports |
 | `parse-massive` | The massive pass on its own: images, triages and loose files |
-| `parser-elastic` | Windows events exported as JSON (Winlogbeat and the like) |
+| `parser-elastic` | Windows events exported as JSON (Winlogbeat and the like). That is its name, with the r |
 | `parse-custom` | Text logs with [YAML rules](/en/tools/masstin-custom-parsers/) |
 | `carve-image` | [EVTX carving](/en/tools/evtx-carving-unallocated/) on disk images |
 | `merge` | [Join timelines](/en/tools/masstin-merge/), or re-filter one |
@@ -57,7 +57,8 @@ masstin -a ACTION [-d FOLDER]... [-f FILE]... [-o OUTPUT] [options]
 | `--all-volumes` | `parse-image` | Every NTFS volume on the system. Needs administrator |
 | `--parallel-images N` | `parse-image`, `parse-massive` | Images at once. Without it, measured |
 | `--skip-offsets LIST` | `carve-image` | Damaged areas of an E01 to skip (32 MB each) |
-| `--dry-run` | parsers, `merge` | Show the result without writing the CSV |
+| `--dry-run` | parsers, `merge` | Only has an effect together with a filter (`--ignore-local`, `--exclude-*`) or with `parse-custom`: it shows the summary of what would be removed and writes nothing but the CSV header. Without a filter, the timeline is written as usual |
+| `--carry-marks FILE.csv` | `merge` | Bring verdicts and notes from an earlier timeline |
 
 ### Filtering the noise
 
@@ -156,7 +157,7 @@ Explained in [Neo4j](/en/tools/neo4j-cypher-visualization/) and [Memgraph](/en/t
 
 | Option | What it does |
 |---|---|
-| `--database` | The database URL (`localhost:7687`) |
+| `--database` | The database URL: `localhost:7687` on Memgraph, `bolt://localhost:7687` on Neo4j |
 | `-u, --user` | The user |
 | `--db` | The database name on the server |
 | `--ungrouped` | One relationship per row, instead of grouping. The hunt on a database needs it |

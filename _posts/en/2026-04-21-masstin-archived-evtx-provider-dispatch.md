@@ -80,7 +80,7 @@ The tests masstin had internally used canonical names, so nothing caught this. T
 
 ## The fix: dispatch by Provider.Name, not by filename
 
-An EVTX file is not just a blob. The first meaningful record of every file carries a complete XML `System` block with provider metadata:
+An EVTX file is not just a blob. Every record of an EVTX carries a complete XML `System` block with provider metadata:
 
 ```xml
 <System>
@@ -202,7 +202,7 @@ masstin -a parse -d /evidence/C/Windows/System32/winevt/Logs \
 ## Practical takeaways
 
 1. If you ever pointed masstin at a rotated-log archive, a KAPE extract per hostname, or a Velociraptor offline collector dump and saw `Events collected: 0` — that was this bug, not an empty timeline.
-2. The fix is in `main` (commit [`9419c95`](https://github.com/jupyterj0nes/masstin/commit/9419c95)) and will be in the next release. The commit is a one-liner: remove the `MASSIVE_MODE` gate, call `parse_unknown` unconditionally.
+2. The fix is in `main` (commit [`9419c95`](https://github.com/jupyterj0nes/masstin/commit/9419c95)) and is in every version since 1.0.0. The commit is a one-liner: remove the `MASSIVE_MODE` gate, call `parse_unknown` unconditionally.
 3. Every kind of evidence goes through the same EVTX dispatch: `masstin -a parse` reads files, folders with recursive zips, forensic disk images (NTFS `winevt/Logs` + VSS) and triage packages in one pass.
 4. The canonical test for any EVTX parser's robustness is a run against `github.com/omerbenamram/evtx/samples/`. Worth keeping in your pocket.
 

@@ -52,7 +52,7 @@ masstin -a parse-image --all-volumes -o timeline.csv
 
 **En vivo, modificas la máquina.** Poco, pero algo: ejecutar cualquier programa en un sistema encendido deja rastro (el propio prefetch de masstin, por ejemplo). Si el caso puede acabar en un juzgado, apúntalo en tus notas y, cuando puedas, haz también la imagen. masstin lee, no escribe en el volumen; el CSV de salida ponlo en otra unidad.
 
-**Una trampa de PowerShell.** No termines una ruta con `\` dentro de comillas simples: PowerShell lo interpreta como un escape de la comilla y estropea los argumentos. masstin lo detecta y avisa, pero lo más seguro es no poner la barra final, o usar comillas dobles.
+**Una trampa de PowerShell.** En Windows PowerShell 5.1, el que trae Windows de fábrica, una ruta **con espacios** y terminada en `\` se come los argumentos que vienen detrás: `-d 'D:\mi caso' -o salida.csv` le llega al programa como una sola ruta rara. Pasa igual con comillas simples que con dobles. masstin lo detecta y avisa, pero lo más seguro es no poner la barra final. En PowerShell 7.3 o posterior ya no ocurre.
 
 ## Cuándo hacer la imagen de todas formas
 

@@ -58,7 +58,7 @@ Processing a 50 GB E01 image of a Windows Server where the attacker had cleared 
 | VSS snapshots | 1 (created 2018-08-07, 149.9 MB delta) |
 | EVTX from live volume | 296 files |
 | EVTX from VSS store | 128 files |
-| Total after dedup | 424 unique EVTX files |
+| Total | 424 EVTX files |
 | Events from live | 6,947 |
 | Events recovered from VSS | 34,586 |
 | **Total unique events** | **41,533** |

@@ -24,15 +24,15 @@ Sabonis es una herramienta DFIR escrita en **Python** que proporciona una forma 
 - **Licencia:** GPLv3
 - **Lenguaje:** Python
 
-> **Nota:** Sabonis ha sido sucedido por [masstin](/es/tools/masstin-lateral-movement-rust/), su reescritura en Rust con ~90% más de rendimiento y más artefactos soportados. Si empiezas un proyecto nuevo, recomendamos masstin. Sabonis sigue siendo relevante para entender la lógica subyacente y para entornos donde Python es más conveniente.
+> **Nota:** Sabonis ha sido sucedido por [masstin](/es/tools/masstin-lateral-movement-rust/), su reescritura en Rust, más rápida y con muchos más artefactos soportados. Si empiezas un proyecto nuevo, recomendamos masstin. Sabonis sigue siendo relevante para entender la lógica subyacente y para entornos donde Python es más conveniente.
 
 ## Fuentes de datos soportadas
 
-A diferencia de masstin que se centra en EVTX, sabonis tiene un enfoque más amplio:
+Sabonis combinaba tres fuentes que entonces no leía ninguna otra herramienta nuestra (masstin las cubre hoy todas):
 
 ### Windows Event Logs (.evtx)
 
-Extrae y fusiona movimiento lateral de **más de 7 tipos de archivos EVTX**:
+Extrae y fusiona movimiento lateral de **varios tipos de archivos EVTX**:
 
 - **Security.evtx** — Logons (4624), logons fallidos (4625), logons explícitos (4648)
 - **TerminalServices** — Sesiones RDP

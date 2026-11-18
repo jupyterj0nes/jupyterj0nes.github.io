@@ -47,6 +47,10 @@ Score: the rarest a connection can read: logins one in 13590 (score 41),
 Done: 563 rows in 4.7s
 ```
 
+Dos cifras de ahí arriba que despistan. El escenario tiene 71 días de rutina, las diez semanas. El hunt dice **35** porque solo usa como vara de medir los días que ya tienen al menos la mitad del historial por detrás: los primeros no tienen con qué compararse. Para decidir si algo es nuevo sí mira los 71.
+
+Y en el informe las cuentas salen en mayúsculas y con guion bajo (`SVC_SQL@DEV`). Es la misma cuenta que el visor enseña como `svc-sql@DEV`.
+
 Línea a línea:
 
 - **Machines.** Había 367 nodos y eran 220 máquinas: 147 direcciones resultaron ser máquinas que ya tenían nombre.
@@ -96,7 +100,7 @@ Si no quieres que toque la timeline, `--no-annotate`.
 | 13 | 01:13 | 203.0.113.45 | LEO-LNX01 | DEPLOY | login FAILED (73) | 29 |
 | 24 | 17:22 | ADM-JUMP01 | PTR-SRV01 | ADM_NORA@LEONCORP | login OK | 38 |
 
-La fila 1 es el administrador del dominio de desarrollo entrando al servidor de ficheros **desde el servidor web Linux**. La 13 es la fuerza bruta. La 24 es otra cosa, y enseguida vuelvo a ella.
+La fila 1 es el administrador del dominio de desarrollo entrando al servidor de ficheros **desde el servidor web Linux**. La 13 es la fuerza bruta: el 73 son los intentos fallidos con la cuenta `deploy`. Esa dirección falló 184 veces en total, probando también otros nombres de usuario, pero para el hunt cada cuenta es una conexión distinta. La 24 es otra cosa, y enseguida vuelvo a ella.
 
 Las columnas que más se usan:
 
@@ -151,4 +155,4 @@ Las tres últimas secciones son lo que más tiempo ahorra. El hunt no se queda e
 
 ## Cuánto fiarse
 
-Sobre el conjunto público de LANL (58 días de una empresa real, con un red team etiquetado), las 100 primeras filas del hunt son todas del red team, y entre las 500 primeras, de 465 000, están el 65 % de sus conexiones. Lo que no encuentra también está medido: la máquina que hizo un solo logon discreto por destino, con un usuario distinto cada vez. Los detalles están en [el artículo principal](/es/tools/masstin-graph-hunt/).
+Sobre el conjunto público de LANL (58 días de una empresa real, con un red team etiquetado), 99 de las 100 primeras filas del hunt son del red team, y entre las 500 primeras, de 465 000, están 286 de sus 444 conexiones (el 64 %). Lo que no encuentra también está medido: la máquina que hizo un solo logon discreto por destino, con un usuario distinto cada vez. Los detalles están en [el artículo principal](/es/tools/masstin-graph-hunt/).

@@ -29,7 +29,7 @@ masstin -a ACCIÓN [-d CARPETA]... [-f FICHERO]... [-o SALIDA] [opciones]
 | `-a, --action` | La acción. Las tienes más abajo |
 | `-d, --directory` | Una carpeta, que se recorre entera. También una letra de unidad (`D:`). Se puede repetir |
 | `-f, --file` | Un fichero. Se puede repetir |
-| `-o, --output` | Dónde se escribe. Sin ella, la timeline va a la salida estándar |
+| `-o, --output` | Dónde se escribe. En los analizadores, sin ella la timeline va a la salida estándar |
 | `--overwrite` | Sobrescribir la salida si existe. Sin ella, un fichero que ya existe es un error, y lo dice antes de leer nada |
 | `--threads N` | Fijar el número de hilos. Sin ella, masstin [mide lo que está libre](/es/tools/masstin-performance/) |
 | `--silent` | Sin salida por consola, para automatizar |
@@ -45,7 +45,7 @@ masstin -a ACCIÓN [-d CARPETA]... [-f FICHERO]... [-o SALIDA] [opciones]
 | `parse-linux` | Solo logs y triages de Linux |
 | `parse-mac` | Solo `.logarchive` o exportaciones de `log show` |
 | `parse-massive` | La pasada masiva por su cuenta: imágenes, triages y ficheros sueltos |
-| `parser-elastic` | Eventos de Windows exportados como JSON (Winlogbeat y similares) |
+| `parser-elastic` | Eventos de Windows exportados como JSON (Winlogbeat y similares). Se llama así, con la r |
 | `parse-custom` | Logs de texto con [reglas YAML](/es/tools/masstin-custom-parsers/) |
 | `carve-image` | [Carving de EVTX](/es/tools/evtx-carving-unallocated/) sobre imágenes de disco |
 | `merge` | [Unir timelines](/es/tools/masstin-merge/), o refiltrar una |
@@ -57,7 +57,8 @@ masstin -a ACCIÓN [-d CARPETA]... [-f FICHERO]... [-o SALIDA] [opciones]
 | `--all-volumes` | `parse-image` | Todos los volúmenes NTFS del sistema. Requiere administrador |
 | `--parallel-images N` | `parse-image`, `parse-massive` | Imágenes a la vez. Sin ella, se mide |
 | `--skip-offsets LISTA` | `carve-image` | Zonas dañadas de un E01 que saltarse (32 MB cada una) |
-| `--dry-run` | analizadores, `merge` | Enseñar el resultado sin escribir el CSV |
+| `--dry-run` | analizadores, `merge` | Solo tiene efecto junto a un filtro (`--ignore-local`, `--exclude-*`) o con `parse-custom`: enseña el resumen de lo que se quitaría y no escribe más que la cabecera del CSV. Sin filtro, la timeline se escribe igual |
+| `--carry-marks FICHERO.csv` | `merge` | Traer veredictos y notas de una timeline anterior |
 
 ### Filtrar el ruido
 
@@ -156,7 +157,7 @@ Explicado en [Neo4j](/es/tools/neo4j-cypher-visualization/) y [Memgraph](/es/too
 
 | Opción | Qué hace |
 |---|---|
-| `--database` | La URL de la base de datos (`localhost:7687`) |
+| `--database` | La URL de la base de datos: `localhost:7687` en Memgraph, `bolt://localhost:7687` en Neo4j |
 | `-u, --user` | El usuario |
 | `--db` | El nombre de la base de datos en el servidor |
 | `--ungrouped` | Una relación por fila, en lugar de agrupar. El hunt sobre base de datos la necesita |

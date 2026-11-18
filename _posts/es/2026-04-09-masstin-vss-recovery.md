@@ -58,7 +58,7 @@ Procesando una imagen E01 de 50 GB de un Windows Server donde el atacante había
 | Snapshots VSS | 1 (creado 2018-08-07, 149.9 MB delta) |
 | EVTX del volumen activo | 296 ficheros |
 | EVTX del store VSS | 128 ficheros |
-| Total tras dedup | 424 EVTX únicos |
+| Total | 424 EVTX |
 | Eventos del live | 6,947 |
 | Eventos recuperados del VSS | 34,586 |
 | **Total eventos únicos** | **41,533** |

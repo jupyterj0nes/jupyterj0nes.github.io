@@ -185,7 +185,7 @@ First matched records:
   2016/02/24 22:41:24 | SUCCESSFUL_LOGON  | user=user1         | src=64.147.162.160 | dst=VPN-GW-N  | detail=GlobalProtect gateway register (session up) | user=user1 from=64.147.162.160 os=Microsoft Windows Server 2008 R2 Enterprise Edition Service Pack 1
 ```
 
-IP de origen, nombre de usuario, tipo de autenticación, versión del SO — todo se puebla correctamente para cada evento de logon. Los cuatro records matcheados aterrizan en la misma CSV de 14 columnas y están listos para `load-memgraph` o `load-neo4j` como cualquier otra fuente de masstin.
+IP de origen, nombre de usuario, tipo de autenticación, versión del SO — todo se puebla correctamente para cada evento de logon. Los cuatro records matcheados aterrizan en la misma timeline CSV que el resto (hoy 19 columnas: las 14 del evento y las 5 del análisis) y están listos para `load-memgraph` o `load-neo4j` como cualquier otra fuente de masstin.
 
 ---
 
@@ -283,9 +283,8 @@ Documentación completa en la [sección de filtrado de `docs/parsing.md`](https:
 
 ## Qué sigue
 
-- **Extractor JSON.** Publicado en v1.1.0 como `type: json` con selectores por ruta con puntos; `rules/json/mordor.yaml` es la primera regla construida sobre él.
 - **Map condicional.** Predicados tipo `when: ${action} == "fail"` para que un único parser pueda manejar variantes de línea de éxito y fallo del mismo evento cuando el formato lo hace más limpio que dos parsers.
-- **Más reglas.** Cisco ASA AnyConnect, Fortinet FortiGate, OpenVPN y Squid son las siguientes prioridades. Checkpoint, ZScaler, Cloudflare Access están en el backlog.
+- **Más reglas.** La biblioteca tiene hoy 13 reglas: las de Cisco, Fortinet, OpenVPN, Squid, Check Point, Zscaler y Cloudflare Access que aquí figuraban como pendientes ya están dentro, y el extractor JSON (`type: json`) también. Las siguientes dependen de las muestras que lleguen.
 - **Log type dedicado de PAN-OS 9.1+ `globalprotect`.** Una segunda regla de Palo Alto cubriendo el formato dedicado de 49+ columnas, en cuanto pueda validarla contra muestras reales.
 - **Comando de validación por regla.** Comprobar un fichero de reglas en busca de errores de esquema sin ejecutarlo contra un log.
 

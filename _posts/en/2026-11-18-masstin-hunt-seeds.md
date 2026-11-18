@@ -84,6 +84,8 @@ DEV-SRV01 -> LEO-PRN01:   1 failed attempt(s) at 02:31:19
 DEV-SRV01 -> PTR-FS01:    1 failed attempt(s) at 02:31:02
 ```
 
+This shows the 184 failures from that address, with every user name it tried. In the hunt report the same brute force appears as 73, which are only those of the account it finally got in with.
+
 Twenty-four minutes of brute force, and then five attempts in twenty seconds from the SQL server against five different machines. Someone trying a freshly stolen credential to see where it opens. That is scope too: those are the machines the attacker *wanted* to touch.
 
 **What was open on the seed when it began to act.** In case the seed is not the beginning but a step in the middle.

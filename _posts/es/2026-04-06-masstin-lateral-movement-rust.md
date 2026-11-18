@@ -21,7 +21,7 @@ comments: true
   "description": "Masstin es una herramienta DFIR escrita en Rust que parsea EVTX de Windows, logs de Linux, bases UAL, exportaciones de Cortex XDR, logs personalizados e imagenes forenses (E01/dd/VMDK incluido streamOptimized) en una timeline unificada de movimiento lateral, con visualizacion en grafos Neo4j y Memgraph y una caza estadistica de movimiento lateral (graph-hunt) que mide cada conexion contra la propia linea base de la red.",
   "url": "https://weinvestigateanything.com/es/tools/masstin-lateral-movement-rust/",
   "downloadUrl": "https://github.com/jupyterj0nes/masstin/releases/latest",
-  "softwareVersion": "1.1.0",
+  "softwareVersion": "1.4.4",
   "applicationCategory": "SecurityApplication",
   "applicationSubCategory": "Digital Forensics and Incident Response",
   "operatingSystem": "Windows, Linux, macOS",
@@ -208,8 +208,9 @@ Cómo decide, y qué encontró en el conjunto público de LANL, está en el [art
 | Acción | Descripción |
 |--------|-------------|
 | `parse` | **La que hay que usar.** Lee cualquier mezcla de evidencia de carpetas `-d` y ficheros `-f` (EVTX, triages, imágenes de disco, Linux, macOS, Winlogbeat) en una sola timeline. `--carve` añade los registros EVTX recuperados por carving, `--rules` tus parsers propios. Ver [Una sola acción: parse](#una-sola-accion-parse) |
-| `parse-cortex` | Consulta la API de Cortex XDR para conexiones de red (RDP/SMB/SSH) |
-| `parse-cortex-evtx-forensics` | Consulta la API de Cortex XDR para colecciones EVTX forenses de múltiples máquinas |
+| `parse-cortex` | Lee el movimiento lateral de un tenant de Cortex XDR por su API. Con `--cortex-sources` se elige qué: conexiones de red, los logs de eventos que mandan los agentes y las recogidas forenses |
+| `parse-cortex-evtx-forensics` | Solo los logs recogidos por el complemento forense de Cortex XDR |
+| `view` | Abre la ventana propia de masstin sobre una o varias timelines |
 | `merge` | Combina múltiples CSVs en una única timeline cronológica |
 | `load-neo4j` | Sube la timeline a Neo4j para visualización en grafos |
 | `load-memgraph` | Sube la timeline a Memgraph para visualización en grafos en memoria |
@@ -246,8 +247,8 @@ Sea cual sea la evidencia, cualquier EVTX cuyo `Provider.Name` coincida con un c
 | Security.evtx (14 Event IDs) | [Security.evtx y movimiento lateral](/es/artifacts/security-evtx-lateral-movement/) |
 | Terminal Services EVTX | [Terminal Services EVTX](/es/artifacts/terminal-services-evtx/) |
 | SMB EVTX | [Eventos SMB en EVTX](/es/artifacts/smb-evtx-events/) |
-| WinRM, WMI-Activity + Scheduled Tasks | PowerShell Remoting (Event 6), WMI remoto (Event 5858) y tareas programadas remotas (campo Author) | [WinRM, WMI y Tasks](/es/artifacts/winrm-wmi-schtasks-lateral-movement/) |
-| MountPoints2 (NTUSER.DAT) | Conexiones a shares remotos desde el registro — usuario→servidor con timestamps, sobrevive al borrado de logs | [MountPoints2](/es/artifacts/mountpoints2-lateral-movement/) |
+| WinRM, WMI-Activity + Scheduled Tasks — PowerShell Remoting (Event 6), WMI remoto (Event 5858) y tareas programadas remotas (campo Author) | [WinRM, WMI y Tasks](/es/artifacts/winrm-wmi-schtasks-lateral-movement/) |
+| MountPoints2 (NTUSER.DAT) — Conexiones a shares remotos desde el registro — usuario→servidor con timestamps, sobrevive al borrado de logs | [MountPoints2](/es/artifacts/mountpoints2-lateral-movement/) |
 | Logs de Linux | [Artefactos forenses de Linux](/es/artifacts/linux-forensic-artifacts/) |
 | Winlogbeat JSON | [Winlogbeat: artefactos en JSON](/es/artifacts/winlogbeat-elastic-artifacts/) |
 | Cortex XDR | [Cortex XDR: artefactos forenses](/es/artifacts/cortex-xdr-artifacts/) |

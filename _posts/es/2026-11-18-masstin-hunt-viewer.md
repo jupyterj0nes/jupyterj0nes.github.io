@@ -78,6 +78,8 @@ La tabla lista las conexiones más raras, y con leer las seis primeras ya tienes
 02:52  DEV-SRV01    → LEO-DC01     Administrator@DEV
 ```
 
+Los 75 eventos de la primera línea son los de la cuenta `deploy`: 73 intentos fallidos, la entrada y la salida. Esa misma dirección probó además otros nombres de usuario, hasta 184 fallos en total.
+
 Una dirección de fuera machaca el servidor Linux, entra, y trece minutos después de entrar ese servidor Linux está usando una cuenta de servicio de SQL contra un controlador de dominio. Es el guion, en el orden del guion, y nadie se lo ha contado.
 
 Abajo está el histograma de puntuaciones, con botones para poner el listón: una entre veinte, una entre cien, una entre mil.
@@ -127,7 +129,7 @@ El visor no lo pisa sin preguntar. Un diálogo te dice con qué parámetros se p
 
 ## Lo que hay que saber antes de fiarse
 
-- **Necesita pasado.** Con un solo día de referencia no arranca. Con una semana funciona, y con un mes mejor.
+- **Necesita pasado.** Con un solo día de referencia se ejecuta, pero no puede dar nada por significativo. Con una semana funciona, y con un mes mejor.
 - **Encuentra lo nuevo, no lo malo.** Un administrador que estrena servidor sale en la lista, y está bien que salga. Tú decides. En este escenario hay uno: `adm.nora` entrando desde el servidor de salto a una máquina del socio a la que nunca había ido. Sale como significativo y la clase que le pone el hunt es «credencial habitual en una conexión nueva», que es justo lo que es.
 - **No ve lo que hizo dentro.** masstin ve logons, no procesos. Para eso está el resto de la evidencia.
 

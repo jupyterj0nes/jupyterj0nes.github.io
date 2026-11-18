@@ -84,6 +84,8 @@ DEV-SRV01 -> LEO-PRN01:   1 failed attempt(s) at 02:31:19
 DEV-SRV01 -> PTR-FS01:    1 failed attempt(s) at 02:31:02
 ```
 
+Aquí salen los 184 fallos de esa dirección, con todos los nombres de usuario que probó. En el informe del hunt la misma fuerza bruta aparece como 73, que son solo los de la cuenta con la que al final entró.
+
 Veinticuatro minutos de fuerza bruta, y luego cinco intentos en veinte segundos desde el servidor SQL contra cinco máquinas distintas. Alguien probando una credencial recién robada a ver dónde abre. Eso también es alcance: son las máquinas que el atacante *quiso* tocar.
 
 **Qué había abierto en la semilla cuando empezó a actuar.** Por si la semilla no es el principio sino un paso intermedio.

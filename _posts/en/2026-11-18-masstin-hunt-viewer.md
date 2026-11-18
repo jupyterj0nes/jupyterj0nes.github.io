@@ -78,6 +78,8 @@ The table lists the rarest connections, and reading the first six gives you the 
 02:52  DEV-SRV01    → LEO-DC01     Administrator@DEV
 ```
 
+The 75 events on the first line are those of the `deploy` account: 73 failed attempts, the logon and the logoff. That same address also tried other user names, up to 184 failures in all.
+
 An outside address hammers the Linux server, gets in, and thirteen minutes after getting in that Linux server is using a SQL service account against a domain controller. It is the script, in the script's order, and nobody told it.
 
 At the bottom is the histogram of scores, with buttons to set the bar: one in twenty, one in a hundred, one in a thousand.
@@ -127,7 +129,7 @@ The viewer does not write over it without asking. A dialog tells you what the ea
 
 ## What to know before trusting it
 
-- **It needs a past.** With a single reference day it will not start. With a week it works, and with a month it works better.
+- **It needs a past.** With a single reference day it runs, but it cannot call anything significant. With a week it works, and with a month it works better.
 - **It finds what is new, not what is bad.** An administrator trying out a new server is on the list, and rightly so. You decide. This scenario has one: `adm.nora` logging on from the jump server to a partner machine that account had never reached. It comes out significant, and the class the hunt gives it is "habitual credential on a new connection", which is exactly what it is.
 - **It does not see what was done inside.** masstin sees logons, not processes. That is what the rest of the evidence is for.
 

@@ -37,7 +37,7 @@ masstin -a graph-hunt-csv -f timeline.csv \
         --seed 194.61.24.102 --report hunt.md -o hunt.csv
 ```
 
-No database is involved: `graph-hunt-csv` reads the timeline that any `parse-*` action wrote and computes everything in memory. The same engine runs on a loaded graph with `graph-hunt` (Memgraph) and `graph-hunt-neo4j`, and gives the same rows; the graph is only there if you want to explore afterwards. No MAGE, no GDS, no plugin of any kind.
+No database is involved: `graph-hunt-csv` reads the timeline that `masstin -a parse` wrote and computes everything in memory. The same engine runs on a loaded graph with `graph-hunt` (Memgraph) and `graph-hunt-neo4j`, and gives the same rows; the graph is only there if you want to explore afterwards. No MAGE, no GDS, no plugin of any kind.
 
 While it works, a bar tells you which of its ten stages it is on (reading the timeline, learning what is normal, weighing every connection...), on the console and, if you launch it from masstin's window, over the map itself. On a big timeline it is good to know it is still alive.
 

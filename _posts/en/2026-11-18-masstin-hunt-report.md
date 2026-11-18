@@ -47,6 +47,10 @@ Score: the rarest a connection can read: logins one in 13590 (score 41),
 Done: 563 rows in 4.7s
 ```
 
+Two figures up there that mislead. The scenario has 71 days of routine, the ten weeks. The hunt says **35** because it only uses as its yardstick the days that already have at least half the history behind them: the first ones have nothing to compare with. To decide whether something is new it does look at all 71.
+
+And in the report accounts come out in upper case with underscores (`SVC_SQL@DEV`). It is the same account the viewer shows as `svc-sql@DEV`.
+
 Line by line:
 
 - **Machines.** There were 367 nodes and they were 220 machines: 147 addresses turned out to be machines that already had a name.
@@ -96,7 +100,7 @@ If you do not want it to touch the timeline, `--no-annotate`.
 | 13 | 01:13 | 203.0.113.45 | LEO-LNX01 | DEPLOY | login FAILED (73) | 29 |
 | 24 | 17:22 | ADM-JUMP01 | PTR-SRV01 | ADM_NORA@LEONCORP | login OK | 38 |
 
-Row 1 is the development domain's administrator logging on to the file server **from the Linux web server**. Row 13 is the brute force. Row 24 is something else, and I will come back to it.
+Row 1 is the development domain's administrator logging on to the file server **from the Linux web server**. Row 13 is the brute force: the 73 is the failed attempts with the `deploy` account. That address failed 184 times in all, trying other user names too, but for the hunt each account is a separate connection. Row 24 is something else, and I will come back to it.
 
 The columns you use most:
 
@@ -151,4 +155,4 @@ The last three sections are the ones that save the most time. The hunt does not 
 
 ## How far to trust it
 
-On the public LANL set (58 days of a real enterprise, with a labelled red team), the hunt's first 100 rows are all red team, and the first 500, out of 465,000, hold 65 % of its connections. What it does not find is measured too: the machine that made one quiet logon per destination, with a different user each time. The details are in [the main article](/en/tools/masstin-graph-hunt/).
+On the public LANL set (58 days of a real enterprise, with a labelled red team), 99 of the hunt's first 100 rows are red team, and the first 500, out of 465,000, hold 286 of its 444 connections (64 %). What it does not find is measured too: the machine that made one quiet logon per destination, with a different user each time. The details are in [the main article](/en/tools/masstin-graph-hunt/).

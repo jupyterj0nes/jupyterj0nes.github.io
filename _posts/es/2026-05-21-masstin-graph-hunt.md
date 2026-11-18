@@ -37,7 +37,7 @@ masstin -a graph-hunt-csv -f timeline.csv \
         --seed 194.61.24.102 --report hunt.md -o hunt.csv
 ```
 
-No hay base de datos por medio: `graph-hunt-csv` lee el timeline que escribió cualquier acción `parse-*` y lo calcula todo en memoria. El mismo motor corre sobre un grafo cargado con `graph-hunt` (Memgraph) y `graph-hunt-neo4j`, y da las mismas filas; el grafo sólo está ahí si luego quieres explorar. Ni MAGE, ni GDS, ni ningún plugin.
+No hay base de datos por medio: `graph-hunt-csv` lee el timeline que escribió `masstin -a parse` y lo calcula todo en memoria. El mismo motor corre sobre un grafo cargado con `graph-hunt` (Memgraph) y `graph-hunt-neo4j`, y da las mismas filas; el grafo sólo está ahí si luego quieres explorar. Ni MAGE, ni GDS, ni ningún plugin.
 
 Mientras trabaja, una barra te dice en cuál de sus diez etapas va (leyendo el timeline, aprendiendo qué es normal, pesando cada conexión...), en la consola y, si lo lanzas desde la ventana de masstin, sobre el propio mapa. En un timeline grande se agradece saber que sigue vivo.
 

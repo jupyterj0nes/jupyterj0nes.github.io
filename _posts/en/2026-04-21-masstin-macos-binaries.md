@@ -25,9 +25,10 @@ Both are standalone. Download, make executable, run. No Homebrew. No `libewf`. N
 
 ```bash
 # Apple Silicon
-curl -LO https://github.com/jupyterj0nes/masstin/releases/latest/download/masstin-<tag>-macos-arm64
-chmod +x masstin-<tag>-macos-arm64
-./masstin-<tag>-macos-arm64 -a parse -d /evidence/logs -o timeline.csv
+# replace v1.4.4 with the latest version on the releases page
+curl -LO https://github.com/jupyterj0nes/masstin/releases/download/v1.4.4/masstin-v1.4.4-macos-arm64
+chmod +x masstin-v1.4.4-macos-arm64
+./masstin-v1.4.4-macos-arm64 -a parse -d /evidence/logs -o timeline.csv
 ```
 
 ---
@@ -44,7 +45,7 @@ The dependency tree masstin ships with avoids that at every node:
 - **`vmdk` reader, `polars`, `tokio`, `evtx`** — pure Rust.
 - **`systemd-journal-reader`** — pure Rust, reads the `.journal` binary format directly without `libsystemd`.
 
-The only dynamic dependency the linker emits on macOS is `libSystem.B.dylib`, which Apple guarantees is present on every macOS install. Running `otool -L masstin-macos-arm64` confirms it:
+The only dynamic dependencies the linker emits on macOS are three of the system's own libraries, present on every macOS install. Running `otool -L masstin-macos-arm64` confirms it:
 
 ```
 masstin-macos-arm64:
@@ -81,9 +82,9 @@ Each tag push now produces four release assets: `windows.exe`, `linux`, `macos-a
 macOS Gatekeeper tags files downloaded from a browser with the `com.apple.quarantine` extended attribute, and refuses to execute unsigned binaries on first run. Signing + notarizing a Rust CLI tool costs $99/year on an Apple Developer account for a small forensic utility we can't justify, so the pragmatic workaround is in the README: strip the attribute once and run normally.
 
 ```bash
-chmod +x masstin-<tag>-macos-<arch>
-xattr -d com.apple.quarantine masstin-<tag>-macos-<arch>
-./masstin-<tag>-macos-<arch> --version
+chmod +x masstin-v1.4.4-macos-arm64
+xattr -d com.apple.quarantine masstin-v1.4.4-macos-arm64
+./masstin-v1.4.4-macos-arm64 --version
 ```
 
 Good news for anyone using curl / wget: the quarantine attribute is only applied by Safari, the Finder UI, and AirDrop. Downloads via `curl`, `wget`, or `git clone` are never tagged. If your team fetches the binary from a script, Gatekeeper doesn't enter the picture.
@@ -129,7 +130,7 @@ For symmetry, I re-ran the same dataset with the v0.14.0 release binary (Intel, 
 | Binary | Events | Notes |
 |--------|-------:|-------|
 | v0.14.0 release (Intel + Rosetta) | 0 | Hit the Provider.Name dispatch bug — see [separate post](/en/tools/masstin-archived-evtx-provider-dispatch/) |
-| main on macos-13 runner (Intel native) | 11,819 | Ditto next release |
+| main on macos-13 runner (Intel native) | 11,819 | The same in the versions released since |
 | main on macos-latest runner (arm64 native) | 11,819 | Same numbers, native, 20-30% faster wall clock |
 
 The Intel release binary also ran fine under Rosetta 2 — no dyld errors, no Gatekeeper friction (since it came from `curl`) — just didn't extract any events because of an unrelated dispatcher bug, now fixed in `main`. Rosetta compatibility for anyone on Intel transitioning to Apple Silicon is confirmed, but the new native arm64 binary skips the translation layer entirely.
@@ -145,7 +146,7 @@ The Intel release binary also ran fine under Rosetta 2 — no dyld errors, no Ga
 
 ---
 
-## What's planned for macOS
+## macOS as evidence
 
 At the time the parsers were Windows and Linux. macOS as an *investigation target* is covered today by `parse`, which reads the Unified Log, as a `.logarchive` or a `log show` JSON export, for SSH and Screen Sharing logons. This release was only about platform parity, running masstin *from* a macOS workstation.
 

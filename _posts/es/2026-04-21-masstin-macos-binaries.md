@@ -25,9 +25,10 @@ Los dos son standalone. Descargar, hacer ejecutable, ejecutar. Nada de Homebrew.
 
 ```bash
 # Apple Silicon
-curl -LO https://github.com/jupyterj0nes/masstin/releases/latest/download/masstin-<tag>-macos-arm64
-chmod +x masstin-<tag>-macos-arm64
-./masstin-<tag>-macos-arm64 -a parse -d /evidencia/logs -o timeline.csv
+# cambia v1.4.4 por la última versión de la página de releases
+curl -LO https://github.com/jupyterj0nes/masstin/releases/download/v1.4.4/masstin-v1.4.4-macos-arm64
+chmod +x masstin-v1.4.4-macos-arm64
+./masstin-v1.4.4-macos-arm64 -a parse -d /evidencia/logs -o timeline.csv
 ```
 
 ---
@@ -44,7 +45,7 @@ El árbol de dependencias con el que masstin se distribuye evita eso en cada nod
 - **`vmdk` reader, `polars`, `tokio`, `evtx`** — Rust puro.
 - **`systemd-journal-reader`** — Rust puro, lee el formato binario `.journal` directamente sin `libsystemd`.
 
-La única dependencia dinámica que el linker emite en macOS es `libSystem.B.dylib`, que Apple garantiza que está presente en cada instalación de macOS. Ejecutar `otool -L masstin-macos-arm64` lo confirma:
+Las únicas dependencias dinámicas que el linker emite en macOS son tres bibliotecas del propio sistema, que están en cada instalación de macOS. Ejecutar `otool -L masstin-macos-arm64` lo confirma:
 
 ```
 masstin-macos-arm64:
@@ -81,9 +82,9 @@ Cada tag push ahora produce cuatro assets de release: `windows.exe`, `linux`, `m
 Gatekeeper de macOS etiqueta los ficheros descargados desde un navegador con el atributo extendido `com.apple.quarantine`, y se niega a ejecutar binarios sin firmar en la primera ejecución. Firmar + notarizar una herramienta Rust CLI cuesta $99/año en una cuenta de Apple Developer para una utilidad forense pequeña que no podemos justificar, así que el workaround pragmático está en el README: quitar el atributo una vez y ejecutar normal.
 
 ```bash
-chmod +x masstin-<tag>-macos-<arch>
-xattr -d com.apple.quarantine masstin-<tag>-macos-<arch>
-./masstin-<tag>-macos-<arch> --version
+chmod +x masstin-v1.4.4-macos-arm64
+xattr -d com.apple.quarantine masstin-v1.4.4-macos-arm64
+./masstin-v1.4.4-macos-arm64 --version
 ```
 
 Buenas noticias para quien use curl / wget: el atributo de quarantine solo lo aplican Safari, la UI del Finder, y AirDrop. Descargas vía `curl`, `wget`, o `git clone` nunca se etiquetan. Si tu equipo baja el binario desde un script, Gatekeeper no entra en juego.
@@ -129,7 +130,7 @@ Por simetría, relancé el mismo dataset con el binario de release v0.14.0 (Inte
 | Binario | Eventos | Notas |
 |---------|--------:|-------|
 | v0.14.0 release (Intel + Rosetta) | 0 | Le pegó el bug del dispatcher por Provider.Name — ver [post separado](/es/tools/masstin-archived-evtx-provider-dispatch/) |
-| main en runner macos-13 (Intel nativo) | 11.819 | Igual en el próximo release |
+| main en runner macos-13 (Intel nativo) | 11.819 | Igual en las versiones publicadas desde entonces |
 | main en runner macos-latest (arm64 nativo) | 11.819 | Mismos números, nativo, 20-30% más rápido en wall clock |
 
 El binario de release Intel también corrió fino bajo Rosetta 2 — sin errores de dyld, sin fricción de Gatekeeper (porque vino de `curl`) — simplemente no extrajo ningún evento por un bug de dispatcher no relacionado, ya arreglado en `main`. Compatibilidad Rosetta para quien esté en Intel transicionando a Apple Silicon queda confirmada, pero el nuevo binario arm64 nativo se salta la capa de traducción entera.
@@ -145,7 +146,7 @@ El binario de release Intel también corrió fino bajo Rosetta 2 — sin errores
 
 ---
 
-## Qué está planeado para macOS
+## macOS como evidencia
 
 En aquel momento los parsers eran Windows y Linux. macOS como *objetivo de investigación* lo cubre hoy `parse`, que lee el Unified Log, como `.logarchive` o como export JSON de `log show`, para los logons por SSH y Screen Sharing. Este release era solo la paridad de plataforma para *ejecutar* masstin desde una workstation macOS.
 
